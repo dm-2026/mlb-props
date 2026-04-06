@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB HR Props</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #141820;
+    --surface2: #1c2230;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8ecf0;
+    --text2: #8a96a8;
+    --text3: #556070;
+    --prime: #22c55e;
+    --prime-bg: rgba(34,197,94,0.10);
+    --prime-border: rgba(34,197,94,0.25);
+    --high: #3b82f6;
+    --high-bg: rgba(59,130,246,0.10);
+    --high-border: rgba(59,130,246,0.25);
+    --med: #f59e0b;
+    --med-bg: rgba(245,158,11,0.10);
+    --med-border: rgba(245,158,11,0.25);
+    --fade: #ef4444;
+    --fade-bg: rgba(239,68,68,0.08);
+    --fade-border: rgba(239,68,68,0.20);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  body { max-width: 960px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* ── Header ── */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .logo { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); letter-spacing: -0.5px; }
+  .logo span { color: var(--prime); }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .header-date { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+  .live-badge { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 2px; background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
+  .seed-badge { background: var(--med-bg); color: var(--med); border-color: var(--med-border); }
+
+  /* ── Summary bar ── */
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+  .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
+  .sum-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .sum-value { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+  .sum-value.prime { color: var(--prime); }
+  .sum-value.high  { color: var(--high); }
+  .sum-value.med   { color: var(--med); }
+  .sum-value.fade  { color: var(--fade); }
+
+  /* ── Section label ── */
+  .section-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.10em; margin: 20px 0 10px; }
+
+  /* ── Game chips ── */
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 24px; }
+  .game-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; cursor: default; }
+  .game-chip:hover { border-color: var(--border2); }
+  .chip-matchup { font-family: var(--mono); font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .chip-venue { font-size: 11px; color: var(--text3); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* ── Badges ── */
+  .badge { font-family: var(--mono); font-size: 9px; padding: 2px 5px; border-radius: 2px; border: 1px solid; white-space: nowrap; }
+  .badge-boost   { background: rgba(34,197,94,0.08);  color: #86efac; border-color: rgba(34,197,94,0.20); }
+  .badge-neutral { background: var(--surface2);        color: var(--text3); border-color: var(--border); }
+  .badge-suppress{ background: rgba(239,68,68,0.08);  color: #fca5a5; border-color: rgba(239,68,68,0.20); }
+  .badge-wind    { background: rgba(59,130,246,0.08); color: #93c5fd; border-color: rgba(59,130,246,0.20); }
+  .badge-rain    { background: rgba(245,158,11,0.08); color: #fcd34d; border-color: rgba(245,158,11,0.20); }
+  .badge-dome    { background: var(--surface2); color: var(--text3); border-color: var(--border); }
+
+  /* ── Filter row ── */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-btn { font-family: var(--mono); font-size: 11px; padding: 5px 12px; border-radius: 3px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active-prime { background: var(--prime-bg); border-color: var(--prime-border); color: var(--prime); }
+  .filter-btn.active-high  { background: var(--high-bg);  border-color: var(--high-border);  color: var(--high); }
+  .filter-btn.active-med   { background: var(--med-bg);   border-color: var(--med-border);   color: var(--med); }
+  .filter-btn.active-all   { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+  /* ── Batter cards ── */
+  .targets-list { display: flex; flex-direction: column; gap: 6px; }
+  .batter-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color 0.15s; }
+  .batter-card:hover { border-color: var(--border2); }
+  .batter-card.expanded { border-color: var(--border2); }
+  .card-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
+  .tier-bar { width: 3px; height: 40px; border-radius: 2px; flex-shrink: 0; }
+  .tier-bar.PRIME { background: var(--prime); }
+  .tier-bar.HIGH  { background: var(--high); }
+  .tier-bar.MED   { background: var(--med); }
+  .score-box { width: 44px; height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 500; flex-shrink: 0; }
+  .score-box.PRIME { background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
+  .score-box.HIGH  { background: var(--high-bg);  color: var(--high);  border: 1px solid var(--high-border); }
+  .score-box.MED   { background: var(--med-bg);   color: var(--med);   border: 1px solid var(--med-border); }
+  .card-info { flex: 1; min-width: 0; }
+  .batter-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .batter-sub  { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-badges-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+  .expand-icon { color: var(--text3); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .batter-card.expanded .expand-icon { transform: rotate(180deg); }
+
+  /* ── Card detail ── */
+  .card-detail { display: none; padding: 0 14px 14px; }
+  .batter-card.expanded .card-detail { display: block; }
+  .insight-box { background: var(--surface2); border-left: 3px solid var(--border2); border-radius: 0 4px 4px 0; padding: 8px 12px; font-size: 12px; color: var(--text2); font-style: italic; margin-bottom: 12px; }
+
+  /* ── Component bars ── */
+  .components-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .comp-item { background: var(--surface2); border-radius: 4px; padding: 8px 10px; }
+  .comp-label { font-size: 9px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .comp-bar-bg { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 3px; }
+  .comp-bar-fill { height: 100%; border-radius: 2px; }
+  .comp-value { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+  /* ── Pitch matrix ── */
+  .matrix-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .pitch-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .pitch-table th { font-family: var(--mono); font-weight: 400; color: var(--text3); text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .pitch-table td { padding: 5px 8px 5px 0; color: var(--text2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .pitch-table tr:last-child td { border: none; }
+  .pitch-name { font-family: var(--mono); font-weight: 500; color: var(--text); }
+  .vuln-cell { display: flex; align-items: center; gap: 6px; }
+  .vuln-bar { width: 50px; height: 3px; background: var(--border); border-radius: 2px; position: relative; }
+  .vuln-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 2px; }
+  .hi { background: var(--fade); }
+  .md { background: var(--med); }
+  .lo { background: var(--prime); }
+  .stat-val { font-family: var(--mono); color: var(--text); }
+  .stat-dim { color: var(--text3); }
+
+  /* ── Meta row ── */
+  .meta-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .meta-item { font-size: 11px; }
+  .meta-item .mk { color: var(--text3); font-family: var(--mono); font-size: 10px; }
+  .meta-item .mv { font-family: var(--mono); font-size: 13px; color: var(--text); }
+
+  /* ── Fade section ── */
+  .fade-list { background: var(--surface); border: 1px solid var(--fade-border); border-radius: 8px; overflow: hidden; }
+  .fade-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .fade-item:last-child { border: none; }
+  .fade-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--fade); flex-shrink: 0; }
+  .fade-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .fade-reason { margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text3); }
+
+  /* ── Empty/loading states ── */
+  .loading { text-align: center; padding: 60px 20px; color: var(--text3); font-family: var(--mono); }
+  .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; color: var(--text3); font-family: var(--mono); font-size: 13px; }
+
+  /* ── Footer ── */
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; justify-content: space-between; }
+
+  /* ── Tier dividers ── */
+  .tier-divider { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.10em; padding: 6px 0 4px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+  .tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .tier-divider.PRIME { color: var(--prime); }
+  .tier-divider.HIGH  { color: var(--high); }
+  .tier-divider.MED   { color: var(--med); }
+
+  @media (max-width: 600px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .components-grid { grid-template-columns: repeat(2, 1fr); }
+    .fade-reason { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">MLB<span>.</span>HR<span>.</span>Props</div>
+  <div class="header-right">
+    <div class="header-date" id="header-date">Loading…</div>
+    <div class="live-badge seed-badge" id="data-badge">SEED DATA</div>
+  </div>
+</div>
+
+<div class="summary" id="summary">
+  <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="s-games">—</div></div>
+  <div class="sum-card"><div class="sum-label">Prime</div><div class="sum-value prime" id="s-prime">—</div></div>
+  <div class="sum-card"><div class="sum-label">High</div><div class="sum-value high" id="s-high">—</div></div>
+  <div class="sum-card"><div class="sum-label">Auto-fades</div><div class="sum-value fade" id="s-fades">—</div></div>
+</div>
+
+<div class="section-label">Today's Slate</div>
+<div class="games-grid" id="games-grid"><div class="loading">Loading slate…</div></div>
+
+<div class="section-label" style="margin-top:28px;">Ranked Targets</div>
+<div class="filter-row" id="filter-row">
+  <button class="filter-btn active-all" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('PRIME', this)">Prime</button>
+  <button class="filter-btn" onclick="setFilter('HIGH', this)">High</button>
+  <button class="filter-btn" onclick="setFilter('MED', this)">Med</button>
+</div>
+<div class="targets-list" id="targets-list"><div class="loading">Scoring matchups…</div></div>
+
+<div class="section-label" style="margin-top:28px;">Auto-Fade List</div>
+<div id="fades-section"><div class="loading">—</div></div>
+
+<div class="footer">
+  <span id="footer-gen">Generated: —</span>
+  <span>MLB HR Props Pipeline · github.com/dm-2026/mlb-props</span>
+</div>
+
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+const PITCH_NAMES = {
+  FF: 'Four-seam', SI: 'Sinker', FC: 'Cutter', CH: 'Changeup',
+  SL: 'Slider', CU: 'Curveball', SW: 'Sweeper', FS: 'Splitter',
+  KC: 'Knuckle curve', CS: 'Slow curve', KN: 'Knuckleball',
+};
+
+const COMP_LABELS = {
+  ev_barrel: 'EV + Barrel', pitcher_vuln: 'Pitcher Vuln',
+  pitch_collision: 'Pitch Collision', park_factor: 'Park Factor',
+  platoon: 'Platoon Edge', weather: 'Weather', recent_form: 'L14D Form',
+};
+
+const COMP_COLORS = {
+  ev_barrel: '#3b82f6', pitcher_vuln: '#ef4444', pitch_collision: '#22c55e',
+  park_factor: '#f59e0b', platoon: '#a78bfa', weather: '#38bdf8', recent_form: '#fb923c',
+};
+
+let currentFilter = 'all';
+let allData = null;
+
+// ── Load data ────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const r = await fetch(`data/data.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error('No data.json found');
+    allData = await r.json();
+    render(allData);
+  } catch (e) {
+    console.warn('data.json not found, using demo data:', e.message);
+    allData = getDemoData();
+    render(allData);
+  }
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render(data) {
+  // Header
+  const d = new Date(data.date + 'T12:00:00');
+  document.getElementById('header-date').textContent =
+    d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+  const badge = document.getElementById('data-badge');
+  if (data.pybaseball_live) {
+    badge.textContent = 'LIVE DATA';
+    badge.className = 'live-badge';
+  } else {
+    badge.textContent = 'SEED DATA';
+    badge.className = 'live-badge seed-badge';
+  }
+
+  // Summary
+  const s = data.summary;
+  document.getElementById('s-games').textContent = s.total_games;
+  document.getElementById('s-prime').textContent = s.prime_count;
+  document.getElementById('s-high').textContent  = s.high_count;
+  document.getElementById('s-fades').textContent = s.fade_count;
+
+  // Games
+  renderGames(data.games);
+
+  // Targets
+  renderTargets(data.targets);
+
+  // Fades
+  renderFades(data.auto_fades);
+
+  // Footer
+  const gen = new Date(data.generated_at);
+  document.getElementById('footer-gen').textContent =
+    'Generated: ' + gen.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderGames(games) {
+  const el = document.getElementById('games-grid');
+  if (!games || games.length === 0) {
+    el.innerHTML = '<div class="empty">No games scheduled today</div>';
+    return;
+  }
+  el.innerHTML = games.map(g => {
+    const pf = g.park_factor;
+    const pfBadge = g.park_dome ? `<span class="badge badge-dome">Dome</span>`
+      : pf >= 110 ? `<span class="badge badge-boost">Park +${pf-100}%</span>`
+      : pf <= 90  ? `<span class="badge badge-suppress">Park ${pf-100}%</span>`
+      : `<span class="badge badge-neutral">Park ${pf}</span>`;
+
+    const w = g.weather;
+    const wLabel = w.wind_label || '—';
+    const windBadge = g.park_dome ? ''
+      : wLabel.includes('OUT') ? `<span class="badge badge-boost">${wLabel}</span>`
+      : wLabel.includes('IN')  ? `<span class="badge badge-suppress">${wLabel}</span>`
+      : `<span class="badge badge-wind">${wLabel}</span>`;
+
+    const rainBadge = (!g.park_dome && w.rain_chance > 0.35)
+      ? `<span class="badge badge-rain">Rain ${Math.round(w.rain_chance*100)}%</span>` : '';
+
+    const tempBadge = !g.park_dome
+      ? `<span class="badge badge-neutral">${w.temp_f}°F</span>` : '';
+
+    const awayP = g.away_probable ? g.away_probable.name.split(' ').pop() : 'TBD';
+    const homeP = g.home_probable ? g.home_probable.name.split(' ').pop() : 'TBD';
+
+    return `<div class="game-chip">
+      <div class="chip-matchup">${g.away_team} @ ${g.home_team}</div>
+      <div class="chip-venue">${g.venue || ''}</div>
+      <div class="chip-badges">
+        ${pfBadge}${windBadge}${tempBadge}${rainBadge}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTargets(targets) {
+  const el = document.getElementById('targets-list');
+  if (!targets || targets.length === 0) {
+    el.innerHTML = '<div class="empty">No targets scored yet — run pipeline.py to populate</div>';
+    return;
+  }
+
+  const filtered = currentFilter === 'all' ? targets : targets.filter(t => t.tier === currentFilter);
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty">No ${currentFilter} targets today</div>`;
+    return;
+  }
+
+  let html = '';
+  let lastTier = null;
+  filtered.forEach((t, i) => {
+    if (t.tier !== lastTier) {
+      const tLabel = t.tier === 'PRIME' ? 'Prime — 3+ factors aligning'
+        : t.tier === 'HIGH' ? 'High — 2 strong factors'
+        : 'Med — 1 strong factor';
+      html += `<div class="tier-divider ${t.tier}">${tLabel}</div>`;
+      lastTier = t.tier;
+    }
+    html += renderBatterCard(t, i);
+  });
+  el.innerHTML = html;
+}
+
+function renderBatterCard(t, idx) {
+  const meta = t.batter_meta || {};
+  const ev = meta.avg_ev ? `${meta.avg_ev} mph EV` : '';
+  const barrel = meta.barrel_pct ? `${meta.barrel_pct}% barrel` : '';
+  const form = meta.hr_recent_14d > 0 ? `${meta.hr_recent_14d} HR L14D` : '';
+  const pa26 = meta.pa_2026 > 0 ? `${meta.pa_2026} PA '26` : '';
+
+  const platoonEdge = t.batter_hand !== t.pitcher_throws;
+
+  const parkBadge = t.park_suppress
+    ? `<span class="badge badge-suppress">Park ${t.park_factor < 100 ? t.park_factor-100 : '+'+String(t.park_factor-100)}%</span>`
+    : t.park_factor >= 110
+    ? `<span class="badge badge-boost">Park +${t.park_factor-100}%</span>`
+    : `<span class="badge badge-neutral">Park ${t.park_factor}</span>`;
+
+  const windBadge = t.weather_label && t.weather_label !== '—' && t.weather_label !== 'Dome'
+    ? (t.weather_label.includes('OUT')
+        ? `<span class="badge badge-boost">${t.weather_label}</span>`
+        : t.weather_label.includes('IN')
+        ? `<span class="badge badge-suppress">${t.weather_label}</span>`
+        : `<span class="badge badge-wind">${t.weather_label}</span>`)
+    : '';
+
+  const platoonBadge = platoonEdge ? `<span class="badge badge-boost">Platoon ✓</span>` : '';
+  const formBadge = meta.hr_recent_14d >= 2 ? `<span class="badge badge-boost">${meta.hr_recent_14d} HR L14D</span>` : '';
+
+  // Component bars
+  const compBars = Object.entries(t.components || {}).map(([k, v]) => {
+    const color = COMP_COLORS[k] || '#666';
+    return `<div class="comp-item">
+      <div class="comp-label">${COMP_LABELS[k] || k}</div>
+      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${color};"></div></div>
+      <div class="comp-value" style="color:${color}">${v}</div>
+    </div>`;
+  }).join('');
+
+  // Pitch matrix
+  const pitchRows = Object.entries(t.pitch_matrix || {}).map(([pt, d]) => {
+    const vuln = Math.min((d.pitcher_hr9 || 0) / 2.5 * 100, 100);
+    const vClass = vuln > 65 ? 'hi' : vuln > 35 ? 'md' : 'lo';
+    const slgVal = d.slg ? d.slg.toFixed(3) : '—';
+    const usage = d.pitcher_usage ? d.pitcher_usage.toFixed(0) + '%' : '—';
+    const hr9 = d.pitcher_hr9 != null ? d.pitcher_hr9.toFixed(2) : '—';
+    const la = d.avg_launch_angle != null ? d.avg_launch_angle.toFixed(1) + '°' : '—';
+    const name = PITCH_NAMES[pt] || pt;
+    return `<tr>
+      <td class="pitch-name">${name}</td>
+      <td class="stat-val">${usage}</td>
+      <td class="stat-val">${slgVal}</td>
+      <td class="stat-val">${hr9}</td>
+      <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vClass}" style="width:${Math.round(vuln)}%"></div></div></div></td>
+      <td class="stat-dim">${la}</td>
+    </tr>`;
+  }).join('');
+
+  const hasMatrix = Object.keys(t.pitch_matrix || {}).length > 0;
+
+  return `<div class="batter-card" id="card-${idx}">
+    <div class="card-header" onclick="toggleCard(${idx})">
+      <div class="tier-bar ${t.tier}"></div>
+      <div class="score-box ${t.tier}">${t.score}</div>
+      <div class="card-info">
+        <div class="batter-name">${t.batter_name}</div>
+        <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue || t.game}</div>
+        <div class="card-badges-row">
+          ${parkBadge}${windBadge}${platoonBadge}${formBadge}
+        </div>
+      </div>
+      <div class="expand-icon">▾</div>
+    </div>
+    <div class="card-detail">
+      <div class="insight-box">${t.insight}</div>
+      <div class="components-grid">${compBars}</div>
+      ${hasMatrix ? `
+        <div class="matrix-label">Pitch collision matrix</div>
+        <table class="pitch-table">
+          <thead><tr>
+            <th>Pitch</th><th>Usage</th><th>Batter SLG</th><th>Pitcher HR/9</th><th>Vuln</th><th>Avg LA</th>
+          </tr></thead>
+          <tbody>${pitchRows}</tbody>
+        </table>` : ''}
+      <div class="meta-row">
+        ${ev ? `<div class="meta-item"><div class="mk">Exit velo</div><div class="mv">${ev}</div></div>` : ''}
+        ${barrel ? `<div class="meta-item"><div class="mk">Barrel%</div><div class="mv">${barrel}</div></div>` : ''}
+        ${form ? `<div class="meta-item"><div class="mk">Recent</div><div class="mv">${form}</div></div>` : ''}
+        ${pa26 ? `<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${pa26}</div></div>` : ''}
+        <div class="meta-item"><div class="mk">Park factor</div><div class="mv">${t.park_factor}</div></div>
+        <div class="meta-item"><div class="mk">HR mult</div><div class="mv">${(t.hr_multiplier || 1.0).toFixed(2)}×</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFades(fades) {
+  const el = document.getElementById('fades-section');
+  if (!fades || fades.length === 0) {
+    el.innerHTML = '<div class="empty">No auto-fades generated</div>';
+    return;
+  }
+  el.innerHTML = `<div class="fade-list">${fades.map(f =>
+    `<div class="fade-item">
+      <div class="fade-dot"></div>
+      <div class="fade-name">${f.pitcher_name}</div>
+      <div class="fade-reason">${f.reason}</div>
+    </div>`
+  ).join('')}</div>`;
+}
+
+// ── Interactions ──────────────────────────────────────────────────────────────
+function toggleCard(idx) {
+  document.getElementById(`card-${idx}`).classList.toggle('expanded');
+}
+
+function setFilter(tier, btn) {
+  currentFilter = tier;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.className = 'filter-btn';
+  });
+  btn.className = tier === 'all' ? 'filter-btn active-all'
+    : tier === 'PRIME' ? 'filter-btn active-prime'
+    : tier === 'HIGH'  ? 'filter-btn active-high'
+    : 'filter-btn active-med';
+  if (allData) renderTargets(allData.targets);
+}
+
+// ── Demo data (shown before pipeline runs) ───────────────────────────────────
+function getDemoData() {
+  const today = new Date().toISOString().split('T')[0];
+  return {
+    generated_at: new Date().toISOString(),
+    date: today,
+    pybaseball_live: false,
+    summary: { total_games: 0, prime_count: 0, high_count: 0, med_count: 0, fade_count: 0 },
+    games: [],
+    targets: [],
+    auto_fades: [],
+  };
+}
+
+loadData();
+</script>
+</body>
+</html>
