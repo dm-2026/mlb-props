@@ -95,19 +95,12 @@ PARK_FACTORS = {
 
 # Elite pitcher auto-fade list (mlbam IDs + names)
 ELITE_FADE = {
-    668678: "Chris Sale",
     663776: "Garrett Crochet",
-    477132: "Clayton Kershaw",
     641154: "Yoshinobu Yamamoto",
-    621244: "George Kirby",
-    572971: "Jacob deGrom",
     669923: "Tarik Skubal",
-    681867: "Bryan Woo",
     592789: "Corbin Burnes",
-    621111: "Logan Webb",
     694973: "Paul Skenes",
 }
-
 # ── MLB Stats API helpers ─────────────────────────────────────────────────────
 
 def get_todays_schedule():
@@ -157,21 +150,27 @@ def extract_pitcher(team_data):
 
 
 def get_roster_batters(team_abbrev, game_pk):
-    """Fetch active roster / lineup for a team."""
-    # Try confirmed lineup first
-    url = f"https://statsapi.mlb.com/api/v1/game/{game_pk}/boxscore"
+    """
+    Fetch active roster for a specific team by abbreviation.
+    Always looks up by team abbreviation to avoid home/away cross-contamination.
+    Falls back to confirmed lineup from boxscore if available and matches the team.
+    """
+    # First try confirmed lineup from boxscore — but only use it if it matches our team
     try:
+        url = f"https://statsapi.mlb.com/api/v1/game/{game_pk}/boxscore"
         r = requests.get(url, timeout=10)
         if r.status_code == 200:
             data = r.json()
-            # boxscore may have lineup if game is close to start
             for side in ["home", "away"]:
-                team = data.get("teams", {}).get(side, {})
-                batters = team.get("battingOrder", [])
-                if batters:
-                    players = team.get("players", {})
+                team_data = data.get("teams", {}).get(side, {})
+                abbrev = team_data.get("team", {}).get("abbreviation", "")
+                if abbrev != team_abbrev:
+                    continue
+                batters_order = team_data.get("battingOrder", [])
+                if batters_order:
+                    players = team_data.get("players", {})
                     result = []
-                    for pid in batters:
+                    for pid in batters_order:
                         p = players.get(f"ID{pid}", {})
                         info = p.get("person", {})
                         pos = p.get("position", {})
@@ -182,18 +181,21 @@ def get_roster_batters(team_abbrev, game_pk):
                             "position": pos.get("abbreviation", ""),
                         })
                     if result:
+                        log.info(f"  Confirmed lineup for {team_abbrev}: {len(result)} batters")
                         return result
     except Exception:
         pass
 
-    # Fallback: 40-man roster
-    # Map abbrev to MLB team ID
-    url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
+    # Fallback: active roster by team abbreviation
     try:
+        url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
         r2 = requests.get(url2, timeout=10)
         teams = r2.json().get("teams", [])
-        team_id = next((t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None)
+        team_id = next(
+            (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
+        )
         if not team_id:
+            log.warning(f"  Could not find team ID for {team_abbrev}")
             return []
         roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
         r3 = requests.get(roster_url, timeout=10)
@@ -208,7 +210,8 @@ def get_roster_batters(team_abbrev, game_pk):
                     "bats": p.get("status", {}).get("code", "R"),
                     "position": pos,
                 })
-        return batters[:13]  # limit to reasonable lineup size
+        log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters")
+        return batters[:13]
     except Exception as e:
         log.error(f"Roster fetch failed for {team_abbrev}: {e}")
         return []
