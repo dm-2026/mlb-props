@@ -1,0 +1,425 @@
+{
+  "generated_at": "2026-04-06T15:02:28.021901",
+  "date": "2026-04-06",
+  "pybaseball_live": true,
+  "games": [
+    {
+      "game_pk": 823002,
+      "away_team": "CHC",
+      "home_team": "TB",
+      "venue": "Tropicana Field",
+      "status": "Pre-Game",
+      "away_probable": {
+        "id": 592791,
+        "name": "Jameson Taillon",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 663556,
+        "name": "Shane McClanahan",
+        "throws": "R"
+      },
+      "park_factor": 97,
+      "park_suppress": false,
+      "park_dome": true,
+      "weather": {
+        "temp_f": 72,
+        "wind_mph": 0,
+        "wind_dir": "dome",
+        "rain_pct": 0,
+        "rain_chance": 0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "Dome",
+        "dome": true
+      }
+    },
+    {
+      "game_pk": 824456,
+      "away_team": "KC",
+      "home_team": "CLE",
+      "venue": "Progressive Field",
+      "status": "Pre-Game",
+      "away_probable": {
+        "id": 608379,
+        "name": "Michael Wacha",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 676440,
+        "name": "Tanner Bibee",
+        "throws": "R"
+      },
+      "park_factor": 92,
+      "park_suppress": true,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 47,
+        "wind_mph": 10,
+        "wind_dir": "blowing left to right",
+        "rain_pct": 26,
+        "rain_chance": 0.26,
+        "rain_risk": "LOW",
+        "hr_multiplier": 0.871,
+        "wind_label": "Wind cross 10 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 823401,
+      "away_team": "SD",
+      "home_team": "PIT",
+      "venue": "PNC Park",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 608566,
+        "name": "Germ\u00e1n M\u00e1rquez",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 696149,
+        "name": "Bubba Chandler",
+        "throws": "R"
+      },
+      "park_factor": 96,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 51,
+        "wind_mph": 14,
+        "wind_dir": "blowing out",
+        "rain_pct": 31,
+        "rain_chance": 0.31,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.034,
+        "wind_label": "Wind OUT 14 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 823886,
+      "away_team": "CIN",
+      "home_team": "MIA",
+      "venue": "loanDepot park",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 682227,
+        "name": "Brandon Williamson",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 676083,
+        "name": "Janson Junk",
+        "throws": "R"
+      },
+      "park_factor": 95,
+      "park_suppress": false,
+      "park_dome": true,
+      "weather": {
+        "temp_f": 72,
+        "wind_mph": 0,
+        "wind_dir": "dome",
+        "rain_pct": 0,
+        "rain_chance": 0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "Dome",
+        "dome": true
+      }
+    },
+    {
+      "game_pk": 822755,
+      "away_team": "STL",
+      "home_team": "WSH",
+      "venue": "Nationals Park",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 669467,
+        "name": "Andre Pallante",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 641793,
+        "name": "Zack Littell",
+        "throws": "R"
+      },
+      "park_factor": 99,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 62,
+        "wind_mph": 10,
+        "wind_dir": "blowing",
+        "rain_pct": 2,
+        "rain_chance": 0.02,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "10 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 824783,
+      "away_team": "MIL",
+      "home_team": "BOS",
+      "venue": "Fenway Park",
+      "status": "Pre-Game",
+      "away_probable": {
+        "id": 605540,
+        "name": "Brandon Woodruff",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 678394,
+        "name": "Brayan Bello",
+        "throws": "R"
+      },
+      "park_factor": 99,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 50,
+        "wind_mph": 10,
+        "wind_dir": "blowing left to right",
+        "rain_pct": 1,
+        "rain_chance": 0.01,
+        "rain_risk": "LOW",
+        "hr_multiplier": 0.931,
+        "wind_label": "Wind cross 10 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 822832,
+      "away_team": "LAD",
+      "home_team": "TOR",
+      "venue": "Rogers Centre",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 680736,
+        "name": "Justin Wrobleski",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 453286,
+        "name": "Max Scherzer",
+        "throws": "R"
+      },
+      "park_factor": 108,
+      "park_suppress": false,
+      "park_dome": true,
+      "weather": {
+        "temp_f": 72,
+        "wind_mph": 0,
+        "wind_dir": "dome",
+        "rain_pct": 0,
+        "rain_chance": 0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "Dome",
+        "dome": true
+      }
+    },
+    {
+      "game_pk": 823728,
+      "away_team": "DET",
+      "home_team": "MIN",
+      "venue": "Target Field",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 663554,
+        "name": "Casey Mize",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 657746,
+        "name": "Joe Ryan",
+        "throws": "R"
+      },
+      "park_factor": 101,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 36,
+        "wind_mph": 13,
+        "wind_dir": "blowing",
+        "rain_pct": 1,
+        "rain_chance": 0.01,
+        "rain_risk": "LOW",
+        "hr_multiplier": 0.88,
+        "wind_label": "13 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 824619,
+      "away_team": "BAL",
+      "home_team": "CWS",
+      "venue": "Rate Field",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 687064,
+        "name": "Brandon Young",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 691799,
+        "name": "Grant Taylor",
+        "throws": "R"
+      },
+      "park_factor": 100,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 70,
+        "wind_mph": 0,
+        "wind_dir": "unknown",
+        "rain_pct": 0,
+        "rain_chance": 0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "\u2014",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 822918,
+      "away_team": "SEA",
+      "home_team": "TEX",
+      "venue": "Globe Life Field",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 669302,
+        "name": "Logan Gilbert",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 594798,
+        "name": "Jacob deGrom",
+        "throws": "R"
+      },
+      "park_factor": 103,
+      "park_suppress": false,
+      "park_dome": true,
+      "weather": {
+        "temp_f": 72,
+        "wind_mph": 0,
+        "wind_dir": "dome",
+        "rain_pct": 0,
+        "rain_chance": 0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.0,
+        "wind_label": "Dome",
+        "dome": true
+      }
+    },
+    {
+      "game_pk": 824376,
+      "away_team": "HOU",
+      "home_team": "COL",
+      "venue": "Coors Field",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 675989,
+        "name": "Cody Bolton",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 663372,
+        "name": "Ryan Feltner",
+        "throws": "R"
+      },
+      "park_factor": 125,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 64,
+        "wind_mph": 10,
+        "wind_dir": "blowing right to left",
+        "rain_pct": 3,
+        "rain_chance": 0.03,
+        "rain_risk": "LOW",
+        "hr_multiplier": 0.99,
+        "wind_label": "Wind cross 10 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 824052,
+      "away_team": "ATL",
+      "home_team": "LAA",
+      "venue": "Angel Stadium",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 519242,
+        "name": "Chris Sale",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 667755,
+        "name": "Jos\u00e9 Soriano",
+        "throws": "R"
+      },
+      "park_factor": 96,
+      "park_suppress": false,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 71,
+        "wind_mph": 7,
+        "wind_dir": "blowing out",
+        "rain_pct": 0,
+        "rain_chance": 0.0,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.1,
+        "wind_label": "Wind OUT 7 mph",
+        "dome": false
+      }
+    },
+    {
+      "game_pk": 823237,
+      "away_team": "PHI",
+      "home_team": "SF",
+      "venue": "Oracle Park",
+      "status": "Scheduled",
+      "away_probable": {
+        "id": 691725,
+        "name": "Andrew Painter",
+        "throws": "R"
+      },
+      "home_probable": {
+        "id": 605288,
+        "name": "Adrian Houser",
+        "throws": "R"
+      },
+      "park_factor": 79,
+      "park_suppress": true,
+      "park_dome": false,
+      "weather": {
+        "temp_f": 60,
+        "wind_mph": 10,
+        "wind_dir": "blowing out",
+        "rain_pct": 1,
+        "rain_chance": 0.01,
+        "rain_risk": "LOW",
+        "hr_multiplier": 1.1,
+        "wind_label": "Wind OUT 10 mph",
+        "dome": false
+      }
+    }
+  ],
+  "targets": [],
+  "auto_fades": [
+    {
+      "pitcher_name": "Any batter @ CLE",
+      "reason": "Suppressive park + unfavorable weather",
+      "game": "KC @ CLE"
+    }
+  ],
+  "summary": {
+    "total_games": 13,
+    "prime_count": 0,
+    "high_count": 0,
+    "med_count": 0,
+    "fade_count": 1
+  }
+}
