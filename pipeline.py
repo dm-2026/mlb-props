@@ -516,7 +516,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         # Normalize HR/9: 0=0, 2.5=1.0
         vuln = min(hr9 / 2.5, 1.0)
         pitcher_vuln_score += usage * vuln
-        if usage > 0.20 and vuln > 0.5:
+        if usage > 0.10 and vuln > 0.2:
             pitcher_insights.append(
                 f"throws {round(usage*100)}% {pt} — {hr9} HR/9 allowed"
             )
@@ -601,11 +601,11 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         weather.get("hr_multiplier", 1.0) > 1.05,
         form_score > 0.5,
     ])
-    if score >= 72 and factors_aligning >= 3:
+    if score >= 55 and factors_aligning >= 3:
         tier = "PRIME"
-    elif score >= 58 and factors_aligning >= 2:
+    elif score >= 40 and factors_aligning >= 2:
         tier = "HIGH"
-    elif score >= 42:
+    elif score >= 25:
         tier = "MED"
     else:
         tier = "FADE"
