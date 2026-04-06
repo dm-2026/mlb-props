@@ -332,6 +332,14 @@ function renderTargets(targets) {
     return;
   }
 
+  // Ensure correct tier order: PRIME → HIGH → MED, then score descending within tier
+  const tierOrder = { 'PRIME': 0, 'HIGH': 1, 'MED': 2 };
+  filtered.sort((a, b) => {
+    if (tierOrder[a.tier] !== tierOrder[b.tier])
+      return tierOrder[a.tier] - tierOrder[b.tier];
+    return b.score - a.score;
+  });
+
   let html = '';
   let lastTier = null;
   filtered.forEach((t, i) => {

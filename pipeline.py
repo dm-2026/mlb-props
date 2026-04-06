@@ -97,10 +97,14 @@ PARK_FACTORS = {
 ELITE_FADE = {
     668678: "Chris Sale",
     663776: "Garrett Crochet",
+    477132: "Clayton Kershaw",
     641154: "Yoshinobu Yamamoto",
     621244: "George Kirby",
+    572971: "Jacob deGrom",
     669923: "Tarik Skubal",
     681867: "Bryan Woo",
+    592789: "Corbin Burnes",
+    621111: "Logan Webb",
     694973: "Paul Skenes",
 }
 
@@ -516,7 +520,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         # Normalize HR/9: 0=0, 2.5=1.0
         vuln = min(hr9 / 2.5, 1.0)
         pitcher_vuln_score += usage * vuln
-        if usage > 0.10 and vuln > 0.2:
+        if usage > 0.20 and vuln > 0.5:
             pitcher_insights.append(
                 f"throws {round(usage*100)}% {pt} — {hr9} HR/9 allowed"
             )
@@ -535,7 +539,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         run_factor = bs.get("run_factor", 0)
         slg = bs.get("slg", 0)
         sample = bs.get("sample_pitches", 0)
-        if sample < 5:
+        if sample < 20:
             continue  # insufficient sample
         # Normalize run_factor: context-dependent, use slg as proxy if small sample
         # SLG > 0.600 is elite vs a pitch type, normalize 0-1
@@ -593,17 +597,17 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     all_insights = collision_insights + pitcher_insights
     top_insight = all_insights[0] if all_insights else "Insufficient pitch-type sample for collision signal."
 
-    # Tier
+    # Tier — thresholds relaxed for early season small samples
     factors_aligning = sum([
-        pitcher_vuln_score > 0.6,
-        collision_score > 0.5,
+        pitcher_vuln_score > 0.4,
+        collision_score > 0.3,
         park_score > 0.6,
         weather.get("hr_multiplier", 1.0) > 1.05,
-        form_score > 0.5,
+        form_score > 0.4,
     ])
-    if score >= 55 and factors_aligning >= 3:
+    if score >= 55 and factors_aligning >= 2:
         tier = "PRIME"
-    elif score >= 40 and factors_aligning >= 2:
+    elif score >= 39 and factors_aligning >= 1:
         tier = "HIGH"
     elif score >= 25:
         tier = "MED"
@@ -816,8 +820,17 @@ def run():
                 "game": f"{g['away_team']} @ {g['home_team']}",
             })
 
-    # Sort and dedupe fades
-    all_targets.sort(key=lambda x: x["score"], reverse=True)
+    # Deduplicate — keep highest score per batter (prevents double-scoring from roster loop)
+    seen_batters = {}
+    for t in all_targets:
+        key = t["batter_id"]
+        if key not in seen_batters or t["score"] > seen_batters[key]["score"]:
+            seen_batters[key] = t
+    all_targets = list(seen_batters.values())
+
+    # Sort — PRIME first, then HIGH, then MED, then by score descending within tier
+    tier_order = {"PRIME": 0, "HIGH": 1, "MED": 2}
+    all_targets.sort(key=lambda x: (tier_order.get(x["tier"], 3), -x["score"]))
     seen_fades = set()
     deduped_fades = []
     for f in auto_fades:
