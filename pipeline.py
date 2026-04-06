@@ -97,14 +97,10 @@ PARK_FACTORS = {
 ELITE_FADE = {
     668678: "Chris Sale",
     663776: "Garrett Crochet",
-    477132: "Clayton Kershaw",
     641154: "Yoshinobu Yamamoto",
     621244: "George Kirby",
-    572971: "Jacob deGrom",
     669923: "Tarik Skubal",
     681867: "Bryan Woo",
-    592789: "Corbin Burnes",
-    621111: "Logan Webb",
     694973: "Paul Skenes",
 }
 
@@ -539,7 +535,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         run_factor = bs.get("run_factor", 0)
         slg = bs.get("slg", 0)
         sample = bs.get("sample_pitches", 0)
-        if sample < 20:
+        if sample < 5:
             continue  # insufficient sample
         # Normalize run_factor: context-dependent, use slg as proxy if small sample
         # SLG > 0.600 is elite vs a pitch type, normalize 0-1
