@@ -528,7 +528,11 @@ function renderTargets(targets) {
   let filtered;
   if (currentFilter === 'MYLIST') {
     filtered = targets.filter(t => myList.has(String(t.batter_id)));
-    if (!filtered.length){el.innerHTML='<div class="empty">No players in your list yet — click ☐ on any batter card to add them</div>';return;}
+    if (!filtered.length){
+      el.innerHTML='<div class="empty">No players in your list yet — click ☐ on any batter card to add them</div>' + notesHTML();
+      initNotes();
+      return;
+    }
   } else {
     filtered = currentFilter==='all'?targets:targets.filter(t=>t.tier===currentFilter);
     if (!filtered.length){el.innerHTML=`<div class="empty">No ${currentFilter} targets today</div>`;return;}
@@ -546,8 +550,36 @@ function renderTargets(targets) {
     }
     html+=batterCard(t,`r${i}`);
   });
+  if (currentFilter === 'MYLIST') html += notesHTML();
   el.innerHTML=html;
   updateMyListUI();
+  if (currentFilter === 'MYLIST') initNotes();
+}
+
+function notesHTML() {
+  const saved = loadNotes();
+  return `<div style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Notes</div>
+    <textarea id="mylist-notes" placeholder="Add notes about today's picks, reasons, odds seen..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--sans);font-size:13px;padding:10px;resize:vertical;line-height:1.5;outline:none;">${saved}</textarea>
+  </div>`;
+}
+
+function loadNotes() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('mlb_notes') || '{}');
+    return stored.date === TODAY_STR ? (stored.text || '') : '';
+  } catch { return ''; }
+}
+
+function saveNotes(text) {
+  try {
+    localStorage.setItem('mlb_notes', JSON.stringify({date: TODAY_STR, text}));
+  } catch {}
+}
+
+function initNotes() {
+  const ta = document.getElementById('mylist-notes');
+  if (ta) ta.addEventListener('input', () => saveNotes(ta.value));
 }
 
 // ── Batter card ───────────────────────────────────────────────────────────────
