@@ -522,13 +522,14 @@ function batterCard(t, idx) {
   }).join('');
 
   const pitchRows = Object.entries(t.pitch_matrix||{}).map(([pt,d]) => {
-    const vuln=Math.min((d.pitcher_hr9||0)/2.5*100,100);
+    const vuln=Math.min((d.pitcher_hr_pct||0)/8*100,100);
     const vc=vuln>65?'hi':vuln>35?'md':'lo';
+    const hrPct = d.pitcher_hr_pct!=null ? d.pitcher_hr_pct.toFixed(1)+'%' : '—';
     return `<tr>
       <td class="pitch-name">${PITCH_NAMES[pt]||pt}</td>
       <td class="stat-val">${d.pitcher_usage!=null?d.pitcher_usage.toFixed(0)+'%':'—'}</td>
       <td class="stat-val">${d.slg?d.slg.toFixed(3):'—'}</td>
-      <td class="stat-val">${d.pitcher_hr9!=null?d.pitcher_hr9.toFixed(2):'—'}</td>
+      <td class="stat-val">${hrPct}</td>
       <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vc}" style="width:${Math.round(vuln)}%"></div></div></div></td>
       <td class="stat-dim">${d.avg_launch_angle!=null?d.avg_launch_angle.toFixed(1)+'°':'—'}</td>
     </tr>`;
@@ -557,7 +558,7 @@ function batterCard(t, idx) {
       <div class="components-grid">${compBars}</div>
       ${hasMatrix?`<div class="matrix-label">Pitch collision matrix${handLabel}</div>
         <table class="pitch-table">
-          <thead><tr><th>Pitch</th><th>Usage</th><th>Batter SLG</th><th>Pitcher HR/9${handLabel}</th><th>Vuln</th><th>Avg LA</th></tr></thead>
+          <thead><tr><th>Pitch</th><th>Usage</th><th>Batter SLG</th><th>HR% vs${handLabel||' All'}</th><th>Vuln</th><th>Avg LA</th></tr></thead>
           <tbody>${pitchRows}</tbody>
         </table>`:''}
       <div class="meta-row">
@@ -567,6 +568,7 @@ function batterCard(t, idx) {
         ${pa26?`<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${pa26}</div></div>`:''}
         <div class="meta-item"><div class="mk">Park factor</div><div class="mv">${t.park_factor}</div></div>
         <div class="meta-item"><div class="mk">HR mult</div><div class="mv">${(t.hr_multiplier||1).toFixed(2)}×</div></div>
+        ${t.pitcher_overall_hr9!=null?`<div class="meta-item"><div class="mk">Pitcher HR/9</div><div class="mv">${t.pitcher_overall_hr9.toFixed(2)}</div></div>`:''}
       </div>
     </div>
   </div>`;

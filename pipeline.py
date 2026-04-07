@@ -353,7 +353,7 @@ def get_weather_rotowire():
 
 def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
     """
-    Returns dict: {pitch_type: {usage_pct, hr_per_9, barrel_rate_allowed, avg_ev_allowed}}
+    Returns dict: {pitch_type: {usage_pct, hr_pct, barrel_rate_allowed, avg_ev_allowed}}
     Filtered to pitches thrown to batter_hand (L or R).
     HR/9 is calculated per pitch type using that pitch type's own IP proxy,
     not the total arsenal IP proxy (fixes inflation bug).
@@ -426,7 +426,11 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             # this pitch, which is the correct vulnerability signal.
             pt_ip_proxy = len(group_vs) / 12
             hr_events = group_vs[group_vs["events"] == "home_run"]
-            hr_per_9 = (len(hr_events) / pt_ip_proxy * 9) if pt_ip_proxy > 0 else 0
+            hr_count_pt = len(hr_events)
+
+            # HR% = HRs / PA on this pitch type — more accurate than HR/9 per pitch
+            pa_on_pitch = group_vs["at_bat_number"].nunique() if "at_bat_number" in group_vs.columns else len(group_vs) // 4
+            hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch > 0 else 0
 
             barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
@@ -434,7 +438,7 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
 
             arsenal[str(pt)] = {
                 "usage_pct": usage_pct,
-                "hr_per_9": round(hr_per_9, 2),
+                "hr_pct": round(hr_pct, 1),          # HR% per PA on this pitch — shown in matrix
                 "barrel_rate_allowed": round(barrel_rate * 100, 1),
                 "avg_ev_allowed": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
                 "pitch_count": len(group_vs),
@@ -442,6 +446,14 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             }
 
         log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types")
+
+        # Overall pitcher HR/9 — calculated across full dataset (all hands, all pitches)
+        # This is the accurate traditional HR/9 for the meta row display
+        total_ip_proxy = len(df_all) / 12
+        total_hrs = len(df_all[df_all["events"] == "home_run"]) if "events" in df_all.columns else 0
+        overall_hr9 = round((total_hrs / total_ip_proxy * 9), 2) if total_ip_proxy > 0 else 0.0
+        arsenal["_overall_hr9"] = overall_hr9
+
         return arsenal
 
     except Exception as e:
@@ -552,13 +564,13 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         if pt.startswith("_"):
             continue
         usage = pa.get("usage_pct", 0) / 100
-        hr9 = pa.get("hr_per_9", 0)
-        # Normalize HR/9: 0=0, 2.5=1.0
-        vuln = min(hr9 / 2.5, 1.0)
+        hr_pct = pa.get("hr_pct", 0)
+        # Normalize HR%: 0%=0, 8%=1.0 (8% HR rate per PA on a pitch is elite vulnerability)
+        vuln = min(hr_pct / 8.0, 1.0)
         pitcher_vuln_score += usage * vuln
         if usage > 0.20 and vuln > 0.5:
             pitcher_insights.append(
-                f"throws {round(usage*100)}% {pt} — {hr9} HR/9 allowed"
+                f"throws {round(usage*100)}% {pt} — {hr_pct}% HR rate allowed"
             )
     pitcher_vuln_score = min(pitcher_vuln_score, 1.0)
 
@@ -620,26 +632,41 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     score = round(raw * 100)
 
     # ── Pitcher quality multiplier ────────────────────────────────────────────
-    # Calculate weighted avg HR/9 across the arsenal (usage-weighted, vs this hand)
-    total_usage = sum(pa.get("usage_pct", 0) for pt, pa in arsenal.items() if not pt.startswith("_"))
-    if total_usage > 0:
-        weighted_hr9 = sum(
-            pa.get("hr_per_9", 0) * pa.get("usage_pct", 0)
-            for pt, pa in arsenal.items() if not pt.startswith("_")
-        ) / total_usage
+    # Use overall HR/9 from _overall_hr9 key (accurate, full dataset)
+    # Falls back to weighted hr_pct if not available
+    overall_hr9 = arsenal.get("_overall_hr9")
+    if overall_hr9 is not None:
+        if overall_hr9 < 0.6:
+            pitcher_mult = 0.85
+        elif overall_hr9 < 0.9:
+            pitcher_mult = 0.93
+        elif overall_hr9 < 1.4:
+            pitcher_mult = 1.00
+        elif overall_hr9 < 1.8:
+            pitcher_mult = 1.05
+        else:
+            pitcher_mult = 1.10
     else:
-        weighted_hr9 = 1.0  # neutral fallback
-
-    if weighted_hr9 < 0.5:
-        pitcher_mult = 0.85
-    elif weighted_hr9 < 0.8:
-        pitcher_mult = 0.93
-    elif weighted_hr9 < 1.4:
-        pitcher_mult = 1.00
-    elif weighted_hr9 < 2.0:
-        pitcher_mult = 1.05
-    else:
-        pitcher_mult = 1.10
+        # Fallback: weighted avg HR% across arsenal
+        total_usage = sum(pa.get("usage_pct", 0) for pt, pa in arsenal.items() if not pt.startswith("_"))
+        if total_usage > 0:
+            weighted_hr_pct = sum(
+                pa.get("hr_pct", 0) * pa.get("usage_pct", 0)
+                for pt, pa in arsenal.items() if not pt.startswith("_")
+            ) / total_usage
+            # HR% thresholds: <2% elite, 2-3.5% neutral, >5% vulnerable
+            if weighted_hr_pct < 2.0:
+                pitcher_mult = 0.85
+            elif weighted_hr_pct < 3.0:
+                pitcher_mult = 0.93
+            elif weighted_hr_pct < 4.5:
+                pitcher_mult = 1.00
+            elif weighted_hr_pct < 6.0:
+                pitcher_mult = 1.05
+            else:
+                pitcher_mult = 1.10
+        else:
+            pitcher_mult = 1.0
 
     score = round(score * pitcher_mult)
     # ─────────────────────────────────────────────────────────────────────────
@@ -685,32 +712,32 @@ def get_hardcoded_pitcher_data(pitcher_id):
     PITCHER_DATA = {
         # Logan Webb
         621111: {
-            "SI": {"usage_pct": 34.0, "hr_per_9": 0.41, "barrel_rate_allowed": 5.1, "avg_ev_allowed": 86.2, "pitch_count": 800},
-            "SW": {"usage_pct": 27.0, "hr_per_9": 0.22, "barrel_rate_allowed": 3.8, "avg_ev_allowed": 85.1, "pitch_count": 635},
-            "CH": {"usage_pct": 24.0, "hr_per_9": 0.18, "barrel_rate_allowed": 3.2, "avg_ev_allowed": 84.9, "pitch_count": 565},
-            "FC": {"usage_pct": 8.0,  "hr_per_9": 0.55, "barrel_rate_allowed": 6.2, "avg_ev_allowed": 87.1, "pitch_count": 188},
-            "FF": {"usage_pct": 7.0,  "hr_per_9": 0.88, "barrel_rate_allowed": 8.1, "avg_ev_allowed": 88.5, "pitch_count": 165},
+            "SI": {"usage_pct": 34.0, "hr_pct": 0.41, "barrel_rate_allowed": 5.1, "avg_ev_allowed": 86.2, "pitch_count": 800},
+            "SW": {"usage_pct": 27.0, "hr_pct": 0.22, "barrel_rate_allowed": 3.8, "avg_ev_allowed": 85.1, "pitch_count": 635},
+            "CH": {"usage_pct": 24.0, "hr_pct": 0.18, "barrel_rate_allowed": 3.2, "avg_ev_allowed": 84.9, "pitch_count": 565},
+            "FC": {"usage_pct": 8.0,  "hr_pct": 0.55, "barrel_rate_allowed": 6.2, "avg_ev_allowed": 87.1, "pitch_count": 188},
+            "FF": {"usage_pct": 7.0,  "hr_pct": 0.88, "barrel_rate_allowed": 8.1, "avg_ev_allowed": 88.5, "pitch_count": 165},
         },
         # Corbin Burnes
         592789: {
-            "SI": {"usage_pct": 30.0, "hr_per_9": 0.28, "barrel_rate_allowed": 4.1, "avg_ev_allowed": 85.2, "pitch_count": 600},
-            "SL": {"usage_pct": 25.0, "hr_per_9": 0.20, "barrel_rate_allowed": 3.5, "avg_ev_allowed": 84.8, "pitch_count": 500},
-            "FC": {"usage_pct": 22.0, "hr_per_9": 0.35, "barrel_rate_allowed": 4.8, "avg_ev_allowed": 86.0, "pitch_count": 440},
-            "CH": {"usage_pct": 15.0, "hr_per_9": 0.15, "barrel_rate_allowed": 3.0, "avg_ev_allowed": 84.0, "pitch_count": 300},
-            "FF": {"usage_pct": 8.0,  "hr_per_9": 0.60, "barrel_rate_allowed": 6.5, "avg_ev_allowed": 87.5, "pitch_count": 160},
+            "SI": {"usage_pct": 30.0, "hr_pct": 0.28, "barrel_rate_allowed": 4.1, "avg_ev_allowed": 85.2, "pitch_count": 600},
+            "SL": {"usage_pct": 25.0, "hr_pct": 0.20, "barrel_rate_allowed": 3.5, "avg_ev_allowed": 84.8, "pitch_count": 500},
+            "FC": {"usage_pct": 22.0, "hr_pct": 0.35, "barrel_rate_allowed": 4.8, "avg_ev_allowed": 86.0, "pitch_count": 440},
+            "CH": {"usage_pct": 15.0, "hr_pct": 0.15, "barrel_rate_allowed": 3.0, "avg_ev_allowed": 84.0, "pitch_count": 300},
+            "FF": {"usage_pct": 8.0,  "hr_pct": 0.60, "barrel_rate_allowed": 6.5, "avg_ev_allowed": 87.5, "pitch_count": 160},
         },
         # Tarik Skubal
         669923: {
-            "FF": {"usage_pct": 35.0, "hr_per_9": 0.42, "barrel_rate_allowed": 5.0, "avg_ev_allowed": 86.0, "pitch_count": 700},
-            "CH": {"usage_pct": 30.0, "hr_per_9": 0.18, "barrel_rate_allowed": 3.2, "avg_ev_allowed": 84.5, "pitch_count": 600},
-            "SL": {"usage_pct": 25.0, "hr_per_9": 0.22, "barrel_rate_allowed": 3.8, "avg_ev_allowed": 85.0, "pitch_count": 500},
-            "CU": {"usage_pct": 10.0, "hr_per_9": 0.30, "barrel_rate_allowed": 4.0, "avg_ev_allowed": 85.5, "pitch_count": 200},
+            "FF": {"usage_pct": 35.0, "hr_pct": 0.42, "barrel_rate_allowed": 5.0, "avg_ev_allowed": 86.0, "pitch_count": 700},
+            "CH": {"usage_pct": 30.0, "hr_pct": 0.18, "barrel_rate_allowed": 3.2, "avg_ev_allowed": 84.5, "pitch_count": 600},
+            "SL": {"usage_pct": 25.0, "hr_pct": 0.22, "barrel_rate_allowed": 3.8, "avg_ev_allowed": 85.0, "pitch_count": 500},
+            "CU": {"usage_pct": 10.0, "hr_pct": 0.30, "barrel_rate_allowed": 4.0, "avg_ev_allowed": 85.5, "pitch_count": 200},
         },
     }
     return PITCHER_DATA.get(pitcher_id, {
-        "FF": {"usage_pct": 45.0, "hr_per_9": 1.20, "barrel_rate_allowed": 8.5, "avg_ev_allowed": 89.0, "pitch_count": 400},
-        "SL": {"usage_pct": 30.0, "hr_per_9": 0.80, "barrel_rate_allowed": 6.0, "avg_ev_allowed": 87.0, "pitch_count": 266},
-        "CH": {"usage_pct": 25.0, "hr_per_9": 0.60, "barrel_rate_allowed": 5.0, "avg_ev_allowed": 86.0, "pitch_count": 222},
+        "FF": {"usage_pct": 45.0, "hr_pct": 1.20, "barrel_rate_allowed": 8.5, "avg_ev_allowed": 89.0, "pitch_count": 400},
+        "SL": {"usage_pct": 30.0, "hr_pct": 0.80, "barrel_rate_allowed": 6.0, "avg_ev_allowed": 87.0, "pitch_count": 266},
+        "CH": {"usage_pct": 25.0, "hr_pct": 0.60, "barrel_rate_allowed": 5.0, "avg_ev_allowed": 86.0, "pitch_count": 222},
     })
 
 
@@ -865,8 +892,12 @@ def run():
                     "hr_multiplier": weather["hr_multiplier"],
                     "rain_chance": weather["rain_chance"],
                     "batter_meta": batter_stats.get("_meta", {}),
+                    "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
                     "pitch_matrix": {
-                        pt: {**batter_stats.get(pt, {}), **{"pitcher_usage": arsenal.get(pt, {}).get("usage_pct"), "pitcher_hr9": arsenal.get(pt, {}).get("hr_per_9")}}
+                        pt: {**batter_stats.get(pt, {}), **{
+                            "pitcher_usage": arsenal.get(pt, {}).get("usage_pct"),
+                            "pitcher_hr_pct": arsenal.get(pt, {}).get("hr_pct"),
+                        }}
                         for pt in arsenal if not pt.startswith("_") and pt in batter_stats
                     },
                 }
