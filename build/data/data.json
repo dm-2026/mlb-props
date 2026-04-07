@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-07T13:40:13.440657",
+  "generated_at": "2026-04-07T14:57:29.127840",
   "date": "2026-04-07",
   "pybaseball_live": true,
   "games": [
@@ -132,15 +132,15 @@
       "away_team": "CHC",
       "home_team": "TB",
       "venue": "Tropicana Field",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 665871,
         "name": "Javier Assad",
         "throws": "R"
       },
       "home_probable": {
-        "id": 656876,
-        "name": "Drew Rasmussen",
+        "id": 669438,
+        "name": "Mason Englert",
         "throws": "R"
       },
       "park_factor": 97,
@@ -163,7 +163,7 @@
       "away_team": "CIN",
       "home_team": "MIA",
       "venue": "loanDepot park",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 671096,
         "name": "Andrew Abbott",
@@ -194,7 +194,7 @@
       "away_team": "STL",
       "home_team": "WSH",
       "venue": "Nationals Park",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 669461,
         "name": "Matthew Liberatore",
@@ -225,7 +225,7 @@
       "away_team": "MIL",
       "home_team": "BOS",
       "venue": "Fenway Park",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 694819,
         "name": "Jacob Misiorowski",
@@ -318,7 +318,7 @@
       "away_team": "DET",
       "home_team": "MIN",
       "venue": "Target Field",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 669373,
         "name": "Tarik Skubal",
@@ -380,7 +380,7 @@
       "away_team": "HOU",
       "home_team": "COL",
       "venue": "Coors Field",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 681347,
         "name": "Mike Burrows",
@@ -641,102 +641,6 @@
       }
     },
     {
-      "batter_id": 696100,
-      "batter_name": "Hunter Goodman",
-      "batter_team": "COL",
-      "batter_hand": "R",
-      "pitcher_name": "Mike Burrows",
-      "pitcher_throws": "R",
-      "game": "HOU @ COL",
-      "venue": "Coors Field",
-      "score": 49,
-      "tier": "HIGH",
-      "components": {
-        "ev_barrel": 25,
-        "pitcher_vuln": 55,
-        "pitch_collision": 48,
-        "park_factor": 88,
-        "platoon": 35,
-        "weather": 83,
-        "recent_form": 25
-      },
-      "insight": "throws 39% Four-seam \u2014 10.2% HR rate allowed",
-      "dominant_signals": [
-        "park_factor"
-      ],
-      "park_factor": 128,
-      "park_suppress": false,
-      "weather_label": "Wind OUT 8 mph",
-      "weather_temp": 66,
-      "hr_multiplier": 1.1,
-      "rain_chance": 0.24,
-      "batter_meta": {
-        "avg_ev": 85.0,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 1,
-        "pa_2026": 32,
-        "w26": 0.16
-      },
-      "pitcher_overall_hr9": 0.91,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 3,
-          "xbh_count": 7,
-          "run_factor": 10,
-          "slg": 0.566,
-          "avg_launch_angle": 7.0,
-          "sample_pitches": 182,
-          "pitcher_usage": 23.7,
-          "pitcher_hr_pct": 2.2,
-          "pitcher_hr_dist": 12
-        },
-        "CU": {
-          "hr_count": 3,
-          "xbh_count": 5,
-          "run_factor": 8,
-          "slg": 0.5,
-          "avg_launch_angle": 12.1,
-          "sample_pitches": 155,
-          "pitcher_usage": 11.9,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 9,
-          "xbh_count": 17,
-          "run_factor": 26,
-          "slg": 0.435,
-          "avg_launch_angle": 35.3,
-          "sample_pitches": 664,
-          "pitcher_usage": 39.0,
-          "pitcher_hr_pct": 10.2,
-          "pitcher_hr_dist": 62
-        },
-        "SI": {
-          "hr_count": 5,
-          "xbh_count": 11,
-          "run_factor": 16,
-          "slg": 0.59,
-          "avg_launch_angle": 18.6,
-          "sample_pitches": 343,
-          "pitcher_usage": 5.6,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SL": {
-          "hr_count": 6,
-          "xbh_count": 12,
-          "run_factor": 18,
-          "slg": 0.432,
-          "avg_launch_angle": 12.0,
-          "sample_pitches": 441,
-          "pitcher_usage": 19.5,
-          "pitcher_hr_pct": 3.9,
-          "pitcher_hr_dist": 25
-        }
-      }
-    },
-    {
       "batter_id": 682626,
       "batter_name": "Francisco Alvarez",
       "batter_team": "NYM",
@@ -945,6 +849,102 @@
           "pitcher_usage": 12.8,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
+        }
+      }
+    },
+    {
+      "batter_id": 681198,
+      "batter_name": "TJ Rumfield",
+      "batter_team": "COL",
+      "batter_hand": "R",
+      "pitcher_name": "Mike Burrows",
+      "pitcher_throws": "R",
+      "game": "HOU @ COL",
+      "venue": "Coors Field",
+      "score": 48,
+      "tier": "HIGH",
+      "components": {
+        "ev_barrel": 12,
+        "pitcher_vuln": 55,
+        "pitch_collision": 52,
+        "park_factor": 88,
+        "platoon": 35,
+        "weather": 83,
+        "recent_form": 50
+      },
+      "insight": "Four-seam (39% usage): 0.846 SLG",
+      "dominant_signals": [
+        "park_factor"
+      ],
+      "park_factor": 128,
+      "park_suppress": false,
+      "weather_label": "Wind OUT 8 mph",
+      "weather_temp": 66,
+      "hr_multiplier": 1.1,
+      "rain_chance": 0.24,
+      "batter_meta": {
+        "avg_ev": 80.5,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 2,
+        "pa_2026": 28,
+        "w26": 0.14
+      },
+      "pitcher_overall_hr9": 0.91,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.667,
+          "avg_launch_angle": -3.0,
+          "sample_pitches": 22,
+          "pitcher_usage": 23.7,
+          "pitcher_hr_pct": 2.2,
+          "pitcher_hr_dist": 12
+        },
+        "CU": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.5,
+          "avg_launch_angle": 11.0,
+          "sample_pitches": 7,
+          "pitcher_usage": 11.9,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 1,
+          "xbh_count": 3,
+          "run_factor": 4,
+          "slg": 0.846,
+          "avg_launch_angle": 41.5,
+          "sample_pitches": 42,
+          "pitcher_usage": 39.0,
+          "pitcher_hr_pct": 10.2,
+          "pitcher_hr_dist": 62
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.25,
+          "avg_launch_angle": -19.5,
+          "sample_pitches": 13,
+          "pitcher_usage": 5.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "SL": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.143,
+          "avg_launch_angle": 40.7,
+          "sample_pitches": 25,
+          "pitcher_usage": 19.5,
+          "pitcher_hr_pct": 3.9,
+          "pitcher_hr_dist": 25
         }
       }
     },
@@ -1200,6 +1200,102 @@
           "pitcher_usage": 12.8,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
+        }
+      }
+    },
+    {
+      "batter_id": 687859,
+      "batter_name": "Troy Johnston",
+      "batter_team": "COL",
+      "batter_hand": "R",
+      "pitcher_name": "Mike Burrows",
+      "pitcher_throws": "R",
+      "game": "HOU @ COL",
+      "venue": "Coors Field",
+      "score": 47,
+      "tier": "HIGH",
+      "components": {
+        "ev_barrel": 20,
+        "pitcher_vuln": 55,
+        "pitch_collision": 39,
+        "park_factor": 88,
+        "platoon": 35,
+        "weather": 83,
+        "recent_form": 50
+      },
+      "insight": "throws 39% Four-seam \u2014 10.2% HR rate allowed",
+      "dominant_signals": [
+        "park_factor"
+      ],
+      "park_factor": 128,
+      "park_suppress": false,
+      "weather_label": "Wind OUT 8 mph",
+      "weather_temp": 66,
+      "hr_multiplier": 1.1,
+      "rain_chance": 0.24,
+      "batter_meta": {
+        "avg_ev": 83.2,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 2,
+        "pa_2026": 27,
+        "w26": 0.14
+      },
+      "pitcher_overall_hr9": 0.91,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 1,
+          "xbh_count": 1,
+          "run_factor": 2,
+          "slg": 0.32,
+          "avg_launch_angle": 5.8,
+          "sample_pitches": 78,
+          "pitcher_usage": 23.7,
+          "pitcher_hr_pct": 2.2,
+          "pitcher_hr_dist": 12
+        },
+        "CU": {
+          "hr_count": 2,
+          "xbh_count": 2,
+          "run_factor": 4,
+          "slg": 1.0,
+          "avg_launch_angle": -8.3,
+          "sample_pitches": 54,
+          "pitcher_usage": 11.9,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.239,
+          "avg_launch_angle": 31.8,
+          "sample_pitches": 192,
+          "pitcher_usage": 39.0,
+          "pitcher_hr_pct": 10.2,
+          "pitcher_hr_dist": 62
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.214,
+          "avg_launch_angle": -10.2,
+          "sample_pitches": 51,
+          "pitcher_usage": 5.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "SL": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.455,
+          "avg_launch_angle": 8.2,
+          "sample_pitches": 36,
+          "pitcher_usage": 19.5,
+          "pitcher_hr_pct": 3.9,
+          "pitcher_hr_dist": 25
         }
       }
     },
@@ -2105,102 +2201,6 @@
           "pitcher_usage": 8.7,
           "pitcher_hr_pct": 1.9,
           "pitcher_hr_dist": 9
-        }
-      }
-    },
-    {
-      "batter_id": 686668,
-      "batter_name": "Brenton Doyle",
-      "batter_team": "COL",
-      "batter_hand": "R",
-      "pitcher_name": "Mike Burrows",
-      "pitcher_throws": "R",
-      "game": "HOU @ COL",
-      "venue": "Coors Field",
-      "score": 44,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 19,
-        "pitcher_vuln": 55,
-        "pitch_collision": 34,
-        "park_factor": 88,
-        "platoon": 35,
-        "weather": 83,
-        "recent_form": 0
-      },
-      "insight": "throws 39% Four-seam \u2014 10.2% HR rate allowed",
-      "dominant_signals": [
-        "park_factor"
-      ],
-      "park_factor": 128,
-      "park_suppress": false,
-      "weather_label": "Wind OUT 8 mph",
-      "weather_temp": 66,
-      "hr_multiplier": 1.1,
-      "rain_chance": 0.24,
-      "batter_meta": {
-        "avg_ev": 83.1,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 28,
-        "w26": 0.14
-      },
-      "pitcher_overall_hr9": 0.91,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.321,
-          "avg_launch_angle": 4.9,
-          "sample_pitches": 142,
-          "pitcher_usage": 23.7,
-          "pitcher_hr_pct": 2.2,
-          "pitcher_hr_dist": 12
-        },
-        "CU": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.423,
-          "avg_launch_angle": -1.0,
-          "sample_pitches": 86,
-          "pitcher_usage": 11.9,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 7,
-          "xbh_count": 15,
-          "run_factor": 22,
-          "slg": 0.349,
-          "avg_launch_angle": 25.2,
-          "sample_pitches": 712,
-          "pitcher_usage": 39.0,
-          "pitcher_hr_pct": 10.2,
-          "pitcher_hr_dist": 62
-        },
-        "SI": {
-          "hr_count": 0,
-          "xbh_count": 8,
-          "run_factor": 8,
-          "slg": 0.343,
-          "avg_launch_angle": 8.2,
-          "sample_pitches": 329,
-          "pitcher_usage": 5.6,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SL": {
-          "hr_count": 4,
-          "xbh_count": 6,
-          "run_factor": 10,
-          "slg": 0.289,
-          "avg_launch_angle": 12.4,
-          "sample_pitches": 390,
-          "pitcher_usage": 19.5,
-          "pitcher_hr_pct": 3.9,
-          "pitcher_hr_dist": 25
         }
       }
     },
@@ -4301,8 +4301,8 @@
       }
     },
     {
-      "batter_id": 664983,
-      "batter_name": "Jake McCarthy",
+      "batter_id": 650489,
+      "batter_name": "Willi Castro",
       "batter_team": "COL",
       "batter_hand": "R",
       "pitcher_name": "Mike Burrows",
@@ -4312,9 +4312,9 @@
       "score": 40,
       "tier": "MED",
       "components": {
-        "ev_barrel": 10,
+        "ev_barrel": 11,
         "pitcher_vuln": 55,
-        "pitch_collision": 28,
+        "pitch_collision": 29,
         "park_factor": 88,
         "platoon": 35,
         "weather": 83,
@@ -4331,65 +4331,65 @@
       "hr_multiplier": 1.1,
       "rain_chance": 0.24,
       "batter_meta": {
-        "avg_ev": 79.0,
+        "avg_ev": 80.3,
         "barrel_pct": 0.0,
         "hr_recent_14d": 0,
-        "pa_2026": 20,
-        "w26": 0.1
+        "pa_2026": 29,
+        "w26": 0.14
       },
       "pitcher_overall_hr9": 0.91,
       "pitch_matrix": {
         "CH": {
           "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.286,
-          "avg_launch_angle": -2.9,
-          "sample_pitches": 115,
+          "xbh_count": 5,
+          "run_factor": 5,
+          "slg": 0.274,
+          "avg_launch_angle": 0.8,
+          "sample_pitches": 235,
           "pitcher_usage": 23.7,
           "pitcher_hr_pct": 2.2,
           "pitcher_hr_dist": 12
         },
         "CU": {
           "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.069,
-          "avg_launch_angle": -0.9,
-          "sample_pitches": 112,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.289,
+          "avg_launch_angle": 0.6,
+          "sample_pitches": 162,
           "pitcher_usage": 11.9,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
         },
         "FF": {
-          "hr_count": 2,
-          "xbh_count": 6,
-          "run_factor": 8,
-          "slg": 0.394,
-          "avg_launch_angle": 28.6,
-          "sample_pitches": 297,
+          "hr_count": 5,
+          "xbh_count": 13,
+          "run_factor": 18,
+          "slg": 0.309,
+          "avg_launch_angle": 27.2,
+          "sample_pitches": 826,
           "pitcher_usage": 39.0,
           "pitcher_hr_pct": 10.2,
           "pitcher_hr_dist": 62
         },
         "SI": {
-          "hr_count": 0,
-          "xbh_count": 3,
-          "run_factor": 3,
-          "slg": 0.35,
-          "avg_launch_angle": 2.6,
-          "sample_pitches": 118,
+          "hr_count": 3,
+          "xbh_count": 4,
+          "run_factor": 7,
+          "slg": 0.328,
+          "avg_launch_angle": 12.1,
+          "sample_pitches": 186,
           "pitcher_usage": 5.6,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
         },
         "SL": {
           "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.179,
-          "avg_launch_angle": 7.6,
-          "sample_pitches": 89,
+          "xbh_count": 4,
+          "run_factor": 4,
+          "slg": 0.273,
+          "avg_launch_angle": 5.3,
+          "sample_pitches": 205,
           "pitcher_usage": 19.5,
           "pitcher_hr_pct": 3.9,
           "pitcher_hr_dist": 25
@@ -4915,7 +4915,7 @@
           "run_factor": 32,
           "slg": 0.463,
           "avg_launch_angle": 22.8,
-          "sample_pitches": 672,
+          "sample_pitches": 673,
           "pitcher_usage": 28.8,
           "pitcher_hr_pct": 11.3,
           "pitcher_hr_dist": 37
@@ -4926,7 +4926,7 @@
           "run_factor": 5,
           "slg": 0.288,
           "avg_launch_angle": 14.4,
-          "sample_pitches": 298,
+          "sample_pitches": 297,
           "pitcher_usage": 23.1,
           "pitcher_hr_pct": 10.2,
           "pitcher_hr_dist": 32
@@ -5585,100 +5585,6 @@
           "pitcher_usage": 8.7,
           "pitcher_hr_pct": 1.9,
           "pitcher_hr_dist": 9
-        }
-      }
-    },
-    {
-      "batter_id": 665019,
-      "batter_name": "Kody Clemens",
-      "batter_team": "MIN",
-      "batter_hand": "R",
-      "pitcher_name": "Tarik Skubal",
-      "pitcher_throws": "R",
-      "game": "DET @ MIN",
-      "venue": "Target Field",
-      "score": 38,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 23,
-        "pitcher_vuln": 78,
-        "pitch_collision": 40,
-        "park_factor": 45,
-        "platoon": 35,
-        "weather": 7,
-        "recent_form": 25
-      },
-      "insight": "throws 30% Changeup \u2014 4.8% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 102,
-      "park_suppress": false,
-      "weather_label": "Wind cross 11 mph",
-      "weather_temp": 46,
-      "hr_multiplier": 0.871,
-      "rain_chance": 0.01,
-      "batter_meta": {
-        "avg_ev": 84.4,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 1,
-        "pa_2026": 21,
-        "w26": 0.1
-      },
-      "pitcher_overall_hr9": 0.72,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 2,
-          "xbh_count": 4,
-          "run_factor": 6,
-          "slg": 0.435,
-          "avg_launch_angle": 2.6,
-          "sample_pitches": 173,
-          "pitcher_usage": 29.9,
-          "pitcher_hr_pct": 4.8,
-          "pitcher_hr_dist": 16
-        },
-        "CU": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.44,
-          "avg_launch_angle": -1.1,
-          "sample_pitches": 146,
-          "pitcher_usage": 2.6,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 4,
-          "xbh_count": 11,
-          "run_factor": 15,
-          "slg": 0.272,
-          "avg_launch_angle": 33.7,
-          "sample_pitches": 673,
-          "pitcher_usage": 28.8,
-          "pitcher_hr_pct": 11.3,
-          "pitcher_hr_dist": 37
-        },
-        "SI": {
-          "hr_count": 4,
-          "xbh_count": 8,
-          "run_factor": 12,
-          "slg": 0.541,
-          "avg_launch_angle": 9.5,
-          "sample_pitches": 189,
-          "pitcher_usage": 23.1,
-          "pitcher_hr_pct": 10.2,
-          "pitcher_hr_dist": 32
-        },
-        "SL": {
-          "hr_count": 3,
-          "xbh_count": 4,
-          "run_factor": 7,
-          "slg": 0.452,
-          "avg_launch_angle": 11.0,
-          "sample_pitches": 179,
-          "pitcher_usage": 12.8,
-          "pitcher_hr_pct": 5.4,
-          "pitcher_hr_dist": 16
         }
       }
     },
@@ -7128,102 +7034,6 @@
       }
     },
     {
-      "batter_id": 664023,
-      "batter_name": "Ian Happ",
-      "batter_team": "CHC",
-      "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
-      "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
-      "score": 36,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 20,
-        "pitcher_vuln": 44,
-        "pitch_collision": 43,
-        "park_factor": 38,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 100
-      },
-      "insight": "Cutter (30% usage): 0.509 SLG",
-      "dominant_signals": [
-        "recent_form"
-      ],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 83.3,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 4,
-        "pa_2026": 27,
-        "w26": 0.14
-      },
-      "pitcher_overall_hr9": 0.81,
-      "pitch_matrix": {
-        "CU": {
-          "hr_count": 3,
-          "xbh_count": 8,
-          "run_factor": 11,
-          "slg": 0.469,
-          "avg_launch_angle": 18.3,
-          "sample_pitches": 216,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 4,
-          "xbh_count": 6,
-          "run_factor": 10,
-          "slg": 0.509,
-          "avg_launch_angle": 15.9,
-          "sample_pitches": 205,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 9,
-          "xbh_count": 16,
-          "run_factor": 25,
-          "slg": 0.313,
-          "avg_launch_angle": 30.4,
-          "sample_pitches": 1140,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 6,
-          "xbh_count": 13,
-          "run_factor": 19,
-          "slg": 0.616,
-          "avg_launch_angle": 16.4,
-          "sample_pitches": 265,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.167,
-          "avg_launch_angle": 9.9,
-          "sample_pitches": 137,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
-        }
-      }
-    },
-    {
       "batter_id": 681393,
       "batter_name": "Connor Norby",
       "batter_team": "MIA",
@@ -7613,6 +7423,100 @@
           "pitcher_usage": 15.7,
           "pitcher_hr_pct": 5.1,
           "pitcher_hr_dist": 14
+        }
+      }
+    },
+    {
+      "batter_id": 680777,
+      "batter_name": "Ryan Jeffers",
+      "batter_team": "MIN",
+      "batter_hand": "R",
+      "pitcher_name": "Tarik Skubal",
+      "pitcher_throws": "R",
+      "game": "DET @ MIN",
+      "venue": "Target Field",
+      "score": 36,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 21,
+        "pitcher_vuln": 78,
+        "pitch_collision": 36,
+        "park_factor": 45,
+        "platoon": 35,
+        "weather": 7,
+        "recent_form": 0
+      },
+      "insight": "throws 30% Changeup \u2014 4.8% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 102,
+      "park_suppress": false,
+      "weather_label": "Wind cross 11 mph",
+      "weather_temp": 46,
+      "hr_multiplier": 0.871,
+      "rain_chance": 0.01,
+      "batter_meta": {
+        "avg_ev": 83.6,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 20,
+        "w26": 0.1
+      },
+      "pitcher_overall_hr9": 0.72,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 1,
+          "xbh_count": 2,
+          "run_factor": 3,
+          "slg": 0.405,
+          "avg_launch_angle": 8.2,
+          "sample_pitches": 161,
+          "pitcher_usage": 29.9,
+          "pitcher_hr_pct": 4.8,
+          "pitcher_hr_dist": 16
+        },
+        "CU": {
+          "hr_count": 1,
+          "xbh_count": 2,
+          "run_factor": 3,
+          "slg": 0.421,
+          "avg_launch_angle": 3.3,
+          "sample_pitches": 108,
+          "pitcher_usage": 2.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 3,
+          "xbh_count": 14,
+          "run_factor": 17,
+          "slg": 0.373,
+          "avg_launch_angle": 28.8,
+          "sample_pitches": 577,
+          "pitcher_usage": 28.8,
+          "pitcher_hr_pct": 11.3,
+          "pitcher_hr_dist": 37
+        },
+        "SI": {
+          "hr_count": 2,
+          "xbh_count": 8,
+          "run_factor": 10,
+          "slg": 0.357,
+          "avg_launch_angle": 14.9,
+          "sample_pitches": 443,
+          "pitcher_usage": 23.1,
+          "pitcher_hr_pct": 10.2,
+          "pitcher_hr_dist": 32
+        },
+        "SL": {
+          "hr_count": 1,
+          "xbh_count": 7,
+          "run_factor": 8,
+          "slg": 0.311,
+          "avg_launch_angle": 13.9,
+          "sample_pitches": 319,
+          "pitcher_usage": 12.8,
+          "pitcher_hr_pct": 5.4,
+          "pitcher_hr_dist": 16
         }
       }
     },
@@ -8792,100 +8696,6 @@
       }
     },
     {
-      "batter_id": 608324,
-      "batter_name": "Alex Bregman",
-      "batter_team": "CHC",
-      "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
-      "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
-      "score": 34,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 26,
-        "pitcher_vuln": 44,
-        "pitch_collision": 39,
-        "park_factor": 38,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 50
-      },
-      "insight": "throws 30% Cutter \u2014 6.4% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 85.3,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 2,
-        "pa_2026": 29,
-        "w26": 0.14
-      },
-      "pitcher_overall_hr9": 0.81,
-      "pitch_matrix": {
-        "CU": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.118,
-          "avg_launch_angle": 12.0,
-          "sample_pitches": 140,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 3,
-          "xbh_count": 5,
-          "run_factor": 8,
-          "slg": 0.489,
-          "avg_launch_angle": 21.7,
-          "sample_pitches": 178,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 7,
-          "xbh_count": 18,
-          "run_factor": 25,
-          "slg": 0.442,
-          "avg_launch_angle": 30.8,
-          "sample_pitches": 631,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 3,
-          "xbh_count": 7,
-          "run_factor": 10,
-          "slg": 0.323,
-          "avg_launch_angle": 17.0,
-          "sample_pitches": 436,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.367,
-          "avg_launch_angle": 21.6,
-          "sample_pitches": 167,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
-        }
-      }
-    },
-    {
       "batter_id": 553993,
       "batter_name": "Eugenio Su\u00e1rez",
       "batter_team": "CIN",
@@ -9776,6 +9586,100 @@
           "pitcher_usage": 8.3,
           "pitcher_hr_pct": 3.9,
           "pitcher_hr_dist": 29
+        }
+      }
+    },
+    {
+      "batter_id": 605170,
+      "batter_name": "Victor Caratini",
+      "batter_team": "MIN",
+      "batter_hand": "R",
+      "pitcher_name": "Tarik Skubal",
+      "pitcher_throws": "R",
+      "game": "DET @ MIN",
+      "venue": "Target Field",
+      "score": 34,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 21,
+        "pitcher_vuln": 78,
+        "pitch_collision": 29,
+        "park_factor": 45,
+        "platoon": 35,
+        "weather": 7,
+        "recent_form": 0
+      },
+      "insight": "throws 30% Changeup \u2014 4.8% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 102,
+      "park_suppress": false,
+      "weather_label": "Wind cross 11 mph",
+      "weather_temp": 46,
+      "hr_multiplier": 0.871,
+      "rain_chance": 0.01,
+      "batter_meta": {
+        "avg_ev": 83.6,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 24,
+        "w26": 0.12
+      },
+      "pitcher_overall_hr9": 0.72,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 2,
+          "xbh_count": 4,
+          "run_factor": 6,
+          "slg": 0.263,
+          "avg_launch_angle": 8.2,
+          "sample_pitches": 252,
+          "pitcher_usage": 29.9,
+          "pitcher_hr_pct": 4.8,
+          "pitcher_hr_dist": 16
+        },
+        "CU": {
+          "hr_count": 1,
+          "xbh_count": 1,
+          "run_factor": 2,
+          "slg": 0.438,
+          "avg_launch_angle": 4.3,
+          "sample_pitches": 141,
+          "pitcher_usage": 2.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 5,
+          "xbh_count": 11,
+          "run_factor": 16,
+          "slg": 0.368,
+          "avg_launch_angle": 23.6,
+          "sample_pitches": 466,
+          "pitcher_usage": 28.8,
+          "pitcher_hr_pct": 11.3,
+          "pitcher_hr_dist": 37
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.255,
+          "avg_launch_angle": 14.1,
+          "sample_pitches": 166,
+          "pitcher_usage": 23.1,
+          "pitcher_hr_pct": 10.2,
+          "pitcher_hr_dist": 32
+        },
+        "SL": {
+          "hr_count": 0,
+          "xbh_count": 3,
+          "run_factor": 3,
+          "slg": 0.261,
+          "avg_launch_angle": 13.4,
+          "sample_pitches": 167,
+          "pitcher_usage": 12.8,
+          "pitcher_hr_pct": 5.4,
+          "pitcher_hr_dist": 16
         }
       }
     },
@@ -10951,288 +10855,6 @@
       }
     },
     {
-      "batter_id": 621020,
-      "batter_name": "Dansby Swanson",
-      "batter_team": "CHC",
-      "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
-      "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
-      "score": 33,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 23,
-        "pitcher_vuln": 44,
-        "pitch_collision": 45,
-        "park_factor": 38,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 25
-      },
-      "insight": "Cutter (30% usage): 0.674 SLG",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 84.2,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 1,
-        "pa_2026": 26,
-        "w26": 0.13
-      },
-      "pitcher_overall_hr9": 0.81,
-      "pitch_matrix": {
-        "CU": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.196,
-          "avg_launch_angle": -6.2,
-          "sample_pitches": 179,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 2,
-          "xbh_count": 6,
-          "run_factor": 8,
-          "slg": 0.674,
-          "avg_launch_angle": 16.4,
-          "sample_pitches": 179,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 8,
-          "xbh_count": 15,
-          "run_factor": 23,
-          "slg": 0.359,
-          "avg_launch_angle": 29.3,
-          "sample_pitches": 675,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 6,
-          "xbh_count": 11,
-          "run_factor": 17,
-          "slg": 0.452,
-          "avg_launch_angle": 14.4,
-          "sample_pitches": 453,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 2,
-          "xbh_count": 4,
-          "run_factor": 6,
-          "slg": 0.315,
-          "avg_launch_angle": 19.6,
-          "sample_pitches": 262,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
-        }
-      }
-    },
-    {
-      "batter_id": 683737,
-      "batter_name": "Michael Busch",
-      "batter_team": "CHC",
-      "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
-      "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
-      "score": 33,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 25,
-        "pitcher_vuln": 44,
-        "pitch_collision": 41,
-        "park_factor": 38,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 0
-      },
-      "insight": "Four-seam (34% usage): 0.546 SLG",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 85.0,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 28,
-        "w26": 0.14
-      },
-      "pitcher_overall_hr9": 0.81,
-      "pitch_matrix": {
-        "CU": {
-          "hr_count": 4,
-          "xbh_count": 9,
-          "run_factor": 13,
-          "slg": 0.492,
-          "avg_launch_angle": 3.8,
-          "sample_pitches": 241,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 1,
-          "xbh_count": 5,
-          "run_factor": 6,
-          "slg": 0.419,
-          "avg_launch_angle": 19.7,
-          "sample_pitches": 210,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 17,
-          "xbh_count": 27,
-          "run_factor": 44,
-          "slg": 0.546,
-          "avg_launch_angle": 29.5,
-          "sample_pitches": 790,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.274,
-          "avg_launch_angle": 14.4,
-          "sample_pitches": 324,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.294,
-          "avg_launch_angle": 15.1,
-          "sample_pitches": 134,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
-        }
-      }
-    },
-    {
-      "batter_id": 665804,
-      "batter_name": "Miguel Amaya",
-      "batter_team": "CHC",
-      "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
-      "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
-      "score": 33,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 16,
-        "pitcher_vuln": 44,
-        "pitch_collision": 45,
-        "park_factor": 38,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 25
-      },
-      "insight": "Four-seam (34% usage): 0.615 SLG",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 81.9,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 1,
-        "pa_2026": 13,
-        "w26": 0.07
-      },
-      "pitcher_overall_hr9": 0.81,
-      "pitch_matrix": {
-        "CU": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.857,
-          "avg_launch_angle": 21.7,
-          "sample_pitches": 33,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.0,
-          "avg_launch_angle": 8.6,
-          "sample_pitches": 21,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.615,
-          "avg_launch_angle": 31.3,
-          "sample_pitches": 134,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 2,
-          "xbh_count": 5,
-          "run_factor": 7,
-          "slg": 0.857,
-          "avg_launch_angle": 15.8,
-          "sample_pitches": 42,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.25,
-          "avg_launch_angle": 28.3,
-          "sample_pitches": 55,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
-        }
-      }
-    },
-    {
       "batter_id": 701398,
       "batter_name": "Sal Stewart",
       "batter_team": "CIN",
@@ -11323,6 +10945,111 @@
           "pitcher_usage": 17.1,
           "pitcher_hr_pct": 7.5,
           "pitcher_hr_dist": 44
+        }
+      }
+    },
+    {
+      "batter_id": 660688,
+      "batter_name": "Keibert Ruiz",
+      "batter_team": "WSH",
+      "batter_hand": "R",
+      "pitcher_name": "Matthew Liberatore",
+      "pitcher_throws": "R",
+      "game": "STL @ WSH",
+      "venue": "Nationals Park",
+      "score": 33,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 18,
+        "pitcher_vuln": 59,
+        "pitch_collision": 31,
+        "park_factor": 42,
+        "platoon": 35,
+        "weather": 30,
+        "recent_form": 25
+      },
+      "insight": "throws 29% Four-seam \u2014 12.7% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 100,
+      "park_suppress": false,
+      "weather_label": "14 mph",
+      "weather_temp": 51,
+      "hr_multiplier": 0.94,
+      "rain_chance": 0.0,
+      "batter_meta": {
+        "avg_ev": 82.7,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 1,
+        "pa_2026": 12,
+        "w26": 0.06
+      },
+      "pitcher_overall_hr9": 0.83,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 2,
+          "xbh_count": 4,
+          "run_factor": 6,
+          "slg": 0.514,
+          "avg_launch_angle": 14.2,
+          "sample_pitches": 97,
+          "pitcher_usage": 11.9,
+          "pitcher_hr_pct": 3.6,
+          "pitcher_hr_dist": 12
+        },
+        "CU": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.219,
+          "avg_launch_angle": -1.1,
+          "sample_pitches": 132,
+          "pitcher_usage": 15.4,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 6
+        },
+        "FC": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.333,
+          "avg_launch_angle": 15.2,
+          "sample_pitches": 91,
+          "pitcher_usage": 10.7,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 6
+        },
+        "FF": {
+          "hr_count": 1,
+          "xbh_count": 5,
+          "run_factor": 6,
+          "slg": 0.309,
+          "avg_launch_angle": 25.4,
+          "sample_pitches": 270,
+          "pitcher_usage": 28.6,
+          "pitcher_hr_pct": 12.7,
+          "pitcher_hr_dist": 44
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.333,
+          "avg_launch_angle": 16.1,
+          "sample_pitches": 83,
+          "pitcher_usage": 12.2,
+          "pitcher_hr_pct": 5.9,
+          "pitcher_hr_dist": 19
+        },
+        "SL": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.235,
+          "avg_launch_angle": 8.2,
+          "sample_pitches": 134,
+          "pitcher_usage": 21.1,
+          "pitcher_hr_pct": 3.7,
+          "pitcher_hr_dist": 12
         }
       }
     },
@@ -11714,100 +11441,6 @@
           "pitcher_usage": 8.3,
           "pitcher_hr_pct": 3.9,
           "pitcher_hr_dist": 29
-        }
-      }
-    },
-    {
-      "batter_id": 681546,
-      "batter_name": "James Outman",
-      "batter_team": "MIN",
-      "batter_hand": "R",
-      "pitcher_name": "Tarik Skubal",
-      "pitcher_throws": "R",
-      "game": "DET @ MIN",
-      "venue": "Target Field",
-      "score": 33,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 18,
-        "pitcher_vuln": 78,
-        "pitch_collision": 23,
-        "park_factor": 45,
-        "platoon": 35,
-        "weather": 7,
-        "recent_form": 0
-      },
-      "insight": "throws 30% Changeup \u2014 4.8% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 102,
-      "park_suppress": false,
-      "weather_label": "Wind cross 11 mph",
-      "weather_temp": 46,
-      "hr_multiplier": 0.871,
-      "rain_chance": 0.01,
-      "batter_meta": {
-        "avg_ev": 82.6,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 11,
-        "w26": 0.06
-      },
-      "pitcher_overall_hr9": 0.72,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.042,
-          "avg_launch_angle": 8.7,
-          "sample_pitches": 97,
-          "pitcher_usage": 29.9,
-          "pitcher_hr_pct": 4.8,
-          "pitcher_hr_dist": 16
-        },
-        "CU": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.357,
-          "avg_launch_angle": 17.8,
-          "sample_pitches": 53,
-          "pitcher_usage": 2.6,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.239,
-          "avg_launch_angle": 37.7,
-          "sample_pitches": 192,
-          "pitcher_usage": 28.8,
-          "pitcher_hr_pct": 11.3,
-          "pitcher_hr_dist": 37
-        },
-        "SI": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.455,
-          "avg_launch_angle": 3.0,
-          "sample_pitches": 84,
-          "pitcher_usage": 23.1,
-          "pitcher_hr_pct": 10.2,
-          "pitcher_hr_dist": 32
-        },
-        "SL": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.28,
-          "avg_launch_angle": 11.2,
-          "sample_pitches": 98,
-          "pitcher_usage": 12.8,
-          "pitcher_hr_pct": 5.4,
-          "pitcher_hr_dist": 16
         }
       }
     },
@@ -13481,6 +13114,100 @@
       }
     },
     {
+      "batter_id": 663886,
+      "batter_name": "Tyler Stephenson",
+      "batter_team": "CIN",
+      "batter_hand": "R",
+      "pitcher_name": "Sandy Alcantara",
+      "pitcher_throws": "R",
+      "game": "CIN @ MIA",
+      "venue": "loanDepot park",
+      "score": 31,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 22,
+        "pitcher_vuln": 39,
+        "pitch_collision": 31,
+        "park_factor": 35,
+        "platoon": 35,
+        "weather": 50,
+        "recent_form": 50
+      },
+      "insight": "Sinker (26% usage): 0.548 SLG",
+      "dominant_signals": [],
+      "park_factor": 96,
+      "park_suppress": false,
+      "weather_label": "Dome",
+      "weather_temp": 72,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 84.1,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 2,
+        "pa_2026": 18,
+        "w26": 0.09
+      },
+      "pitcher_overall_hr9": 0.82,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.077,
+          "avg_launch_angle": 12.3,
+          "sample_pitches": 105,
+          "pitcher_usage": 23.2,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FC": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.056,
+          "avg_launch_angle": 27.0,
+          "sample_pitches": 102,
+          "pitcher_usage": 16.7,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 11
+        },
+        "FF": {
+          "hr_count": 4,
+          "xbh_count": 11,
+          "run_factor": 15,
+          "slg": 0.313,
+          "avg_launch_angle": 35.8,
+          "sample_pitches": 458,
+          "pitcher_usage": 17.1,
+          "pitcher_hr_pct": 3.8,
+          "pitcher_hr_dist": 22
+        },
+        "SI": {
+          "hr_count": 5,
+          "xbh_count": 10,
+          "run_factor": 15,
+          "slg": 0.548,
+          "avg_launch_angle": 10.0,
+          "sample_pitches": 291,
+          "pitcher_usage": 25.8,
+          "pitcher_hr_pct": 3.4,
+          "pitcher_hr_dist": 22
+        },
+        "SL": {
+          "hr_count": 3,
+          "xbh_count": 8,
+          "run_factor": 11,
+          "slg": 0.5,
+          "avg_launch_angle": 15.2,
+          "sample_pitches": 272,
+          "pitcher_usage": 17.1,
+          "pitcher_hr_pct": 7.5,
+          "pitcher_hr_dist": 44
+        }
+      }
+    },
+    {
       "batter_id": 678554,
       "batter_name": "Curtis Mead",
       "batter_team": "WSH",
@@ -14852,27 +14579,29 @@
       }
     },
     {
-      "batter_id": 608348,
-      "batter_name": "Carson Kelly",
+      "batter_id": 664023,
+      "batter_name": "Ian Happ",
       "batter_team": "CHC",
       "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
+      "pitcher_name": "Mason Englert",
       "pitcher_throws": "R",
       "game": "CHC @ TB",
       "venue": "Tropicana Field",
       "score": 30,
       "tier": "MED",
       "components": {
-        "ev_barrel": 18,
-        "pitcher_vuln": 44,
-        "pitch_collision": 37,
+        "ev_barrel": 20,
+        "pitcher_vuln": 13,
+        "pitch_collision": 38,
         "park_factor": 38,
         "platoon": 35,
         "weather": 50,
-        "recent_form": 0
+        "recent_form": 100
       },
-      "insight": "throws 30% Cutter \u2014 6.4% HR rate allowed",
-      "dominant_signals": [],
+      "insight": "Insufficient pitch-type sample for collision signal.",
+      "dominant_signals": [
+        "recent_form"
+      ],
       "park_factor": 98,
       "park_suppress": false,
       "weather_label": "Dome",
@@ -14880,162 +14609,162 @@
       "hr_multiplier": 1.0,
       "rain_chance": 0,
       "batter_meta": {
-        "avg_ev": 82.6,
+        "avg_ev": 83.3,
         "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 23,
-        "w26": 0.12
+        "hr_recent_14d": 4,
+        "pa_2026": 27,
+        "w26": 0.14
       },
-      "pitcher_overall_hr9": 0.81,
+      "pitcher_overall_hr9": 0.6,
       "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 6,
+          "run_factor": 6,
+          "slg": 0.229,
+          "avg_launch_angle": 10.0,
+          "sample_pitches": 464,
+          "pitcher_usage": 34.2,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
         "CU": {
           "hr_count": 3,
-          "xbh_count": 4,
-          "run_factor": 7,
-          "slg": 0.63,
-          "avg_launch_angle": 7.2,
-          "sample_pitches": 118,
-          "pitcher_usage": 4.1,
+          "xbh_count": 8,
+          "run_factor": 11,
+          "slg": 0.469,
+          "avg_launch_angle": 18.3,
+          "sample_pitches": 216,
+          "pitcher_usage": 8.4,
           "pitcher_hr_pct": null,
           "pitcher_hr_dist": 0
         },
         "FC": {
-          "hr_count": 1,
-          "xbh_count": 4,
-          "run_factor": 5,
-          "slg": 0.424,
-          "avg_launch_angle": 28.7,
-          "sample_pitches": 150,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
+          "hr_count": 4,
+          "xbh_count": 6,
+          "run_factor": 10,
+          "slg": 0.509,
+          "avg_launch_angle": 15.9,
+          "sample_pitches": 205,
+          "pitcher_usage": 19.3,
+          "pitcher_hr_pct": 3.2,
+          "pitcher_hr_dist": 50
         },
         "FF": {
-          "hr_count": 6,
-          "xbh_count": 10,
-          "run_factor": 16,
-          "slg": 0.344,
-          "avg_launch_angle": 34.5,
-          "sample_pitches": 560,
-          "pitcher_usage": 34.1,
-          "pitcher_hr_pct": 0.0,
+          "hr_count": 9,
+          "xbh_count": 16,
+          "run_factor": 25,
+          "slg": 0.313,
+          "avg_launch_angle": 30.4,
+          "sample_pitches": 1140,
+          "pitcher_usage": 19.7,
+          "pitcher_hr_pct": null,
           "pitcher_hr_dist": 0
         },
         "SI": {
-          "hr_count": 2,
-          "xbh_count": 4,
-          "run_factor": 6,
-          "slg": 0.364,
-          "avg_launch_angle": 7.2,
-          "sample_pitches": 311,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
-        },
-        "ST": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.276,
-          "avg_launch_angle": 25.5,
-          "sample_pitches": 153,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
+          "hr_count": 6,
+          "xbh_count": 13,
+          "run_factor": 19,
+          "slg": 0.616,
+          "avg_launch_angle": 16.4,
+          "sample_pitches": 265,
+          "pitcher_usage": 17.1,
+          "pitcher_hr_pct": 2.7,
+          "pitcher_hr_dist": 50
         }
       }
     },
     {
-      "batter_id": 807713,
-      "batter_name": "Matt Shaw",
-      "batter_team": "CHC",
+      "batter_id": 668715,
+      "batter_name": "Spencer Steer",
+      "batter_team": "CIN",
       "batter_hand": "R",
-      "pitcher_name": "Drew Rasmussen",
+      "pitcher_name": "Sandy Alcantara",
       "pitcher_throws": "R",
-      "game": "CHC @ TB",
-      "venue": "Tropicana Field",
+      "game": "CIN @ MIA",
+      "venue": "loanDepot park",
       "score": 30,
       "tier": "MED",
       "components": {
-        "ev_barrel": 12,
-        "pitcher_vuln": 44,
-        "pitch_collision": 32,
-        "park_factor": 38,
+        "ev_barrel": 15,
+        "pitcher_vuln": 39,
+        "pitch_collision": 40,
+        "park_factor": 35,
         "platoon": 35,
         "weather": 50,
-        "recent_form": 50
+        "recent_form": 25
       },
-      "insight": "throws 30% Cutter \u2014 6.4% HR rate allowed",
+      "insight": "Insufficient pitch-type sample for collision signal.",
       "dominant_signals": [],
-      "park_factor": 98,
+      "park_factor": 96,
       "park_suppress": false,
       "weather_label": "Dome",
       "weather_temp": 72,
       "hr_multiplier": 1.0,
       "rain_chance": 0,
       "batter_meta": {
-        "avg_ev": 80.7,
+        "avg_ev": 81.5,
         "barrel_pct": 0.0,
-        "hr_recent_14d": 2,
-        "pa_2026": 18,
-        "w26": 0.09
+        "hr_recent_14d": 1,
+        "pa_2026": 24,
+        "w26": 0.12
       },
-      "pitcher_overall_hr9": 0.81,
+      "pitcher_overall_hr9": 0.82,
       "pitch_matrix": {
-        "CU": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.217,
-          "avg_launch_angle": 4.8,
-          "sample_pitches": 124,
-          "pitcher_usage": 4.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FC": {
-          "hr_count": 0,
+        "CH": {
+          "hr_count": 1,
           "xbh_count": 5,
-          "run_factor": 5,
-          "slg": 0.414,
-          "avg_launch_angle": 13.7,
-          "sample_pitches": 119,
-          "pitcher_usage": 30.4,
-          "pitcher_hr_pct": 6.4,
-          "pitcher_hr_dist": 43
-        },
-        "FF": {
-          "hr_count": 5,
-          "xbh_count": 11,
-          "run_factor": 16,
-          "slg": 0.338,
-          "avg_launch_angle": 31.7,
-          "sample_pitches": 517,
-          "pitcher_usage": 34.1,
+          "run_factor": 6,
+          "slg": 0.5,
+          "avg_launch_angle": 7.8,
+          "sample_pitches": 145,
+          "pitcher_usage": 23.2,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
         },
-        "SI": {
-          "hr_count": 0,
+        "FC": {
+          "hr_count": 4,
           "xbh_count": 4,
-          "run_factor": 4,
-          "slg": 0.232,
-          "avg_launch_angle": 17.6,
-          "sample_pitches": 379,
-          "pitcher_usage": 22.2,
-          "pitcher_hr_pct": 6.5,
-          "pitcher_hr_dist": 43
+          "run_factor": 8,
+          "slg": 0.5,
+          "avg_launch_angle": 24.1,
+          "sample_pitches": 151,
+          "pitcher_usage": 16.7,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 11
         },
-        "ST": {
-          "hr_count": 1,
-          "xbh_count": 4,
-          "run_factor": 5,
-          "slg": 0.3,
-          "avg_launch_angle": 18.8,
-          "sample_pitches": 163,
-          "pitcher_usage": 4.6,
-          "pitcher_hr_pct": 2.6,
-          "pitcher_hr_dist": 14
+        "FF": {
+          "hr_count": 6,
+          "xbh_count": 11,
+          "run_factor": 17,
+          "slg": 0.337,
+          "avg_launch_angle": 35.6,
+          "sample_pitches": 837,
+          "pitcher_usage": 17.1,
+          "pitcher_hr_pct": 3.8,
+          "pitcher_hr_dist": 22
+        },
+        "SI": {
+          "hr_count": 2,
+          "xbh_count": 5,
+          "run_factor": 7,
+          "slg": 0.26,
+          "avg_launch_angle": 14.2,
+          "sample_pitches": 475,
+          "pitcher_usage": 25.8,
+          "pitcher_hr_pct": 3.4,
+          "pitcher_hr_dist": 22
+        },
+        "SL": {
+          "hr_count": 6,
+          "xbh_count": 12,
+          "run_factor": 18,
+          "slg": 0.471,
+          "avg_launch_angle": 17.1,
+          "sample_pitches": 369,
+          "pitcher_usage": 17.1,
+          "pitcher_hr_pct": 7.5,
+          "pitcher_hr_dist": 44
         }
       }
     },
@@ -15130,6 +14859,277 @@
           "pitcher_usage": 17.1,
           "pitcher_hr_pct": 7.5,
           "pitcher_hr_dist": 44
+        }
+      }
+    },
+    {
+      "batter_id": 683083,
+      "batter_name": "Nasim Nu\u00f1ez",
+      "batter_team": "WSH",
+      "batter_hand": "R",
+      "pitcher_name": "Matthew Liberatore",
+      "pitcher_throws": "R",
+      "game": "STL @ WSH",
+      "venue": "Nationals Park",
+      "score": 30,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 15,
+        "pitcher_vuln": 59,
+        "pitch_collision": 27,
+        "park_factor": 42,
+        "platoon": 35,
+        "weather": 30,
+        "recent_form": 0
+      },
+      "insight": "Four-seam (29% usage): 0.560 SLG",
+      "dominant_signals": [],
+      "park_factor": 100,
+      "park_suppress": false,
+      "weather_label": "14 mph",
+      "weather_temp": 51,
+      "hr_multiplier": 0.94,
+      "rain_chance": 0.0,
+      "batter_meta": {
+        "avg_ev": 81.5,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 26,
+        "w26": 0.13
+      },
+      "pitcher_overall_hr9": 0.83,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.143,
+          "avg_launch_angle": -3.6,
+          "sample_pitches": 73,
+          "pitcher_usage": 11.9,
+          "pitcher_hr_pct": 3.6,
+          "pitcher_hr_dist": 12
+        },
+        "CU": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.182,
+          "avg_launch_angle": 4.3,
+          "sample_pitches": 41,
+          "pitcher_usage": 15.4,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 6
+        },
+        "FC": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.0,
+          "avg_launch_angle": 3.8,
+          "sample_pitches": 18,
+          "pitcher_usage": 10.7,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 6
+        },
+        "FF": {
+          "hr_count": 4,
+          "xbh_count": 5,
+          "run_factor": 9,
+          "slg": 0.56,
+          "avg_launch_angle": 23.2,
+          "sample_pitches": 207,
+          "pitcher_usage": 28.6,
+          "pitcher_hr_pct": 12.7,
+          "pitcher_hr_dist": 44
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.3,
+          "avg_launch_angle": 12.0,
+          "sample_pitches": 79,
+          "pitcher_usage": 12.2,
+          "pitcher_hr_pct": 5.9,
+          "pitcher_hr_dist": 19
+        },
+        "SL": {
+          "hr_count": 0,
+          "xbh_count": 0,
+          "run_factor": 0,
+          "slg": 0.125,
+          "avg_launch_angle": 26.4,
+          "sample_pitches": 58,
+          "pitcher_usage": 21.1,
+          "pitcher_hr_pct": 3.7,
+          "pitcher_hr_dist": 12
+        }
+      }
+    },
+    {
+      "batter_id": 701350,
+      "batter_name": "Roman Anthony",
+      "batter_team": "BOS",
+      "batter_hand": "R",
+      "pitcher_name": "Jacob Misiorowski",
+      "pitcher_throws": "R",
+      "game": "MIL @ BOS",
+      "venue": "Fenway Park",
+      "score": 30,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 30,
+        "pitcher_vuln": 21,
+        "pitch_collision": 48,
+        "park_factor": 35,
+        "platoon": 35,
+        "weather": 7,
+        "recent_form": 25
+      },
+      "insight": "Four-seam (55% usage): 0.540 SLG",
+      "dominant_signals": [],
+      "park_factor": 96,
+      "park_suppress": false,
+      "weather_label": "Wind cross 15 mph",
+      "weather_temp": 42,
+      "hr_multiplier": 0.871,
+      "rain_chance": 0.22,
+      "batter_meta": {
+        "avg_ev": 86.7,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 1,
+        "pa_2026": 29,
+        "w26": 0.14
+      },
+      "pitcher_overall_hr9": 0.74,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 3,
+          "run_factor": 3,
+          "slg": 0.28,
+          "avg_launch_angle": 4.0,
+          "sample_pitches": 186,
+          "pitcher_usage": 5.9,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "CU": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.227,
+          "avg_launch_angle": 5.7,
+          "sample_pitches": 108,
+          "pitcher_usage": 14.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 6,
+          "xbh_count": 12,
+          "run_factor": 18,
+          "slg": 0.54,
+          "avg_launch_angle": 20.8,
+          "sample_pitches": 410,
+          "pitcher_usage": 55.1,
+          "pitcher_hr_pct": 2.1,
+          "pitcher_hr_dist": 50
+        },
+        "SL": {
+          "hr_count": 3,
+          "xbh_count": 4,
+          "run_factor": 7,
+          "slg": 0.537,
+          "avg_launch_angle": -3.1,
+          "sample_pitches": 183,
+          "pitcher_usage": 24.3,
+          "pitcher_hr_pct": 2.3,
+          "pitcher_hr_dist": 50
+        }
+      }
+    },
+    {
+      "batter_id": 677800,
+      "batter_name": "Wilyer Abreu",
+      "batter_team": "BOS",
+      "batter_hand": "R",
+      "pitcher_name": "Jacob Misiorowski",
+      "pitcher_throws": "R",
+      "game": "MIL @ BOS",
+      "venue": "Fenway Park",
+      "score": 30,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 21,
+        "pitcher_vuln": 21,
+        "pitch_collision": 47,
+        "park_factor": 35,
+        "platoon": 35,
+        "weather": 7,
+        "recent_form": 75
+      },
+      "insight": "Insufficient pitch-type sample for collision signal.",
+      "dominant_signals": [],
+      "park_factor": 96,
+      "park_suppress": false,
+      "weather_label": "Wind cross 15 mph",
+      "weather_temp": 42,
+      "hr_multiplier": 0.871,
+      "rain_chance": 0.22,
+      "batter_meta": {
+        "avg_ev": 83.7,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 3,
+        "pa_2026": 31,
+        "w26": 0.15
+      },
+      "pitcher_overall_hr9": 0.74,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 3,
+          "xbh_count": 3,
+          "run_factor": 6,
+          "slg": 0.406,
+          "avg_launch_angle": 12.4,
+          "sample_pitches": 208,
+          "pitcher_usage": 5.9,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "CU": {
+          "hr_count": 4,
+          "xbh_count": 5,
+          "run_factor": 9,
+          "slg": 0.84,
+          "avg_launch_angle": 26.1,
+          "sample_pitches": 89,
+          "pitcher_usage": 14.6,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 10,
+          "xbh_count": 16,
+          "run_factor": 26,
+          "slg": 0.371,
+          "avg_launch_angle": 42.2,
+          "sample_pitches": 761,
+          "pitcher_usage": 55.1,
+          "pitcher_hr_pct": 2.1,
+          "pitcher_hr_dist": 50
+        },
+        "SL": {
+          "hr_count": 2,
+          "xbh_count": 6,
+          "run_factor": 8,
+          "slg": 0.471,
+          "avg_launch_angle": 20.7,
+          "sample_pitches": 182,
+          "pitcher_usage": 24.3,
+          "pitcher_hr_pct": 2.3,
+          "pitcher_hr_dist": 50
         }
       }
     },
@@ -15508,8 +15508,8 @@
   "summary": {
     "total_games": 15,
     "prime_count": 0,
-    "high_count": 12,
-    "med_count": 148,
+    "high_count": 13,
+    "med_count": 147,
     "fade_count": 3
   }
 }

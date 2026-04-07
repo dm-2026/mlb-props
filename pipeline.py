@@ -175,10 +175,12 @@ def get_roster_batters(team_abbrev, game_pk):
                         p = players.get(f"ID{pid}", {})
                         info = p.get("person", {})
                         pos = p.get("position", {})
+                        # boxscore API can nest batSide at player level or under person
+                        bat_side = (p.get("batSide") or info.get("batSide") or {}).get("code", "R")
                         result.append({
                             "id": pid,
                             "name": info.get("fullName", ""),
-                            "bats": p.get("batSide", {}).get("code", "R"),
+                            "bats": bat_side,
                             "position": pos.get("abbreviation", ""),
                         })
                     if result:
