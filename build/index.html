@@ -115,6 +115,9 @@
   .filter-btn.active-high  { background: var(--high-bg);  border-color: var(--high-border);  color: var(--high); }
   .filter-btn.active-med   { background: var(--med-bg);   border-color: var(--med-border);   color: var(--med); }
   .filter-btn.active-all   { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+  .filter-btn.active-mylist { background: rgba(251,191,36,0.10); border-color: rgba(251,191,36,0.30); color: #fbbf24; }
+  .mylist-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border2); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 11px; color: transparent; }
+  .mylist-check.checked { background: rgba(251,191,36,0.15); border-color: #fbbf24; color: #fbbf24; }
 
   /* Batter cards */
   .targets-list { display: flex; flex-direction: column; gap: 6px; }
@@ -213,6 +216,7 @@
   <button class="filter-btn" onclick="setFilter('PRIME',this)">Prime</button>
   <button class="filter-btn" onclick="setFilter('HIGH',this)">High</button>
   <button class="filter-btn" onclick="setFilter('MED',this)">Med</button>
+  <button class="filter-btn" id="mylist-btn" onclick="setFilter('MYLIST',this)">My List <span id="mylist-count"></span></button>
 </div>
 <div class="targets-list" id="targets-list"><div class="loading">Scoring matchups…</div></div>
 
@@ -240,7 +244,45 @@ const COMP_COLORS = {
   park_factor:'#f59e0b', platoon:'#a78bfa', weather:'#38bdf8', recent_form:'#fb923c',
 };
 const TIER_ORDER = {PRIME:0, HIGH:1, MED:2};
-const AVG_HR_PER_GAME = 0.98; // league average HRs per team per game ~2026
+const AVG_HR_PER_GAME = 0.98;
+
+// ── My List — auto-clears daily ───────────────────────────────────────────────
+const TODAY_STR = new Date().toISOString().split('T')[0];
+function loadMyList() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('mlb_mylist') || '{}');
+    if (stored.date !== TODAY_STR) return new Set(); // auto-clear if new day
+    return new Set(stored.ids || []);
+  } catch { return new Set(); }
+}
+function saveMyList(set) {
+  try {
+    localStorage.setItem('mlb_mylist', JSON.stringify({date: TODAY_STR, ids: [...set]}));
+  } catch {}
+}
+function toggleMyList(batterId, e) {
+  e.stopPropagation();
+  myList = loadMyList();
+  const id = String(batterId);
+  if (myList.has(id)) myList.delete(id);
+  else myList.add(id);
+  saveMyList(myList);
+  updateMyListUI();
+  if (allData) renderTargets(allData.targets);
+}
+function updateMyListUI() {
+  myList = loadMyList();
+  const count = myList.size;
+  const countEl = document.getElementById('mylist-count');
+  if (countEl) countEl.textContent = count > 0 ? `(${count})` : '';
+  // Update all checkboxes
+  document.querySelectorAll('.mylist-check').forEach(el => {
+    const id = el.dataset.id;
+    el.classList.toggle('checked', myList.has(String(id)));
+    el.textContent = myList.has(String(id)) ? '✓' : '';
+  });
+}
+let myList = loadMyList(); // league average HRs per team per game ~2026
 
 let currentFilter = 'all';
 let allData = null;
@@ -274,6 +316,7 @@ function render(data) {
   renderSlate(data.games, data.targets);
   renderTargets(data.targets);
   renderFades(data.auto_fades);
+  updateMyListUI();
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -481,19 +524,30 @@ function sortT(arr) {
 function renderTargets(targets) {
   const el = document.getElementById('targets-list');
   if (!targets||!targets.length){el.innerHTML='<div class="empty">No targets — run pipeline.py</div>';return;}
-  const filtered = currentFilter==='all'?targets:targets.filter(t=>t.tier===currentFilter);
-  if (!filtered.length){el.innerHTML=`<div class="empty">No ${currentFilter} targets today</div>`;return;}
-  const sorted = sortT(filtered);
+
+  let filtered;
+  if (currentFilter === 'MYLIST') {
+    filtered = targets.filter(t => myList.has(String(t.batter_id)));
+    if (!filtered.length){el.innerHTML='<div class="empty">No players in your list yet — click ☐ on any batter card to add them</div>';return;}
+  } else {
+    filtered = currentFilter==='all'?targets:targets.filter(t=>t.tier===currentFilter);
+    if (!filtered.length){el.innerHTML=`<div class="empty">No ${currentFilter} targets today</div>`;return;}
+  }
+
+  const sorted = currentFilter === 'MYLIST' ? sortT(filtered) : sortT(filtered);
   let html='', last=null;
   sorted.forEach((t,i) => {
-    if (t.tier!==last) {
-      const lbl=t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':'Med — 1 strong factor';
-      html+=`<div class="tier-divider ${t.tier}">${lbl}</div>`;
-      last=t.tier;
+    if (currentFilter !== 'MYLIST') {
+      if (t.tier!==last) {
+        const lbl=t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':'Med — 1 strong factor';
+        html+=`<div class="tier-divider ${t.tier}">${lbl}</div>`;
+        last=t.tier;
+      }
     }
     html+=batterCard(t,`r${i}`);
   });
   el.innerHTML=html;
+  updateMyListUI();
 }
 
 // ── Batter card ───────────────────────────────────────────────────────────────
@@ -555,6 +609,8 @@ function batterCard(t, idx) {
     recent_form:'★ Red-hot form',
   }[s]||s)).join(' · ');
 
+  const isInList = myList.has(String(t.batter_id));
+
   return `<div class="batter-card" id="card-${idx}">
     <div class="card-header" onclick="toggleCard('${idx}')">
       <div class="tier-bar ${t.tier}"></div>
@@ -567,6 +623,7 @@ function batterCard(t, idx) {
         <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue||t.game}</div>
         <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${formBadge}</div>
       </div>
+      <div class="mylist-check ${isInList?'checked':''}" data-id="${t.batter_id}" onclick="toggleMyList(${t.batter_id},event)" title="Add to My List">${isInList?'✓':''}</div>
       <div class="expand-icon">▾</div>
     </div>
     <div class="card-detail">
@@ -608,7 +665,11 @@ function toggleCard(idx) {
 function setFilter(tier, btn) {
   currentFilter=tier;
   document.querySelectorAll('.filter-btn').forEach(b=>b.className='filter-btn');
-  btn.className=tier==='all'?'filter-btn active-all':tier==='PRIME'?'filter-btn active-prime':tier==='HIGH'?'filter-btn active-high':'filter-btn active-med';
+  btn.className = tier==='all'?'filter-btn active-all'
+    : tier==='PRIME'?'filter-btn active-prime'
+    : tier==='HIGH'?'filter-btn active-high'
+    : tier==='MED'?'filter-btn active-med'
+    : 'filter-btn active-mylist';
   if (allData) renderTargets(allData.targets);
 }
 
