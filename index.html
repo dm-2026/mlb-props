@@ -35,6 +35,9 @@
     --fade: #ef4444;
     --fade-bg: rgba(239,68,68,0.08);
     --fade-border: rgba(239,68,68,0.20);
+    --low: #94a3b8;
+    --low-bg: rgba(148,163,184,0.10);
+    --low-border: rgba(148,163,184,0.25);
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'IBM Plex Sans', sans-serif;
   }
@@ -114,6 +117,7 @@
   .filter-btn.active-prime { background: var(--prime-bg); border-color: var(--prime-border); color: var(--prime); }
   .filter-btn.active-high  { background: var(--high-bg);  border-color: var(--high-border);  color: var(--high); }
   .filter-btn.active-med   { background: var(--med-bg);   border-color: var(--med-border);   color: var(--med); }
+  .filter-btn.active-low   { background: var(--low-bg);   border-color: var(--low-border);   color: var(--low); }
   .filter-btn.active-all   { background: var(--surface2); border-color: var(--border2); color: var(--text); }
   .filter-btn.active-mylist { background: rgba(251,191,36,0.10); border-color: rgba(251,191,36,0.30); color: #fbbf24; }
   .mylist-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border2); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 11px; color: transparent; }
@@ -129,10 +133,12 @@
   .tier-bar.PRIME { background: var(--prime); }
   .tier-bar.HIGH  { background: var(--high); }
   .tier-bar.MED   { background: var(--med); }
+  .tier-bar.LOW   { background: var(--low); }
   .score-box { width: 44px; height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 500; flex-shrink: 0; }
   .score-box.PRIME { background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
   .score-box.HIGH  { background: var(--high-bg);  color: var(--high);  border: 1px solid var(--high-border); }
   .score-box.MED   { background: var(--med-bg);   color: var(--med);   border: 1px solid var(--med-border); }
+  .score-box.LOW   { background: var(--low-bg);   color: var(--low);   border: 1px solid var(--low-border); }
   .card-info { flex: 1; min-width: 0; }
   .batter-name { font-size: 15px; font-weight: 600; color: var(--text); }
   .batter-sub { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -165,7 +171,7 @@
   .meta-item .mv { font-family: var(--mono); font-size: 13px; color: var(--text); }
   .tier-divider { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.10em; padding: 6px 0 4px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
   .tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .tier-divider.PRIME { color: var(--prime); } .tier-divider.HIGH { color: var(--high); } .tier-divider.MED { color: var(--med); }
+  .tier-divider.PRIME { color: var(--prime); } .tier-divider.HIGH { color: var(--high); } .tier-divider.MED { color: var(--med); } .tier-divider.LOW { color: var(--low); }
   .fade-list { background: var(--surface); border: 1px solid var(--fade-border); border-radius: 8px; overflow: hidden; }
   .fade-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
   .fade-item:last-child { border: none; }
@@ -182,17 +188,7 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
   .wrigley-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--prime); animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
 
-  /* Laser props */
-  .laser-section { margin-bottom: 24px; }
-  .laser-card { background: var(--surface); border: 1px solid rgba(251,191,36,0.20); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-  .laser-icon { font-size: 16px; flex-shrink: 0; }
-  .laser-info { flex: 1; min-width: 0; }
-  .laser-name { font-size: 14px; font-weight: 600; color: var(--text); }
-  .laser-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
-  .laser-stats { display: flex; gap: 12px; flex-shrink: 0; }
-  .laser-stat { text-align: right; }
-  .laser-stat .lk { font-size: 9px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; }
-  .laser-stat .lv { font-size: 13px; font-weight: 500; font-family: var(--mono); color: #fbbf24; }
+  /* Laser bolt shows inline on batter name — no separate section needed */
 
   @media (max-width: 600px) {
     .summary { grid-template-columns: repeat(2, 1fr); }
@@ -235,18 +231,13 @@
 
 <div class="games-grid" id="games-grid"><div class="loading">Loading…</div></div>
 
-<!-- Laser props section -->
-<div id="laser-section" style="display:none">
-  <div class="section-label" style="margin-top:24px;">⚡ Laser Props — Elite Hard Contact</div>
-  <div class="laser-section" id="laser-list"></div>
-</div>
-
 <div class="section-label" style="margin-top:24px;">Ranked Targets</div>
 <div class="filter-row">
   <button class="filter-btn active-all" onclick="setFilter('all',this)">All</button>
   <button class="filter-btn" onclick="setFilter('PRIME',this)">Prime</button>
   <button class="filter-btn" onclick="setFilter('HIGH',this)">High</button>
   <button class="filter-btn" onclick="setFilter('MED',this)">Med</button>
+  <button class="filter-btn" onclick="setFilter('LOW',this)">Low</button>
   <button class="filter-btn" id="mylist-btn" onclick="setFilter('MYLIST',this)">My List <span id="mylist-count"></span></button>
 </div>
 <div class="targets-list" id="targets-list"><div class="loading">Scoring matchups…</div></div>
@@ -274,7 +265,7 @@ const COMP_COLORS = {
   ev_barrel:'#3b82f6', pitcher_vuln:'#ef4444', pitch_collision:'#22c55e',
   park_factor:'#f59e0b', platoon:'#a78bfa', weather:'#38bdf8', recent_form:'#fb923c',
 };
-const TIER_ORDER = {PRIME:0, HIGH:1, MED:2};
+const TIER_ORDER = {PRIME:0, HIGH:1, MED:2, LOW:3};
 const AVG_HR_PER_GAME = 0.98;
 
 // ── My List — auto-clears daily ───────────────────────────────────────────────
@@ -313,7 +304,8 @@ function updateMyListUI() {
     el.textContent = myList.has(String(id)) ? '✓' : '';
   });
 }
-let myList = loadMyList(); // league average HRs per team per game ~2026
+let myList = loadMyList();
+let laserIds = new Set(); // league average HRs per team per game ~2026
 
 let currentFilter = 'all';
 let allData = null;
@@ -323,6 +315,7 @@ async function loadData() {
     const r = await fetch(`data/data.json?t=${Date.now()}`);
     if (!r.ok) throw new Error();
     allData = await r.json();
+  laserIds = new Set((allData.laser_targets||[]).map(l => l.batter_name));
   } catch(e) {
     allData = {generated_at:new Date().toISOString(), date:new Date().toISOString().split('T')[0],
       pybaseball_live:false, summary:{total_games:0,prime_count:0,high_count:0,med_count:0,fade_count:0},
@@ -346,7 +339,6 @@ function render(data) {
   buildTicker(data);
   renderSlate(data.games, data.targets);
   checkWrigleyAlert(data.games);
-  renderLaserTargets(data.laser_targets || []);
   renderTargets(data.targets);
   renderFades(data.auto_fades);
   updateMyListUI();
@@ -481,27 +473,6 @@ function checkWrigleyAlert(games) {
   }
 }
 
-// ── Laser props ───────────────────────────────────────────────────────────────
-function renderLaserTargets(lasers) {
-  const section = document.getElementById('laser-section');
-  const list = document.getElementById('laser-list');
-  if (!lasers || !lasers.length) { section.style.display='none'; return; }
-  section.style.display = '';
-  list.innerHTML = lasers.map(l => `
-    <div class="laser-card">
-      <div class="laser-icon">⚡</div>
-      <div class="laser-info">
-        <div class="laser-name">${l.batter_name}</div>
-        <div class="laser-sub">${l.batter_team} vs ${l.pitcher_name} · ${l.venue||l.game}</div>
-      </div>
-      <div class="laser-stats">
-        <div class="laser-stat"><div class="lk">Exit Velo</div><div class="lv">${l.avg_ev} mph</div></div>
-        <div class="laser-stat"><div class="lk">Barrel%</div><div class="lv">${l.barrel_pct}%</div></div>
-        <div class="laser-stat"><div class="lk">Pitcher HR/9</div><div class="lv">${(l.pitcher_hr9||0).toFixed(2)}</div></div>
-      </div>
-    </div>`).join('');
-}
-
 // ── Slate ─────────────────────────────────────────────────────────────────────
 const gameSort = {}; // tracks 'score' or 'collision' per game index
 
@@ -619,7 +590,7 @@ function renderTargets(targets) {
   sorted.forEach((t,i) => {
     if (currentFilter !== 'MYLIST') {
       if (t.tier!==last) {
-        const lbl=t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':'Med — 1 strong factor';
+        const lbl=t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':t.tier==='MED'?'Med — 1 strong factor':'Low — watch list';
         html+=`<div class="tier-divider ${t.tier}">${lbl}</div>`;
         last=t.tier;
       }
@@ -727,7 +698,7 @@ function batterCard(t, idx) {
         ${hasStar?`<span title="${starTip}" style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#fbbf24;line-height:1">★</span>`:''}
       </div>
       <div class="card-info">
-        <div class="batter-name">${t.batter_name}</div>
+        <div class="batter-name">${t.batter_name}${laserIds.has(t.batter_name)?` <span title="Laser prop candidate — elite EV + barrel profile" style="color:#fbbf24;font-size:13px">⚡</span>`:''}</div>
         <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue||t.game}</div>
         <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${formBadge}</div>
       </div>
@@ -777,6 +748,7 @@ function setFilter(tier, btn) {
     : tier==='PRIME'?'filter-btn active-prime'
     : tier==='HIGH'?'filter-btn active-high'
     : tier==='MED'?'filter-btn active-med'
+    : tier==='LOW'?'filter-btn active-low'
     : 'filter-btn active-mylist';
   if (allData) renderTargets(allData.targets);
 }

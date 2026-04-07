@@ -752,6 +752,8 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         tier = "HIGH"
     elif score >= 30:
         tier = "MED"
+    elif score >= 20:
+        tier = "LOW"
     else:
         tier = "FADE"
 
@@ -987,7 +989,7 @@ def run():
     all_targets = list(seen_batters.values())
 
     # Sort — PRIME first, then HIGH, then MED, then by score descending within tier
-    tier_order = {"PRIME": 0, "HIGH": 1, "MED": 2}
+    tier_order = {"PRIME": 0, "HIGH": 1, "MED": 2, "LOW": 3}
     all_targets.sort(key=lambda x: (tier_order.get(x["tier"], 3), -x["score"]))
     seen_fades = set()
     deduped_fades = []
@@ -1045,6 +1047,7 @@ def run():
             "prime_count": sum(1 for t in all_targets if t["tier"] == "PRIME"),
             "high_count": sum(1 for t in all_targets if t["tier"] == "HIGH"),
             "med_count": sum(1 for t in all_targets if t["tier"] == "MED"),
+            "low_count": sum(1 for t in all_targets if t["tier"] == "LOW"),
             "fade_count": len(deduped_fades),
         },
     }
