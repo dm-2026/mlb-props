@@ -100,6 +100,7 @@ ELITE_FADE = {
     669923: "Tarik Skubal",
     592789: "Corbin Burnes",
     694973: "Paul Skenes",
+    572971: "Jacob deGrom",
 }
 # ── MLB Stats API helpers ─────────────────────────────────────────────────────
 
@@ -350,65 +351,88 @@ def get_weather_rotowire():
 
 # ── Pybaseball data layer ─────────────────────────────────────────────────────
 
-def get_pitcher_arsenal(pitcher_id, pitcher_name):
+def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
     """
-    Returns dict: {pitch_type: {usage_pct, hr_per_9, woba, barrel_rate, avg_ev}}
+    Returns dict: {pitch_type: {usage_pct, hr_per_9, barrel_rate_allowed, avg_ev_allowed}}
+    Filtered to only pitches thrown to batters matching batter_hand (L or R).
+    This gives the actual handedness-specific vulnerability — e.g. a pitcher who
+    allows 1.8 HR/9 to LHB on sinkers but only 0.4 to RHB on sinkers.
     Uses 2025 full season + 2026 YTD blended.
     """
     if not PYBASEBALL_AVAILABLE:
         return get_hardcoded_pitcher_data(pitcher_id)
 
     try:
-        # 2025 full season
+        import pandas as pd
+
         start_2025 = SEASON_START_2025.strftime("%Y-%m-%d")
         end_2025 = "2025-10-05"
         df25 = pb.statcast_pitcher(start_2025, end_2025, pitcher_id)
 
-        # 2026 YTD
         start_2026 = SEASON_START_2026.strftime("%Y-%m-%d")
         end_2026 = TODAY.strftime("%Y-%m-%d")
         df26 = pb.statcast_pitcher(start_2026, end_2026, pitcher_id)
 
-        # Determine blend weight — weight 2026 fully after 200 batters faced
         bf_2026 = len(df26["batter"].unique()) if len(df26) > 0 else 0
         w26 = min(bf_2026 / 200, 1.0)
         w25 = 1.0 - w26
 
-        import pandas as pd
-        df = pd.concat([
+        df_all = pd.concat([
             df25.assign(_weight=w25),
             df26.assign(_weight=w26)
         ]) if len(df26) > 0 else df25.assign(_weight=1.0)
 
-        if df.empty:
+        if df_all.empty:
             log.warning(f"No Statcast data for pitcher {pitcher_name} ({pitcher_id})")
             return {}
 
-        arsenal = {}
-        total_pitches = len(df)
+        # Usage % always calculated on full dataset (all batters faced)
+        # HR/9 and vulnerability calculated on hand-specific subset
+        total_pitches = len(df_all)
 
-        for pt, group in df.groupby("pitch_type"):
+        # Filter to pitches thrown to this batter handedness — "stand" = batter stance
+        df_vs = df_all[df_all["stand"] == batter_hand] if "stand" in df_all.columns else df_all
+        # If the hand-filtered set is very small (<50 pitches), fall back to full dataset
+        if len(df_vs) < 50:
+            log.info(f"  {pitcher_name} vs {batter_hand}HB: small sample ({len(df_vs)} pitches), using full dataset")
+            df_vs = df_all
+
+        # IP proxy on the hand-specific subset for accurate HR/9
+        ip_proxy_vs = len(df_vs) / 12
+
+        arsenal = {}
+        for pt, group_all in df_all.groupby("pitch_type"):
             if pt is None or str(pt) == "nan" or pt == "PO":
                 continue
-            hr_events = group[group["events"] == "home_run"]
-            # Innings pitched proxy: assume ~4 pitches per batter, ~3 outs per inning
-            ip_proxy = total_pitches / 12
-            hr_per_9 = (len(hr_events) / ip_proxy * 9) if ip_proxy > 0 else 0
 
-            barrels = group[group["barrel"].notna()]["barrel"].sum() if "barrel" in group.columns else 0
-            barrel_rate = barrels / len(group) if len(group) > 0 else 0
+            # Usage from full dataset
+            usage_pct = round(len(group_all) / total_pitches * 100, 1)
+            if usage_pct < 2:  # skip pitch types thrown < 2% of the time
+                continue
 
-            avg_ev = group["launch_speed"].mean() if "launch_speed" in group.columns else None
+            # HR/9 and other vulnerability from hand-specific group
+            group_vs = df_vs[df_vs["pitch_type"] == pt]
+            if len(group_vs) == 0:
+                continue
+
+            hr_events = group_vs[group_vs["events"] == "home_run"]
+            hr_per_9 = (len(hr_events) / ip_proxy_vs * 9) if ip_proxy_vs > 0 else 0
+
+            barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
+            barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
+
+            avg_ev = group_vs["launch_speed"].mean() if "launch_speed" in group_vs.columns else None
 
             arsenal[str(pt)] = {
-                "usage_pct": round(len(group) / total_pitches * 100, 1),
+                "usage_pct": usage_pct,
                 "hr_per_9": round(hr_per_9, 2),
                 "barrel_rate_allowed": round(barrel_rate * 100, 1),
                 "avg_ev_allowed": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
-                "pitch_count": len(group),
+                "pitch_count": len(group_vs),
+                "batter_hand": batter_hand,
             }
 
-        log.info(f"  Pitcher {pitcher_name}: {len(arsenal)} pitch types loaded")
+        log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types")
         return arsenal
 
     except Exception as e:
@@ -762,13 +786,19 @@ def run():
 
             log.info(f"  Processing batters vs {pitcher_name} ({batting_team})")
 
-            arsenal = get_pitcher_arsenal(pitcher_id, pitcher_name)
             batters = get_roster_batters(batting_team, game["game_pk"])
+            # Cache arsenal per batter hand to avoid re-fetching for same handedness
+            arsenal_cache = {}
 
             for batter in batters[:9]:  # top 9 in lineup
                 b_id = batter["id"]
                 b_name = batter["name"]
                 b_hand = batter.get("bats", "R")
+
+                # Fetch hand-specific arsenal (cached per hand)
+                if b_hand not in arsenal_cache:
+                    arsenal_cache[b_hand] = get_pitcher_arsenal(pitcher_id, pitcher_name, b_hand)
+                arsenal = arsenal_cache[b_hand]
 
                 batter_stats = get_batter_pitch_stats(b_id, b_name, b_hand)
                 if not batter_stats:
