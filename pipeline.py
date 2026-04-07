@@ -997,6 +997,40 @@ def run():
             seen_fades.add(key)
             deduped_fades.append(f)
 
+    # ── Laser prop targets ────────────────────────────────────────────────────
+    # Flags elite hard-contact profiles facing pitchers with high hard-hit rates
+    # Designed for FanDuel Laser HR props (110+ MPH exit velo HRs)
+    laser_targets = []
+    for t in all_targets:
+        meta = t.get("batter_meta", {})
+        avg_ev = meta.get("avg_ev") or 0
+        barrel_pct = meta.get("barrel_pct") or 0
+        overall_hr9 = t.get("pitcher_overall_hr9") or 0
+
+        # Criteria: elite EV + barrel profile facing a hittable pitcher
+        is_laser = (
+            avg_ev >= 91.0 and          # elite exit velocity
+            barrel_pct >= 10.0 and      # elite barrel rate
+            overall_hr9 >= 0.85 and     # pitcher is hittable
+            t["tier"] in ("PRIME", "HIGH", "MED")
+        )
+        if is_laser:
+            laser_targets.append({
+                "batter_name": t["batter_name"],
+                "batter_team": t["batter_team"],
+                "pitcher_name": t["pitcher_name"],
+                "game": t["game"],
+                "venue": t["venue"],
+                "avg_ev": avg_ev,
+                "barrel_pct": barrel_pct,
+                "pitcher_hr9": overall_hr9,
+                "score": t["score"],
+                "tier": t["tier"],
+            })
+
+    laser_targets.sort(key=lambda x: (-(x["avg_ev"] or 0) - (x["barrel_pct"] or 0)))
+    log.info(f"  Laser targets: {len(laser_targets)}")
+
     # Build final output
     output = {
         "generated_at": datetime.datetime.now().isoformat(),
@@ -1004,6 +1038,7 @@ def run():
         "pybaseball_live": PYBASEBALL_AVAILABLE,
         "games": output_games,
         "targets": all_targets,
+        "laser_targets": laser_targets,
         "auto_fades": deduped_fades,
         "summary": {
             "total_games": len(output_games),
