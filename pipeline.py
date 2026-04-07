@@ -417,20 +417,13 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             if len(group_vs) == 0:
                 continue
 
-            # ── KEY FIX: IP proxy uses this pitch type's own pitch count ──────
-            # Each pitch type has its own effective IP contribution.
-            # Using total arsenal pitches as denominator was inflating HR/9.
-            # ~4 pitches per PA, ~3 outs per inning → 12 pitches per inning
-            # But we normalize per pitch type: HRs on this pitch / (pitches of
-            # this type / 12) * 9 gives HR per 9 innings IF pitcher only threw
-            # this pitch, which is the correct vulnerability signal.
-            pt_ip_proxy = len(group_vs) / 12
             hr_events = group_vs[group_vs["events"] == "home_run"]
             hr_count_pt = len(hr_events)
 
-            # HR% = HRs / PA on this pitch type — more accurate than HR/9 per pitch
+            # HR% per PA — used internally for scoring (vuln + collision)
+            # Minimum 30 PA required before rate is meaningful
             pa_on_pitch = group_vs["at_bat_number"].nunique() if "at_bat_number" in group_vs.columns else len(group_vs) // 4
-            hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch > 0 else 0
+            hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch >= 30 else None
 
             barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
@@ -438,12 +431,23 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
 
             arsenal[str(pt)] = {
                 "usage_pct": usage_pct,
-                "hr_pct": round(hr_pct, 1),          # HR% per PA on this pitch — shown in matrix
+                "hr_pct": round(hr_pct, 1) if hr_pct is not None else None,  # for scoring
+                "hr_count": hr_count_pt,                                        # for distribution
                 "barrel_rate_allowed": round(barrel_rate * 100, 1),
                 "avg_ev_allowed": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
                 "pitch_count": len(group_vs),
                 "batter_hand": batter_hand,
             }
+
+        # ── HR distribution % — share of total HRs by pitch type ─────────────
+        # e.g. "70% of pitcher's HRs came on four-seam" — displayed in matrix
+        # Uses hand-specific HRs (vs LHB or RHB depending on batter)
+        total_hrs_vs = sum(v.get("hr_count", 0) for k, v in arsenal.items() if not k.startswith("_"))
+        for pt in arsenal:
+            if pt.startswith("_"):
+                continue
+            hr_ct = arsenal[pt].get("hr_count", 0)
+            arsenal[pt]["hr_dist_pct"] = round(hr_ct / total_hrs_vs * 100) if total_hrs_vs > 0 else None
 
         log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types")
 
@@ -564,7 +568,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         if pt.startswith("_"):
             continue
         usage = pa.get("usage_pct", 0) / 100
-        hr_pct = pa.get("hr_pct", 0)
+        hr_pct = pa.get("hr_pct") or 0
         # Normalize HR%: 0%=0, 8%=1.0 (8% HR rate per PA on a pitch is elite vulnerability)
         vuln = min(hr_pct / 8.0, 1.0)
         pitcher_vuln_score += usage * vuln
@@ -897,6 +901,7 @@ def run():
                         pt: {**batter_stats.get(pt, {}), **{
                             "pitcher_usage": arsenal.get(pt, {}).get("usage_pct"),
                             "pitcher_hr_pct": arsenal.get(pt, {}).get("hr_pct"),
+                            "pitcher_hr_dist": arsenal.get(pt, {}).get("hr_dist_pct"),
                         }}
                         for pt in arsenal if not pt.startswith("_") and pt in batter_stats
                     },
