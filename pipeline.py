@@ -561,6 +561,12 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     barrel_score = min(barrel_pct / 20, 1)
     ev_barrel_score = (ev_score * 0.6 + barrel_score * 0.4)
 
+    PITCH_NAMES = {
+        "FF":"Four-seam", "SI":"Sinker", "FC":"Cutter", "CH":"Changeup",
+        "SL":"Slider", "CU":"Curveball", "SW":"Sweeper", "FS":"Splitter",
+        "ST":"Sweeper", "KC":"Knuckle curve", "KN":"Knuckleball", "CS":"Slow curve",
+    }
+
     # 2. Pitcher vulnerability (20%) — weighted by usage
     pitcher_vuln_score = 0.0
     pitcher_insights = []
@@ -569,12 +575,12 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
             continue
         usage = pa.get("usage_pct", 0) / 100
         hr_pct = pa.get("hr_pct") or 0
-        # Normalize HR%: 0%=0, 8%=1.0 (8% HR rate per PA on a pitch is elite vulnerability)
         vuln = min(hr_pct / 8.0, 1.0)
         pitcher_vuln_score += usage * vuln
         if usage > 0.20 and vuln > 0.5:
+            pt_name = PITCH_NAMES.get(str(pt), str(pt))
             pitcher_insights.append(
-                f"throws {round(usage*100)}% {pt} — {hr_pct}% HR rate allowed"
+                f"throws {round(usage*100)}% {pt_name} — {hr_pct}% HR rate allowed"
             )
     pitcher_vuln_score = min(pitcher_vuln_score, 1.0)
 
@@ -592,15 +598,14 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         slg = bs.get("slg", 0)
         sample = bs.get("sample_pitches", 0)
         if sample < 20:
-            continue  # insufficient sample
-        # Normalize run_factor: context-dependent, use slg as proxy if small sample
-        # SLG > 0.600 is elite vs a pitch type, normalize 0-1
+            continue
         slg_norm = min(slg / 1.0, 1.0)
         pt_score = usage * slg_norm
         collision_score += pt_score
         if usage > 0.25 and slg > 0.500:
+            pt_name = PITCH_NAMES.get(str(pt), str(pt))
             collision_insights.append(
-                f"{pt} ({round(usage*100)}% usage): {slg:.3f} SLG"
+                f"{pt_name} ({round(usage*100)}% usage): {slg:.3f} SLG"
             )
     collision_score = min(collision_score, 1.0)
 
@@ -689,7 +694,15 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     all_insights = collision_insights + pitcher_insights
     top_insight = all_insights[0] if all_insights else "Insufficient pitch-type sample for collision signal."
 
-    # Tier — thresholds relaxed for early season small samples
+    # Dominant signal — any single component above 80 gets flagged with a star
+    dominant_signals = []
+    if pitcher_vuln_score > 0.80:  dominant_signals.append("pitcher_vuln")
+    if collision_score > 0.70:     dominant_signals.append("pitch_collision")
+    if ev_barrel_score > 0.75:     dominant_signals.append("ev_barrel")
+    if park_score > 0.85:          dominant_signals.append("park_factor")
+    if form_score > 0.75:          dominant_signals.append("recent_form")
+
+    # Tier
     factors_aligning = sum([
         pitcher_vuln_score > 0.4,
         collision_score > 0.3,
@@ -699,14 +712,14 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     ])
     if score >= 55 and factors_aligning >= 2:
         tier = "PRIME"
-    elif score >= 39 and factors_aligning >= 1:
+    elif score >= 46 and factors_aligning >= 2:
         tier = "HIGH"
-    elif score >= 25:
+    elif score >= 30:
         tier = "MED"
     else:
         tier = "FADE"
 
-    return score, components, top_insight, tier
+    return score, components, top_insight, tier, dominant_signals
 
 
 # ── Hardcoded seed data (used when pybaseball unavailable) ────────────────────
@@ -869,7 +882,7 @@ def run():
                 if not batter_stats:
                     continue
 
-                score, components, insight, tier = score_batter(
+                score, components, insight, tier, dominant_signals = score_batter(
                     batter, pitcher_info, arsenal, batter_stats, park, weather
                 )
 
@@ -889,6 +902,7 @@ def run():
                     "tier": tier,
                     "components": components,
                     "insight": insight,
+                    "dominant_signals": dominant_signals,
                     "park_factor": park.get("lhb" if b_hand == "L" else "rhb", park.get("overall", 100)),
                     "park_suppress": park.get("suppress", False),
                     "weather_label": weather["wind_label"],

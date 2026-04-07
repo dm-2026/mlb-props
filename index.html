@@ -542,10 +542,23 @@ function batterCard(t, idx) {
   const form=(meta.hr_recent_14d||0)>0?`${meta.hr_recent_14d} HR L14D`:'';
   const pa26=(meta.pa_2026||0)>0?`${meta.pa_2026} PA '26`:'';
 
+  const dominant = t.dominant_signals||[];
+  const hasStar = dominant.length > 0;
+  const starTip = dominant.map(s => ({
+    pitcher_vuln:'★ Elite pitcher vulnerability',
+    pitch_collision:'★ Elite pitch collision',
+    ev_barrel:'★ Elite power profile',
+    park_factor:'★ Premium park advantage',
+    recent_form:'★ Red-hot form',
+  }[s]||s)).join(' · ');
+
   return `<div class="batter-card" id="card-${idx}">
     <div class="card-header" onclick="toggleCard('${idx}')">
       <div class="tier-bar ${t.tier}"></div>
-      <div class="score-box ${t.tier}">${t.score}</div>
+      <div class="score-box ${t.tier}" style="position:relative">
+        ${t.score}
+        ${hasStar?`<span title="${starTip}" style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#fbbf24;line-height:1">★</span>`:''}
+      </div>
       <div class="card-info">
         <div class="batter-name">${t.batter_name}</div>
         <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue||t.game}</div>
