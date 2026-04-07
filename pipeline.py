@@ -167,14 +167,20 @@ def get_roster_batters(team_abbrev, game_pk):
             (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
         )
         if team_id:
-            roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
+            # Use hydrate=person to get full person details including batSide
+            roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active&hydrate=person"
             r3 = requests.get(roster_url, timeout=20)
             for p in r3.json().get("roster", []):
                 pid = p["person"]["id"]
-                hand = p.get("person", {}).get("batSide", {}).get("code", "R")
-                hand_lookup[int(pid)] = hand  # store as int to match battingOrder type
-                hand_lookup[str(pid)] = hand  # also store as str for safety
+                # batSide comes back under person when hydrated
+                hand = p.get("person", {}).get("batSide", {}).get("code")
+                if not hand:
+                    hand = p.get("person", {}).get("bats", {}).get("code", "R")
+                hand_lookup[int(pid)] = hand or "R"
+                hand_lookup[str(pid)] = hand or "R"
             log.info(f"  Hand lookup built for {team_abbrev}: {len(hand_lookup)//2} players")
+    except Exception as e:
+        log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
     except Exception as e:
         log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
 
@@ -197,8 +203,14 @@ def get_roster_batters(team_abbrev, game_pk):
                         p = players.get(f"ID{pid}", {})
                         info = p.get("person", {})
                         pos = p.get("position", {})
-                        # Try both int and str keys to handle type mismatches
-                        bats = hand_lookup.get(int(pid), hand_lookup.get(str(pid), "R"))
+                        # Try hand_lookup first, then fall back to people API
+                        bats = hand_lookup.get(int(pid), hand_lookup.get(str(pid)))
+                        if not bats:
+                            try:
+                                pr = requests.get(f"https://statsapi.mlb.com/api/v1/people/{pid}", timeout=20)
+                                bats = pr.json().get("people", [{}])[0].get("batSide", {}).get("code", "R")
+                            except Exception:
+                                bats = "R"
                         result.append({
                             "id": pid,
                             "name": info.get("fullName", ""),
