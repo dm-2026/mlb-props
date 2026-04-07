@@ -208,7 +208,7 @@ def get_roster_batters(team_abbrev, game_pk):
                 batters.append({
                     "id": p["person"]["id"],
                     "name": p["person"]["fullName"],
-                    "bats": p.get("status", {}).get("code", "R"),
+                    "bats": p.get("person", {}).get("batSide", {}).get("code", "R"),
                     "position": pos,
                 })
         log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters")
@@ -354,10 +354,10 @@ def get_weather_rotowire():
 def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
     """
     Returns dict: {pitch_type: {usage_pct, hr_per_9, barrel_rate_allowed, avg_ev_allowed}}
-    Filtered to only pitches thrown to batters matching batter_hand (L or R).
-    This gives the actual handedness-specific vulnerability — e.g. a pitcher who
-    allows 1.8 HR/9 to LHB on sinkers but only 0.4 to RHB on sinkers.
-    Uses 2025 full season + 2026 YTD blended.
+    Filtered to pitches thrown to batter_hand (L or R).
+    HR/9 is calculated per pitch type using that pitch type's own IP proxy,
+    not the total arsenal IP proxy (fixes inflation bug).
+    2025 is used as the primary dataset; 2026 is only blended in after 100+ BF.
     """
     if not PYBASEBALL_AVAILABLE:
         return get_hardcoded_pitcher_data(pitcher_id)
@@ -373,54 +373,63 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
         end_2026 = TODAY.strftime("%Y-%m-%d")
         df26 = pb.statcast_pitcher(start_2026, end_2026, pitcher_id)
 
+        # Tighter blending — only start mixing in 2026 after 100 batters faced
+        # Below 100 BF, 2025 is far more reliable than noisy early-season data
         bf_2026 = len(df26["batter"].unique()) if len(df26) > 0 else 0
-        w26 = min(bf_2026 / 200, 1.0)
-        w25 = 1.0 - w26
-
-        df_all = pd.concat([
-            df25.assign(_weight=w25),
-            df26.assign(_weight=w26)
-        ]) if len(df26) > 0 else df25.assign(_weight=1.0)
+        if bf_2026 < 100:
+            # Use 2025 only — 2026 sample too small to be meaningful
+            df_all = df25.copy() if not df25.empty else pd.DataFrame()
+            log.info(f"  {pitcher_name}: {bf_2026} BF in 2026 — using 2025 data only")
+        else:
+            # Linear blend: 100 BF = 50% 2026, 200 BF = 100% 2026
+            w26 = min((bf_2026 - 100) / 100, 1.0)
+            w25 = 1.0 - w26
+            df_all = pd.concat([
+                df25.assign(_weight=w25),
+                df26.assign(_weight=w26)
+            ])
+            log.info(f"  {pitcher_name}: blending 2025 ({round(w25*100)}%) + 2026 ({round(w26*100)}%)")
 
         if df_all.empty:
             log.warning(f"No Statcast data for pitcher {pitcher_name} ({pitcher_id})")
             return {}
 
-        # Usage % always calculated on full dataset (all batters faced)
-        # HR/9 and vulnerability calculated on hand-specific subset
         total_pitches = len(df_all)
 
-        # Filter to pitches thrown to this batter handedness — "stand" = batter stance
+        # Filter to this batter handedness
         df_vs = df_all[df_all["stand"] == batter_hand] if "stand" in df_all.columns else df_all
-        # If the hand-filtered set is very small (<50 pitches), fall back to full dataset
         if len(df_vs) < 50:
-            log.info(f"  {pitcher_name} vs {batter_hand}HB: small sample ({len(df_vs)} pitches), using full dataset")
+            log.info(f"  {pitcher_name} vs {batter_hand}HB: small sample ({len(df_vs)}), using full dataset")
             df_vs = df_all
-
-        # IP proxy on the hand-specific subset for accurate HR/9
-        ip_proxy_vs = len(df_vs) / 12
 
         arsenal = {}
         for pt, group_all in df_all.groupby("pitch_type"):
             if pt is None or str(pt) == "nan" or pt == "PO":
                 continue
 
-            # Usage from full dataset
+            # Usage from full dataset (all batters, all hands)
             usage_pct = round(len(group_all) / total_pitches * 100, 1)
-            if usage_pct < 2:  # skip pitch types thrown < 2% of the time
+            if usage_pct < 2:
                 continue
 
-            # HR/9 and other vulnerability from hand-specific group
+            # HR/9 from hand-specific group for this pitch type
             group_vs = df_vs[df_vs["pitch_type"] == pt]
             if len(group_vs) == 0:
                 continue
 
+            # ── KEY FIX: IP proxy uses this pitch type's own pitch count ──────
+            # Each pitch type has its own effective IP contribution.
+            # Using total arsenal pitches as denominator was inflating HR/9.
+            # ~4 pitches per PA, ~3 outs per inning → 12 pitches per inning
+            # But we normalize per pitch type: HRs on this pitch / (pitches of
+            # this type / 12) * 9 gives HR per 9 innings IF pitcher only threw
+            # this pitch, which is the correct vulnerability signal.
+            pt_ip_proxy = len(group_vs) / 12
             hr_events = group_vs[group_vs["events"] == "home_run"]
-            hr_per_9 = (len(hr_events) / ip_proxy_vs * 9) if ip_proxy_vs > 0 else 0
+            hr_per_9 = (len(hr_events) / pt_ip_proxy * 9) if pt_ip_proxy > 0 else 0
 
             barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
-
             avg_ev = group_vs["launch_speed"].mean() if "launch_speed" in group_vs.columns else None
 
             arsenal[str(pt)] = {

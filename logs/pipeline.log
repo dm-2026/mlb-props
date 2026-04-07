@@ -2489,3 +2489,374 @@
 2026-04-07 12:23:57,751 INFO   Batter Luis Arraez: 14 pitch types, 30 PA in 2026
 2026-04-07 12:23:57,782 INFO ✓ Wrote data\data.json — 128 targets, 3 fades
 2026-04-07 12:23:57,782 INFO   PRIME: 0 | HIGH: 2 | MED: 126
+2026-04-07 12:42:27,837 INFO === MLB HR Props Pipeline — 2026-04-07 ===
+2026-04-07 12:42:27,838 INFO Fetching weather from RotoWire…
+2026-04-07 12:42:28,630 INFO RotoWire weather: 10 outdoor parks parsed
+2026-04-07 12:42:29,031 INFO Found 15 games for 2026-04-07
+2026-04-07 12:42:29,033 INFO   Processing batters vs Gavin Williams (KC)
+2026-04-07 12:42:29,549 INFO   Confirmed lineup for KC: 9 batters
+2026-04-07 12:42:29,954 INFO   Gavin Williams: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:42:29,978 INFO   Pitcher Gavin Williams vs RHB: 5 pitch types
+2026-04-07 12:42:30,461 INFO   Batter Maikel Garcia: 13 pitch types, 33 PA in 2026
+2026-04-07 12:42:30,952 INFO   Batter Bobby Witt Jr.: 13 pitch types, 34 PA in 2026
+2026-04-07 12:42:31,445 INFO   Batter Vinnie Pasquantino: 11 pitch types, 33 PA in 2026
+2026-04-07 12:42:31,934 INFO   Batter Salvador Perez: 13 pitch types, 31 PA in 2026
+2026-04-07 12:42:32,393 INFO   Batter Carter Jensen: 11 pitch types, 21 PA in 2026
+2026-04-07 12:42:32,874 INFO   Batter Jonathan India: 13 pitch types, 27 PA in 2026
+2026-04-07 12:42:33,361 INFO   Batter Jac Caglianone: 13 pitch types, 26 PA in 2026
+2026-04-07 12:42:33,843 INFO   Batter Isaac Collins: 13 pitch types, 26 PA in 2026
+2026-04-07 12:42:34,324 INFO   Batter Kyle Isbel: 13 pitch types, 20 PA in 2026
+2026-04-07 12:42:34,325 INFO   Processing batters vs Noah Cameron (CLE)
+2026-04-07 12:42:34,692 INFO   Confirmed lineup for CLE: 9 batters
+2026-04-07 12:42:35,044 INFO   Noah Cameron: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:42:35,065 INFO   Pitcher Noah Cameron vs RHB: 5 pitch types
+2026-04-07 12:42:35,541 INFO   Batter Steven Kwan: 10 pitch types, 29 PA in 2026
+2026-04-07 12:42:36,028 INFO   Batter Angel Martínez: 12 pitch types, 21 PA in 2026
+2026-04-07 12:42:36,532 INFO   Batter José Ramírez: 13 pitch types, 26 PA in 2026
+2026-04-07 12:42:37,017 INFO   Batter David Fry: 10 pitch types, 11 PA in 2026
+2026-04-07 12:42:37,485 INFO   Batter Rhys Hoskins: 11 pitch types, 20 PA in 2026
+2026-04-07 12:42:39,108 INFO   Batter CJ Kayfus: 10 pitch types, 20 PA in 2026
+2026-04-07 12:42:39,561 INFO   Batter Austin Hedges: 9 pitch types, 8 PA in 2026
+2026-04-07 12:42:40,027 INFO   Batter Brayan Rocchio: 11 pitch types, 28 PA in 2026
+2026-04-07 12:42:40,031 INFO   Processing batters vs Shane Smith (BAL)
+2026-04-07 12:42:41,179 INFO   Active roster for BAL: 13 batters
+2026-04-07 12:42:41,543 INFO   Shane Smith: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:42:41,564 INFO   Pitcher Shane Smith vs RHB: 5 pitch types
+2026-04-07 12:42:42,068 INFO   Batter Adley Rutschman: 13 pitch types, 20 PA in 2026
+2026-04-07 12:42:42,534 INFO   Batter Blaze Alexander: 10 pitch types, 17 PA in 2026
+2026-04-07 12:42:43,011 INFO   Batter Coby Mayo: 12 pitch types, 23 PA in 2026
+2026-04-07 12:42:43,492 INFO   Batter Colton Cowser: 12 pitch types, 19 PA in 2026
+2026-04-07 12:42:43,954 INFO   Batter Dylan Beavers: 11 pitch types, 20 PA in 2026
+2026-04-07 12:42:44,425 INFO   Batter Gunnar Henderson: 12 pitch types, 32 PA in 2026
+2026-04-07 12:42:44,844 INFO   Batter Jeremiah Jackson: 10 pitch types, 21 PA in 2026
+2026-04-07 12:42:45,299 INFO   Batter Leody Taveras: 10 pitch types, 11 PA in 2026
+2026-04-07 12:42:45,759 INFO   Batter Pete Alonso: 12 pitch types, 27 PA in 2026
+2026-04-07 12:42:45,760 INFO   Processing batters vs Trevor Rogers (CWS)
+2026-04-07 12:42:46,146 INFO   Confirmed lineup for CWS: 9 batters
+2026-04-07 12:42:46,476 INFO   Trevor Rogers: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:42:46,495 INFO   Pitcher Trevor Rogers vs RHB: 5 pitch types
+2026-04-07 12:42:46,942 INFO   Batter Chase Meidroth: 13 pitch types, 25 PA in 2026
+2026-04-07 12:42:47,384 INFO   Batter Lenyn Sosa: 12 pitch types, 14 PA in 2026
+2026-04-07 12:42:47,851 INFO   Batter Miguel Vargas: 13 pitch types, 31 PA in 2026
+2026-04-07 12:42:48,285 INFO   Batter Colson Montgomery: 11 pitch types, 29 PA in 2026
+2026-04-07 12:42:48,715 INFO   Batter Edgar Quero: 11 pitch types, 18 PA in 2026
+2026-04-07 12:42:49,081 INFO   Batter Tanner Murray: 6 pitch types, 2 PA in 2026
+2026-04-07 12:42:49,547 INFO   Batter Andrew Benintendi: 12 pitch types, 20 PA in 2026
+2026-04-07 12:42:50,008 INFO   Batter Luisangel Acuña: 12 pitch types, 24 PA in 2026
+2026-04-07 12:42:50,439 INFO   Batter Derek Hill: 12 pitch types, 9 PA in 2026
+2026-04-07 12:42:50,440 INFO   Processing batters vs Freddy Peralta (AZ)
+2026-04-07 12:42:51,513 INFO   Active roster for AZ: 13 batters
+2026-04-07 12:42:51,833 INFO   Freddy Peralta: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:42:51,850 INFO   Pitcher Freddy Peralta vs RHB: 4 pitch types
+2026-04-07 12:42:52,261 INFO   Batter Adrian Del Castillo: 9 pitch types, 3 PA in 2026
+2026-04-07 12:42:52,708 INFO   Batter Alek Thomas: 12 pitch types, 24 PA in 2026
+2026-04-07 12:42:53,269 INFO   Batter Carlos Santana: 11 pitch types, 16 PA in 2026
+2026-04-07 12:42:53,700 INFO   Batter Corbin Carroll: 11 pitch types, 25 PA in 2026
+2026-04-07 12:42:54,117 INFO   Batter Gabriel Moreno: 10 pitch types, 23 PA in 2026
+2026-04-07 12:42:54,579 INFO   Batter Geraldo Perdomo: 14 pitch types, 23 PA in 2026
+2026-04-07 12:42:55,007 INFO   Batter Ildemaro Vargas: 11 pitch types, 12 PA in 2026
+2026-04-07 12:42:55,436 INFO   Batter James McCann: 10 pitch types, 12 PA in 2026
+2026-04-07 12:42:55,849 INFO   Batter Jorge Barrosa: 10 pitch types, 10 PA in 2026
+2026-04-07 12:42:55,850 INFO   Processing batters vs Zac Gallen (NYM)
+2026-04-07 12:42:56,236 INFO   Confirmed lineup for NYM: 9 batters
+2026-04-07 12:42:56,565 INFO   Zac Gallen: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:42:56,590 INFO   Pitcher Zac Gallen vs RHB: 6 pitch types
+2026-04-07 12:42:57,075 INFO   Batter Francisco Lindor: 10 pitch types, 31 PA in 2026
+2026-04-07 12:42:57,544 INFO   Batter Bo Bichette: 12 pitch types, 31 PA in 2026
+2026-04-07 12:42:58,002 INFO   Batter Jorge Polanco: 12 pitch types, 29 PA in 2026
+2026-04-07 12:42:58,441 INFO   Batter Luis Robert Jr.: 11 pitch types, 29 PA in 2026
+2026-04-07 12:42:58,914 INFO   Batter Brett Baty: 12 pitch types, 23 PA in 2026
+2026-04-07 12:43:05,881 INFO   Batter Mark Vientos: 12 pitch types, 20 PA in 2026
+2026-04-07 12:43:13,336 INFO   Batter Marcus Semien: 11 pitch types, 29 PA in 2026
+2026-04-07 12:43:14,385 INFO   Batter Carson Benge: 9 pitch types, 24 PA in 2026
+2026-04-07 12:43:14,884 INFO   Batter Francisco Alvarez: 11 pitch types, 21 PA in 2026
+2026-04-07 12:43:14,885 INFO   Auto-fade: Paul Skenes
+2026-04-07 12:43:14,885 INFO   Processing batters vs Nick Pivetta (PIT)
+2026-04-07 12:43:15,977 INFO   Active roster for PIT: 13 batters
+2026-04-07 12:43:16,314 INFO   Nick Pivetta: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:43:16,333 INFO   Pitcher Nick Pivetta vs RHB: 5 pitch types
+2026-04-07 12:43:17,058 INFO   Batter Billy Cook: 5 pitch types, 0 PA in 2026
+2026-04-07 12:43:17,512 INFO   Batter Brandon Lowe: 12 pitch types, 27 PA in 2026
+2026-04-07 12:43:17,938 INFO   Batter Bryan Reynolds: 11 pitch types, 29 PA in 2026
+2026-04-07 12:43:18,378 INFO   Batter Henry Davis: 12 pitch types, 21 PA in 2026
+2026-04-07 12:43:18,812 INFO   Batter Jake Mangum: 12 pitch types, 22 PA in 2026
+2026-04-07 12:43:19,244 INFO   Batter Joey Bart: 11 pitch types, 9 PA in 2026
+2026-04-07 12:43:20,029 INFO   Batter Konnor Griffin: 8 pitch types, 15 PA in 2026
+2026-04-07 12:43:20,487 INFO   Batter Marcell Ozuna: 12 pitch types, 27 PA in 2026
+2026-04-07 12:43:20,988 INFO   Batter Nick Gonzales: 12 pitch types, 29 PA in 2026
+2026-04-07 12:43:20,989 INFO   Processing batters vs Drew Rasmussen (CHC)
+2026-04-07 12:43:22,087 INFO   Active roster for CHC: 13 batters
+2026-04-07 12:43:22,430 INFO   Drew Rasmussen: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:43:22,452 INFO   Pitcher Drew Rasmussen vs RHB: 5 pitch types
+2026-04-07 12:43:22,897 INFO   Batter Alex Bregman: 14 pitch types, 29 PA in 2026
+2026-04-07 12:43:23,362 INFO   Batter Carson Kelly: 14 pitch types, 23 PA in 2026
+2026-04-07 12:43:23,812 INFO   Batter Dansby Swanson: 12 pitch types, 26 PA in 2026
+2026-04-07 12:43:24,300 INFO   Batter Dylan Carlson: 13 pitch types, 4 PA in 2026
+2026-04-07 12:43:24,798 INFO   Batter Ian Happ: 14 pitch types, 27 PA in 2026
+2026-04-07 12:43:25,262 INFO   Batter Matt Shaw: 13 pitch types, 18 PA in 2026
+2026-04-07 12:43:25,743 INFO   Batter Michael Busch: 12 pitch types, 28 PA in 2026
+2026-04-07 12:43:26,270 INFO   Batter Michael Conforto: 12 pitch types, 10 PA in 2026
+2026-04-07 12:43:26,714 INFO   Batter Miguel Amaya: 11 pitch types, 13 PA in 2026
+2026-04-07 12:43:26,716 INFO   Processing batters vs Javier Assad (TB)
+2026-04-07 12:43:27,976 INFO   Active roster for TB: 13 batters
+2026-04-07 12:43:28,696 INFO   Javier Assad: 0 BF in 2026 — using 2025 data only
+2026-04-07 12:43:28,714 INFO   Pitcher Javier Assad vs RHB: 6 pitch types
+2026-04-07 12:43:29,172 INFO   Batter Ben Williamson: 13 pitch types, 29 PA in 2026
+2026-04-07 12:43:29,644 INFO   Batter Cedric Mullins: 13 pitch types, 29 PA in 2026
+2026-04-07 12:43:30,103 INFO   Batter Chandler Simpson: 12 pitch types, 33 PA in 2026
+2026-04-07 12:43:30,553 INFO   Batter Hunter Feduccia: 11 pitch types, 10 PA in 2026
+2026-04-07 12:43:30,999 INFO   Batter Jake Fraley: 13 pitch types, 20 PA in 2026
+2026-04-07 12:43:31,452 INFO   Batter Jonathan Aranda: 12 pitch types, 27 PA in 2026
+2026-04-07 12:43:31,924 INFO   Batter Jonny DeLuca: 10 pitch types, 14 PA in 2026
+2026-04-07 12:43:32,375 INFO   Batter Junior Caminero: 13 pitch types, 29 PA in 2026
+2026-04-07 12:43:32,846 INFO   Batter Nick Fortes: 12 pitch types, 20 PA in 2026
+2026-04-07 12:43:32,847 INFO   Processing batters vs Sandy Alcantara (CIN)
+2026-04-07 12:43:33,964 INFO   Active roster for CIN: 13 batters
+2026-04-07 12:43:41,057 INFO   Sandy Alcantara: 20 BF in 2026 — using 2025 data only
+2026-04-07 12:43:41,087 INFO   Pitcher Sandy Alcantara vs RHB: 5 pitch types
+2026-04-07 12:43:41,776 INFO   Batter Dane Myers: 13 pitch types, 14 PA in 2026
+2026-04-07 12:43:42,401 INFO   Batter Elly De La Cruz: 13 pitch types, 34 PA in 2026
+2026-04-07 12:43:42,898 INFO   Batter Eugenio Suárez: 12 pitch types, 30 PA in 2026
+2026-04-07 12:43:43,345 INFO   Batter Jose Trevino: 13 pitch types, 11 PA in 2026
+2026-04-07 12:43:43,774 INFO   Batter Ke'Bryan Hayes: 12 pitch types, 20 PA in 2026
+2026-04-07 12:43:44,216 INFO   Batter Matt McLain: 12 pitch types, 32 PA in 2026
+2026-04-07 12:43:44,662 INFO   Batter Nathaniel Lowe: 13 pitch types, 8 PA in 2026
+2026-04-07 12:43:45,104 INFO   Batter Noelvi Marte: 13 pitch types, 12 PA in 2026
+2026-04-07 12:43:45,529 INFO   Batter Sal Stewart: 10 pitch types, 32 PA in 2026
+2026-04-07 12:43:45,530 INFO   Processing batters vs Andrew Abbott (MIA)
+2026-04-07 12:43:46,540 INFO   Active roster for MIA: 13 batters
+2026-04-07 12:43:46,871 INFO   Andrew Abbott: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:43:46,891 INFO   Pitcher Andrew Abbott vs RHB: 5 pitch types
+2026-04-07 12:43:47,344 INFO   Batter Agustín Ramírez: 13 pitch types, 33 PA in 2026
+2026-04-07 12:43:47,779 INFO   Batter Austin Slater: 13 pitch types, 15 PA in 2026
+2026-04-07 12:43:48,222 INFO   Batter Connor Norby: 13 pitch types, 25 PA in 2026
+2026-04-07 12:43:48,667 INFO   Batter Graham Pauley: 12 pitch types, 15 PA in 2026
+2026-04-07 12:43:49,086 INFO   Batter Griffin Conine: 10 pitch types, 15 PA in 2026
+2026-04-07 12:43:49,580 INFO   Batter Heriberto Hernández: 13 pitch types, 27 PA in 2026
+2026-04-07 12:43:50,016 INFO   Batter Jakob Marsee: 12 pitch types, 30 PA in 2026
+2026-04-07 12:43:50,460 INFO   Batter Javier Sanoja: 13 pitch types, 22 PA in 2026
+2026-04-07 12:43:50,858 INFO   Batter Leo Jiménez: 9 pitch types, 6 PA in 2026
+2026-04-07 12:43:50,859 INFO   Processing batters vs Cade Cavalli (STL)
+2026-04-07 12:43:51,982 INFO   Active roster for STL: 13 batters
+2026-04-07 12:43:52,323 INFO   Cade Cavalli: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:43:52,339 INFO   Pitcher Cade Cavalli vs RHB: 5 pitch types
+2026-04-07 12:43:52,781 INFO   Batter Alec Burleson: 12 pitch types, 28 PA in 2026
+2026-04-07 12:43:53,207 INFO   Batter Iván Herrera: 11 pitch types, 28 PA in 2026
+2026-04-07 12:43:53,968 INFO   Batter JJ Wetherholt: 10 pitch types, 28 PA in 2026
+2026-04-07 12:43:54,404 INFO   Batter Jordan Walker: 11 pitch types, 28 PA in 2026
+2026-04-07 12:43:54,808 INFO   Batter José Fermín: 9 pitch types, 2 PA in 2026
+2026-04-07 12:43:55,248 INFO   Batter Masyn Winn: 12 pitch types, 25 PA in 2026
+2026-04-07 12:43:55,674 INFO   Batter Nathan Church: 11 pitch types, 19 PA in 2026
+2026-04-07 12:43:56,104 INFO   Batter Nolan Gorman: 12 pitch types, 26 PA in 2026
+2026-04-07 12:43:56,549 INFO   Batter Pedro Pagés: 11 pitch types, 15 PA in 2026
+2026-04-07 12:43:56,551 INFO   Processing batters vs Matthew Liberatore (WSH)
+2026-04-07 12:43:57,562 INFO   Active roster for WSH: 13 batters
+2026-04-07 12:43:57,891 INFO   Matthew Liberatore: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:43:57,913 INFO   Pitcher Matthew Liberatore vs RHB: 6 pitch types
+2026-04-07 12:43:58,353 INFO   Batter Brady House: 12 pitch types, 28 PA in 2026
+2026-04-07 12:43:58,800 INFO   Batter CJ Abrams: 13 pitch types, 34 PA in 2026
+2026-04-07 12:43:59,215 INFO   Batter Curtis Mead: 10 pitch types, 13 PA in 2026
+2026-04-07 12:43:59,678 INFO   Batter Daylen Lile: 12 pitch types, 32 PA in 2026
+2026-04-07 12:44:00,093 INFO   Batter Drew Millas: 10 pitch types, 20 PA in 2026
+2026-04-07 12:44:00,537 INFO   Batter Jacob Young: 13 pitch types, 20 PA in 2026
+2026-04-07 12:44:00,973 INFO   Batter James Wood: 12 pitch types, 33 PA in 2026
+2026-04-07 12:44:01,533 INFO   Batter Joey Wiemer: 10 pitch types, 20 PA in 2026
+2026-04-07 12:44:01,919 INFO   Batter Jorbit Vivas: 9 pitch types, 21 PA in 2026
+2026-04-07 12:44:01,920 INFO   Processing batters vs Garrett Crochet (MIL)
+2026-04-07 12:44:02,937 INFO   Active roster for MIL: 13 batters
+2026-04-07 12:44:03,275 INFO   Garrett Crochet: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:03,297 INFO   Pitcher Garrett Crochet vs RHB: 5 pitch types
+2026-04-07 12:44:03,757 INFO   Batter Blake Perkins: 13 pitch types, 20 PA in 2026
+2026-04-07 12:44:04,196 INFO   Batter Brandon Lockridge: 13 pitch types, 22 PA in 2026
+2026-04-07 12:44:04,654 INFO   Batter Brice Turang: 14 pitch types, 31 PA in 2026
+2026-04-07 12:44:05,094 INFO   Batter Christian Yelich: 13 pitch types, 30 PA in 2026
+2026-04-07 12:44:05,526 INFO   Batter David Hamilton: 12 pitch types, 20 PA in 2026
+2026-04-07 12:44:05,966 INFO   Batter Garrett Mitchell: 12 pitch types, 25 PA in 2026
+2026-04-07 12:44:06,399 INFO   Batter Gary Sánchez: 12 pitch types, 13 PA in 2026
+2026-04-07 12:44:06,835 INFO   Batter Jake Bauers: 13 pitch types, 28 PA in 2026
+2026-04-07 12:44:07,292 INFO   Batter Joey Ortiz: 14 pitch types, 20 PA in 2026
+2026-04-07 12:44:07,304 INFO   Processing batters vs Jacob Misiorowski (BOS)
+2026-04-07 12:44:08,379 INFO   Active roster for BOS: 13 batters
+2026-04-07 12:44:08,719 INFO   Jacob Misiorowski: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:08,733 INFO   Pitcher Jacob Misiorowski vs RHB: 4 pitch types
+2026-04-07 12:44:09,162 INFO   Batter Andruw Monasterio: 12 pitch types, 8 PA in 2026
+2026-04-07 12:44:09,636 INFO   Batter Caleb Durbin: 13 pitch types, 23 PA in 2026
+2026-04-07 12:44:10,084 INFO   Batter Carlos Narváez: 13 pitch types, 16 PA in 2026
+2026-04-07 12:44:10,540 INFO   Batter Ceddanne Rafaela: 14 pitch types, 23 PA in 2026
+2026-04-07 12:44:10,960 INFO   Batter Connor Wong: 11 pitch types, 9 PA in 2026
+2026-04-07 12:44:11,412 INFO   Batter Isiah Kiner-Falefa: 12 pitch types, 3 PA in 2026
+2026-04-07 12:44:11,863 INFO   Batter Jarren Duran: 13 pitch types, 26 PA in 2026
+2026-04-07 12:44:12,298 INFO   Batter Marcelo Mayer: 12 pitch types, 23 PA in 2026
+2026-04-07 12:44:12,720 INFO   Batter Masataka Yoshida: 11 pitch types, 19 PA in 2026
+2026-04-07 12:44:12,727 INFO   Processing batters vs Cam Schlittler (ATH)
+2026-04-07 12:44:13,794 INFO   Active roster for ATH: 13 batters
+2026-04-07 12:44:14,126 INFO   Cam Schlittler: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:44:14,144 INFO   Pitcher Cam Schlittler vs RHB: 5 pitch types
+2026-04-07 12:44:14,589 INFO   Batter Andy Ibáñez: 12 pitch types, 10 PA in 2026
+2026-04-07 12:44:15,019 INFO   Batter Austin Wynns: 12 pitch types, 6 PA in 2026
+2026-04-07 12:44:15,481 INFO   Batter Brent Rooker: 14 pitch types, 30 PA in 2026
+2026-04-07 12:44:15,913 INFO   Batter Carlos Cortes: 11 pitch types, 8 PA in 2026
+2026-04-07 12:44:16,349 INFO   Batter Darell Hernaiz: 12 pitch types, 8 PA in 2026
+2026-04-07 12:44:16,800 INFO   Batter Denzel Clarke: 13 pitch types, 17 PA in 2026
+2026-04-07 12:44:17,266 INFO   Batter Jacob Wilson: 13 pitch types, 25 PA in 2026
+2026-04-07 12:44:17,693 INFO   Batter Jeff McNeil: 11 pitch types, 17 PA in 2026
+2026-04-07 12:44:18,145 INFO   Batter Lawrence Butler: 13 pitch types, 20 PA in 2026
+2026-04-07 12:44:18,147 INFO   Processing batters vs Aaron Civale (NYY)
+2026-04-07 12:44:19,177 INFO   Active roster for NYY: 13 batters
+2026-04-07 12:44:19,503 INFO   Aaron Civale: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:19,522 INFO   Pitcher Aaron Civale vs RHB: 6 pitch types
+2026-04-07 12:44:19,983 INFO   Batter Aaron Judge: 12 pitch types, 25 PA in 2026
+2026-04-07 12:44:20,409 INFO   Batter Amed Rosario: 10 pitch types, 7 PA in 2026
+2026-04-07 12:44:20,837 INFO   Batter Austin Wells: 11 pitch types, 19 PA in 2026
+2026-04-07 12:44:21,290 INFO   Batter Ben Rice: 12 pitch types, 25 PA in 2026
+2026-04-07 12:44:21,727 INFO   Batter Cody Bellinger: 12 pitch types, 24 PA in 2026
+2026-04-07 12:44:22,149 INFO   Batter Giancarlo Stanton: 10 pitch types, 26 PA in 2026
+2026-04-07 12:44:22,577 INFO   Batter J.C. Escarra: 10 pitch types, 6 PA in 2026
+2026-04-07 12:44:23,020 INFO   Batter Jazz Chisholm Jr.: 12 pitch types, 27 PA in 2026
+2026-04-07 12:44:23,480 INFO   Batter José Caballero: 14 pitch types, 25 PA in 2026
+2026-04-07 12:44:23,482 INFO   Processing batters vs Kevin Gausman (LAD)
+2026-04-07 12:44:24,518 INFO   Active roster for LAD: 13 batters
+2026-04-07 12:44:24,845 INFO   Kevin Gausman: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:44:24,858 INFO   Pitcher Kevin Gausman vs RHB: 3 pitch types
+2026-04-07 12:44:25,289 INFO   Batter Alex Call: 11 pitch types, 11 PA in 2026
+2026-04-07 12:44:25,712 INFO   Batter Alex Freeland: 10 pitch types, 25 PA in 2026
+2026-04-07 12:44:26,157 INFO   Batter Andy Pages: 13 pitch types, 30 PA in 2026
+2026-04-07 12:44:26,604 INFO   Batter Dalton Rushing: 13 pitch types, 8 PA in 2026
+2026-04-07 12:44:27,028 INFO   Batter Freddie Freeman: 11 pitch types, 33 PA in 2026
+2026-04-07 12:44:27,469 INFO   Batter Hyeseong Kim: 13 pitch types, 5 PA in 2026
+2026-04-07 12:44:27,902 INFO   Batter Kyle Tucker: 11 pitch types, 28 PA in 2026
+2026-04-07 12:44:28,358 INFO   Batter Max Muncy: 14 pitch types, 25 PA in 2026
+2026-04-07 12:44:28,820 INFO   Batter Miguel Rojas: 12 pitch types, 16 PA in 2026
+2026-04-07 12:44:28,821 INFO   Processing batters vs Yoshinobu Yamamoto (TOR)
+2026-04-07 12:44:29,885 INFO   Active roster for TOR: 13 batters
+2026-04-07 12:44:30,218 INFO   Yoshinobu Yamamoto: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:30,239 INFO   Pitcher Yoshinobu Yamamoto vs RHB: 6 pitch types
+2026-04-07 12:44:30,693 INFO   Batter Addison Barger: 13 pitch types, 19 PA in 2026
+2026-04-07 12:44:31,123 INFO   Batter Andrés Giménez: 11 pitch types, 27 PA in 2026
+2026-04-07 12:44:31,517 INFO   Batter Brandon Valenzuela: 8 pitch types, 4 PA in 2026
+2026-04-07 12:44:31,959 INFO   Batter Daulton Varsho: 11 pitch types, 24 PA in 2026
+2026-04-07 12:44:32,392 INFO   Batter Davis Schneider: 12 pitch types, 15 PA in 2026
+2026-04-07 12:44:32,839 INFO   Batter Ernie Clement: 14 pitch types, 35 PA in 2026
+2026-04-07 12:44:33,278 INFO   Batter George Springer: 11 pitch types, 27 PA in 2026
+2026-04-07 12:44:33,718 INFO   Batter Jesús Sánchez: 13 pitch types, 23 PA in 2026
+2026-04-07 12:44:34,475 INFO   Batter Kazuma Okamoto: 9 pitch types, 37 PA in 2026
+2026-04-07 12:44:34,477 INFO   Processing batters vs Taj Bradley (DET)
+2026-04-07 12:44:35,604 INFO   Active roster for DET: 13 batters
+2026-04-07 12:44:35,946 INFO   Taj Bradley: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:44:35,966 INFO   Pitcher Taj Bradley vs RHB: 5 pitch types
+2026-04-07 12:44:36,394 INFO   Batter Colt Keith: 11 pitch types, 24 PA in 2026
+2026-04-07 12:44:36,838 INFO   Batter Dillon Dingler: 13 pitch types, 21 PA in 2026
+2026-04-07 12:44:37,277 INFO   Batter Gleyber Torres: 11 pitch types, 28 PA in 2026
+2026-04-07 12:44:37,716 INFO   Batter Jahmai Jones: 12 pitch types, 4 PA in 2026
+2026-04-07 12:44:38,137 INFO   Batter Jake Rogers: 11 pitch types, 9 PA in 2026
+2026-04-07 12:44:38,582 INFO   Batter Javier Báez: 12 pitch types, 15 PA in 2026
+2026-04-07 12:44:39,024 INFO   Batter Kerry Carpenter: 11 pitch types, 24 PA in 2026
+2026-04-07 12:44:39,462 INFO   Batter Kevin McGonigle: 10 pitch types, 31 PA in 2026
+2026-04-07 12:44:39,871 INFO   Batter Matt Vierling: 10 pitch types, 15 PA in 2026
+2026-04-07 12:44:39,872 INFO   Processing batters vs Tarik Skubal (MIN)
+2026-04-07 12:44:41,067 INFO   Active roster for MIN: 13 batters
+2026-04-07 12:44:41,404 INFO   Tarik Skubal: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:41,428 INFO   Pitcher Tarik Skubal vs RHB: 5 pitch types
+2026-04-07 12:44:41,848 INFO   Batter Austin Martin: 10 pitch types, 17 PA in 2026
+2026-04-07 12:44:42,308 INFO   Batter Brooks Lee: 12 pitch types, 17 PA in 2026
+2026-04-07 12:44:42,741 INFO   Batter Byron Buxton: 11 pitch types, 26 PA in 2026
+2026-04-07 12:44:43,159 INFO   Batter James Outman: 11 pitch types, 11 PA in 2026
+2026-04-07 12:44:43,605 INFO   Batter Josh Bell: 13 pitch types, 29 PA in 2026
+2026-04-07 12:44:44,049 INFO   Batter Kody Clemens: 13 pitch types, 21 PA in 2026
+2026-04-07 12:44:44,478 INFO   Batter Luke Keaschall: 11 pitch types, 32 PA in 2026
+2026-04-07 12:44:44,913 INFO   Batter Matt Wallner: 13 pitch types, 30 PA in 2026
+2026-04-07 12:44:45,329 INFO   Batter Royce Lewis: 10 pitch types, 23 PA in 2026
+2026-04-07 12:44:45,331 INFO   Processing batters vs Nathan Eovaldi (SEA)
+2026-04-07 12:44:46,399 INFO   Active roster for SEA: 13 batters
+2026-04-07 12:44:46,729 INFO   Nathan Eovaldi: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:44:46,745 INFO   Pitcher Nathan Eovaldi vs RHB: 5 pitch types
+2026-04-07 12:44:47,171 INFO   Batter Brendan Donovan: 11 pitch types, 26 PA in 2026
+2026-04-07 12:44:47,613 INFO   Batter Cal Raleigh: 12 pitch types, 35 PA in 2026
+2026-04-07 12:44:48,042 INFO   Batter Cole Young: 12 pitch types, 30 PA in 2026
+2026-04-07 12:44:48,484 INFO   Batter Dominic Canzone: 11 pitch types, 16 PA in 2026
+2026-04-07 12:44:48,919 INFO   Batter J.P. Crawford: 12 pitch types, 13 PA in 2026
+2026-04-07 12:44:49,372 INFO   Batter Josh Naylor: 11 pitch types, 31 PA in 2026
+2026-04-07 12:44:49,801 INFO   Batter Julio Rodríguez: 11 pitch types, 31 PA in 2026
+2026-04-07 12:44:50,212 INFO   Batter Leo Rivas: 10 pitch types, 29 PA in 2026
+2026-04-07 12:44:50,663 INFO   Batter Luke Raley: 13 pitch types, 24 PA in 2026
+2026-04-07 12:44:50,664 INFO   Auto-fade: George Kirby
+2026-04-07 12:44:50,664 INFO   Processing batters vs Kyle Freeland (HOU)
+2026-04-07 12:44:51,715 INFO   Active roster for HOU: 13 batters
+2026-04-07 12:44:52,037 INFO   Kyle Freeland: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:44:52,060 INFO   Pitcher Kyle Freeland vs RHB: 6 pitch types
+2026-04-07 12:44:52,478 INFO   Batter Brice Matthews: 9 pitch types, 16 PA in 2026
+2026-04-07 12:44:52,905 INFO   Batter Cam Smith: 11 pitch types, 31 PA in 2026
+2026-04-07 12:44:53,340 INFO   Batter Carlos Correa: 11 pitch types, 36 PA in 2026
+2026-04-07 12:44:53,776 INFO   Batter Christian Vázquez: 12 pitch types, 18 PA in 2026
+2026-04-07 12:44:54,237 INFO   Batter Christian Walker: 13 pitch types, 37 PA in 2026
+2026-04-07 12:44:54,677 INFO   Batter Isaac Paredes: 12 pitch types, 20 PA in 2026
+2026-04-07 12:44:55,108 INFO   Batter Jake Meyers: 11 pitch types, 29 PA in 2026
+2026-04-07 12:44:55,540 INFO   Batter Jeremy Peña: 11 pitch types, 21 PA in 2026
+2026-04-07 12:44:55,965 INFO   Batter Joey Loperfido: 11 pitch types, 25 PA in 2026
+2026-04-07 12:44:55,966 INFO   Processing batters vs Mike Burrows (COL)
+2026-04-07 12:44:57,017 INFO   Active roster for COL: 13 batters
+2026-04-07 12:44:57,348 INFO   Mike Burrows: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:44:57,366 INFO   Pitcher Mike Burrows vs RHB: 5 pitch types
+2026-04-07 12:44:57,826 INFO   Batter Brenton Doyle: 14 pitch types, 28 PA in 2026
+2026-04-07 12:44:58,229 INFO   Batter Brett Sullivan: 9 pitch types, 10 PA in 2026
+2026-04-07 12:44:58,656 INFO   Batter Edouard Julien: 11 pitch types, 15 PA in 2026
+2026-04-07 12:44:59,107 INFO   Batter Ezequiel Tovar: 13 pitch types, 34 PA in 2026
+2026-04-07 12:44:59,580 INFO   Batter Hunter Goodman: 14 pitch types, 32 PA in 2026
+2026-04-07 12:44:59,991 INFO   Batter Jake McCarthy: 10 pitch types, 20 PA in 2026
+2026-04-07 12:45:00,447 INFO   Batter Jordan Beck: 14 pitch types, 20 PA in 2026
+2026-04-07 12:45:00,873 INFO   Batter Kyle Karros: 11 pitch types, 28 PA in 2026
+2026-04-07 12:45:01,302 INFO   Batter Mickey Moniak: 11 pitch types, 13 PA in 2026
+2026-04-07 12:45:01,304 INFO   Processing batters vs Yusei Kikuchi (ATL)
+2026-04-07 12:45:02,434 INFO   Active roster for ATL: 13 batters
+2026-04-07 12:45:02,776 INFO   Yusei Kikuchi: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:45:02,796 INFO   Pitcher Yusei Kikuchi vs RHB: 4 pitch types
+2026-04-07 12:45:03,271 INFO   Batter Austin Riley: 11 pitch types, 32 PA in 2026
+2026-04-07 12:45:03,715 INFO   Batter Dominic Smith: 13 pitch types, 21 PA in 2026
+2026-04-07 12:45:04,191 INFO   Batter Drake Baldwin: 13 pitch types, 31 PA in 2026
+2026-04-07 12:45:04,647 INFO   Batter Eli White: 13 pitch types, 10 PA in 2026
+2026-04-07 12:45:05,127 INFO   Batter Jonah Heim: 12 pitch types, 10 PA in 2026
+2026-04-07 12:45:05,564 INFO   Batter Jorge Mateo: 11 pitch types, 8 PA in 2026
+2026-04-07 12:45:06,032 INFO   Batter Kyle Farmer: 12 pitch types, 3 PA in 2026
+2026-04-07 12:45:06,487 INFO   Batter Matt Olson: 13 pitch types, 33 PA in 2026
+2026-04-07 12:45:06,917 INFO   Batter Mauricio Dubón: 11 pitch types, 30 PA in 2026
+2026-04-07 12:45:06,919 INFO   Processing batters vs Reynaldo López (LAA)
+2026-04-07 12:45:07,935 INFO   Active roster for LAA: 13 batters
+2026-04-07 12:45:08,280 INFO   Reynaldo López: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:45:08,291 INFO   Pitcher Reynaldo López vs RHB: 3 pitch types
+2026-04-07 12:45:08,736 INFO   Batter Adam Frazier: 13 pitch types, 11 PA in 2026
+2026-04-07 12:45:09,147 INFO   Batter Bryce Teodosio: 10 pitch types, 7 PA in 2026
+2026-04-07 12:45:09,718 INFO   Batter Jeimer Candelario: 11 pitch types, 15 PA in 2026
+2026-04-07 12:45:10,148 INFO   Batter Jo Adell: 12 pitch types, 34 PA in 2026
+2026-04-07 12:45:10,568 INFO   Batter Jorge Soler: 10 pitch types, 33 PA in 2026
+2026-04-07 12:45:10,990 INFO   Batter Josh Lowe: 11 pitch types, 23 PA in 2026
+2026-04-07 12:45:11,428 INFO   Batter Logan O'Hoppe: 11 pitch types, 23 PA in 2026
+2026-04-07 12:45:11,878 INFO   Batter Mike Trout: 13 pitch types, 31 PA in 2026
+2026-04-07 12:45:12,326 INFO   Batter Nolan Schanuel: 11 pitch types, 31 PA in 2026
+2026-04-07 12:45:12,328 INFO   Processing batters vs Robbie Ray (PHI)
+2026-04-07 12:45:13,366 INFO   Active roster for PHI: 13 batters
+2026-04-07 12:45:13,695 INFO   Robbie Ray: 18 BF in 2026 — using 2025 data only
+2026-04-07 12:45:13,712 INFO   Pitcher Robbie Ray vs RHB: 4 pitch types
+2026-04-07 12:45:14,164 INFO   Batter Adolis García: 13 pitch types, 29 PA in 2026
+2026-04-07 12:45:14,635 INFO   Batter Alec Bohm: 15 pitch types, 29 PA in 2026
+2026-04-07 12:45:15,078 INFO   Batter Brandon Marsh: 13 pitch types, 29 PA in 2026
+2026-04-07 12:45:15,532 INFO   Batter Bryce Harper: 12 pitch types, 29 PA in 2026
+2026-04-07 12:45:15,986 INFO   Batter Bryson Stott: 14 pitch types, 25 PA in 2026
+2026-04-07 12:45:16,403 INFO   Batter Dylan Moore: 10 pitch types, 2 PA in 2026
+2026-04-07 12:45:16,837 INFO   Batter Edmundo Sosa: 12 pitch types, 9 PA in 2026
+2026-04-07 12:45:17,300 INFO   Batter J.T. Realmuto: 14 pitch types, 23 PA in 2026
+2026-04-07 12:45:18,068 INFO   Batter Justin Crawford: 9 pitch types, 25 PA in 2026
+2026-04-07 12:45:18,070 INFO   Processing batters vs Cristopher Sánchez (SF)
+2026-04-07 12:45:19,082 INFO   Active roster for SF: 13 batters
+2026-04-07 12:45:19,414 INFO   Cristopher Sánchez: 9 BF in 2026 — using 2025 data only
+2026-04-07 12:45:19,429 INFO   Pitcher Cristopher Sánchez vs RHB: 3 pitch types
+2026-04-07 12:45:19,886 INFO   Batter Casey Schmitt: 13 pitch types, 18 PA in 2026
+2026-04-07 12:45:20,941 INFO   Batter Christian Koss: 13 pitch types, 0 PA in 2026
+2026-04-07 12:45:21,413 INFO   Batter Daniel Susac: 5 pitch types, 4 PA in 2026
+2026-04-07 12:45:21,895 INFO   Batter Harrison Bader: 15 pitch types, 28 PA in 2026
+2026-04-07 12:45:22,354 INFO   Batter Heliot Ramos: 13 pitch types, 33 PA in 2026
+2026-04-07 12:45:23,055 INFO   Batter Jared Oliva: 0 pitch types, 0 PA in 2026
+2026-04-07 12:45:23,483 INFO   Batter Jerar Encarnacion: 12 pitch types, 11 PA in 2026
+2026-04-07 12:45:23,940 INFO   Batter Jung Hoo Lee: 14 pitch types, 30 PA in 2026
+2026-04-07 12:45:24,391 INFO   Batter Luis Arraez: 14 pitch types, 30 PA in 2026
+2026-04-07 12:45:24,444 INFO ✓ Wrote data\data.json — 197 targets, 3 fades
+2026-04-07 12:45:24,445 INFO   PRIME: 0 | HIGH: 22 | MED: 175
