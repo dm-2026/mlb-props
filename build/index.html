@@ -36,7 +36,7 @@
   body { max-width: 960px; margin: 0 auto; padding: 24px 16px 80px; }
 
   /* Header */
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
   .logo { font-family: var(--mono); font-size: 18px; font-weight: 500; letter-spacing: -0.5px; }
   .logo span { color: var(--prime); }
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -44,38 +44,47 @@
   .live-badge { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 2px; background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
   .seed-badge { background: var(--med-bg); color: var(--med); border-color: var(--med-border); }
 
+  /* Ticker */
+  .ticker-wrap { width: 100%; overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); margin-bottom: 20px; height: 28px; display: flex; align-items: center; }
+  .ticker-track { display: flex; align-items: center; white-space: nowrap; animation: ticker 40s linear infinite; }
+  .ticker-track:hover { animation-play-state: paused; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .ticker-item { font-family: var(--mono); font-size: 11px; color: var(--text2); padding: 0 28px; border-right: 1px solid var(--border); }
+  .ticker-item.prime { color: var(--prime); }
+  .ticker-item.boost { color: #86efac; }
+  .ticker-item.suppress { color: #fca5a5; }
+  .ticker-item.warn { color: var(--med); }
+  .ticker-sep { color: var(--text3); padding: 0 8px; }
+
   /* Summary */
-  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
-  .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
-  .sum-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-  .sum-value { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+  .sum-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .sum-value { font-family: var(--mono); font-size: 20px; font-weight: 500; }
   .sum-value.prime { color: var(--prime); }
   .sum-value.high  { color: var(--high); }
   .sum-value.med   { color: var(--med); }
   .sum-value.fade  { color: var(--fade); }
 
-  .section-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.10em; margin: 20px 0 10px; }
+  .section-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.10em; margin: 16px 0 8px; }
 
-  /* Game chips — now clickable and expandable */
-  .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 24px; }
-
+  /* Compact game chips */
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin-bottom: 20px; }
   .game-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
   .game-chip:hover { border-color: var(--border2); }
   .game-chip.open { border-color: var(--prime-border); grid-column: 1 / -1; }
-  .chip-top { padding: 10px 12px; }
-  .chip-matchup { font-family: var(--mono); font-size: 13px; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
-  .chip-arrow { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
+  .chip-top { padding: 7px 10px; }
+  .chip-matchup { font-family: var(--mono); font-size: 12px; font-weight: 500; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .chip-arrow { font-size: 9px; color: var(--text3); transition: transform 0.2s; flex-shrink: 0; }
   .game-chip.open .chip-arrow { transform: rotate(180deg); }
-  .chip-venue { font-size: 11px; color: var(--text3); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chip-badges { display: flex; flex-wrap: wrap; gap: 4px; }
-
-  /* Game chip expanded panel */
+  .chip-counts { display: flex; gap: 5px; align-items: center; }
+  .chip-venue { font-size: 10px; color: var(--text3); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip-badges { display: flex; flex-wrap: wrap; gap: 3px; }
   .chip-panel { display: none; border-top: 1px solid var(--border); padding: 12px 14px; background: var(--surface2); }
   .game-chip.open .chip-panel { display: block; }
   .chip-starters { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
-  .chip-starter { font-size: 11px; }
   .chip-starter .sl { color: var(--text3); font-family: var(--mono); font-size: 10px; margin-bottom: 2px; }
-  .chip-starter .sn { color: var(--text); font-weight: 500; }
+  .chip-starter .sn { color: var(--text); font-weight: 500; font-size: 12px; }
   .chip-targets { display: flex; flex-direction: column; gap: 5px; }
   .chip-no-targets { font-family: var(--mono); font-size: 12px; color: var(--text3); padding: 8px 0; }
 
@@ -89,7 +98,7 @@
   .badge-dome     { background: var(--surface2); color: var(--text3); border-color: var(--border); }
 
   /* Filter row */
-  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .filter-btn { font-family: var(--mono); font-size: 11px; padding: 5px 12px; border-radius: 3px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.15s; }
   .filter-btn:hover { border-color: var(--border2); color: var(--text); }
   .filter-btn.active-prime { background: var(--prime-bg); border-color: var(--prime-border); color: var(--prime); }
@@ -120,16 +129,12 @@
   .card-detail { display: none; padding: 0 14px 14px; }
   .batter-card.expanded .card-detail { display: block; }
   .insight-box { background: var(--surface2); border-left: 3px solid var(--border2); border-radius: 0 4px 4px 0; padding: 8px 12px; font-size: 12px; color: var(--text2); font-style: italic; margin-bottom: 12px; }
-
-  /* Component bars */
   .components-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-bottom: 14px; }
   .comp-item { background: var(--surface2); border-radius: 4px; padding: 8px 10px; }
   .comp-label { font-size: 9px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
   .comp-bar-bg { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 3px; }
   .comp-bar-fill { height: 100%; border-radius: 2px; }
   .comp-value { font-family: var(--mono); font-size: 12px; }
-
-  /* Pitch matrix */
   .matrix-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
   .pitch-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .pitch-table th { font-family: var(--mono); font-weight: 400; color: var(--text3); text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -139,32 +144,21 @@
   .vuln-cell { display: flex; align-items: center; gap: 6px; }
   .vuln-bar { width: 50px; height: 3px; background: var(--border); border-radius: 2px; position: relative; }
   .vuln-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 2px; }
-  .hi { background: var(--fade); }
-  .md { background: var(--med); }
-  .lo { background: var(--prime); }
+  .hi { background: var(--fade); } .md { background: var(--med); } .lo { background: var(--prime); }
   .stat-val { font-family: var(--mono); color: var(--text); }
   .stat-dim { color: var(--text3); }
-
-  /* Meta row */
   .meta-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
   .meta-item .mk { color: var(--text3); font-family: var(--mono); font-size: 10px; }
   .meta-item .mv { font-family: var(--mono); font-size: 13px; color: var(--text); }
-
-  /* Tier dividers */
   .tier-divider { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.10em; padding: 6px 0 4px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
   .tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .tier-divider.PRIME { color: var(--prime); }
-  .tier-divider.HIGH  { color: var(--high); }
-  .tier-divider.MED   { color: var(--med); }
-
-  /* Fades */
+  .tier-divider.PRIME { color: var(--prime); } .tier-divider.HIGH { color: var(--high); } .tier-divider.MED { color: var(--med); }
   .fade-list { background: var(--surface); border: 1px solid var(--fade-border); border-radius: 8px; overflow: hidden; }
   .fade-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
   .fade-item:last-child { border: none; }
   .fade-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--fade); flex-shrink: 0; }
   .fade-name { font-size: 13px; font-weight: 500; }
   .fade-reason { margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text3); }
-
   .loading { text-align: center; padding: 60px 20px; color: var(--text3); font-family: var(--mono); }
   .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; color: var(--text3); font-family: var(--mono); font-size: 13px; }
   .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; justify-content: space-between; }
@@ -186,6 +180,13 @@
   </div>
 </div>
 
+<!-- Ticker tape -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker-track">
+    <span class="ticker-item">Loading slate…</span>
+  </div>
+</div>
+
 <div class="summary">
   <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="s-games">—</div></div>
   <div class="sum-card"><div class="sum-label">Prime</div><div class="sum-value prime" id="s-prime">—</div></div>
@@ -196,7 +197,7 @@
 <div class="section-label">Today's Slate — click any game to expand</div>
 <div class="games-grid" id="games-grid"><div class="loading">Loading…</div></div>
 
-<div class="section-label" style="margin-top:28px;">Ranked Targets</div>
+<div class="section-label" style="margin-top:24px;">Ranked Targets</div>
 <div class="filter-row">
   <button class="filter-btn active-all" onclick="setFilter('all',this)">All</button>
   <button class="filter-btn" onclick="setFilter('PRIME',this)">Prime</button>
@@ -229,11 +230,11 @@ const COMP_COLORS = {
   park_factor:'#f59e0b', platoon:'#a78bfa', weather:'#38bdf8', recent_form:'#fb923c',
 };
 const TIER_ORDER = {PRIME:0, HIGH:1, MED:2};
+const AVG_HR_PER_GAME = 0.98; // league average HRs per team per game ~2026
 
 let currentFilter = 'all';
 let allData = null;
 
-// ── Load ──────────────────────────────────────────────────────────────────────
 async function loadData() {
   try {
     const r = await fetch(`data/data.json?t=${Date.now()}`);
@@ -247,7 +248,6 @@ async function loadData() {
   render(allData);
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function render(data) {
   const d = new Date(data.date + 'T12:00:00');
   document.getElementById('header-date').textContent =
@@ -260,12 +260,101 @@ function render(data) {
   document.getElementById('s-prime').textContent = s.prime_count;
   document.getElementById('s-high').textContent  = s.high_count;
   document.getElementById('s-fades').textContent = s.fade_count;
+  buildTicker(data);
   renderSlate(data.games, data.targets);
   renderTargets(data.targets);
   renderFades(data.auto_fades);
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Ticker ────────────────────────────────────────────────────────────────────
+function buildTicker(data) {
+  const items = [];
+  const games = data.games || [];
+  const targets = data.targets || [];
+  const s = data.summary;
+
+  // Slate HR index — weighted avg of all park+weather multipliers
+  if (games.length) {
+    const outdoorGames = games.filter(g => !g.park_dome);
+    if (outdoorGames.length) {
+      const avgMult = outdoorGames.reduce((sum, g) => {
+        const pf = (g.park_factor || 100) / 100;
+        const wm = (g.weather || {}).hr_multiplier || 1.0;
+        return sum + pf * wm;
+      }, 0) / outdoorGames.length;
+      const baseline = AVG_HR_PER_GAME * games.length * 2; // both teams
+      const expected = (baseline * avgMult).toFixed(1);
+      const diff = ((avgMult - 1) * 100).toFixed(0);
+      const cls = avgMult > 1.05 ? 'boost' : avgMult < 0.95 ? 'suppress' : '';
+      items.push({text: `Slate HR Index: ~${expected} expected today (${diff > 0 ? '+' : ''}${diff}% vs avg)`, cls});
+    }
+  }
+
+  // Target summary
+  if (s.prime_count > 0) {
+    items.push({text: `${s.prime_count} PRIME target${s.prime_count>1?'s':''} today`, cls:'prime'});
+  } else {
+    items.push({text: `${s.high_count} HIGH · ${s.med_count} MED targets today`, cls:''});
+  }
+
+  // PRIME players only
+  targets.filter(t => t.tier === 'PRIME').forEach(t => {
+    items.push({text: `★ ${t.batter_name} (${t.batter_team}) — PRIME ${t.score}`, cls:'prime'});
+  });
+
+  // Top wind-out games
+  games.filter(g => !g.park_dome).forEach(g => {
+    const w = g.weather || {};
+    const wl = w.wind_label || '';
+    if (wl.includes('OUT') && w.wind_mph >= 10) {
+      items.push({text: `Wind OUT ${w.wind_mph}mph at ${g.venue||g.home_team} · ${g.away_team} @ ${g.home_team}`, cls:'boost'});
+    }
+    if (wl.includes('IN') && w.wind_mph >= 10) {
+      items.push({text: `Wind IN ${w.wind_mph}mph at ${g.venue||g.home_team} — HR suppressed`, cls:'suppress'});
+    }
+  });
+
+  // Top park boosts
+  games.filter(g => g.park_factor >= 115 && !g.park_dome).forEach(g => {
+    items.push({text: `${g.venue||g.home_team}: Park +${g.park_factor-100}% HR boost`, cls:'boost'});
+  });
+
+  // Suppress parks
+  games.filter(g => g.park_suppress && !g.park_dome).forEach(g => {
+    items.push({text: `${g.venue||g.home_team}: Park ${g.park_factor-100}% — fade HR props`, cls:'suppress'});
+  });
+
+  // Rain warnings
+  games.filter(g => (g.weather||{}).rain_chance > 0.4 && !g.park_dome).forEach(g => {
+    items.push({text: `Rain ${Math.round((g.weather.rain_chance||0)*100)}% · ${g.away_team} @ ${g.home_team} — postpone risk`, cls:'warn'});
+  });
+
+  // Cold games
+  games.filter(g => (g.weather||{}).temp_f < 45 && !g.park_dome).forEach(g => {
+    items.push({text: `${(g.weather||{}).temp_f}°F at ${g.venue||g.home_team} — cold suppression`, cls:'suppress'});
+  });
+
+  // Fallback
+  if (items.length < 2) {
+    items.push({text: `${games.length} games on the slate today`, cls:''});
+    items.push({text: 'MLB HR Props Pipeline · updated daily', cls:''});
+  }
+
+  // Duplicate for seamless loop
+  const all = [...items, ...items];
+  const html = all.map(item =>
+    `<span class="ticker-item ${item.cls||''}">${item.text}</span>`
+  ).join('');
+
+  document.getElementById('ticker-track').innerHTML = html;
+
+  // Scale animation speed to content length
+  const totalItems = all.length;
+  const speed = Math.max(20, totalItems * 4);
+  document.getElementById('ticker-track').style.animationDuration = `${speed}s`;
 }
 
 // ── Weather badge helpers ─────────────────────────────────────────────────────
@@ -284,17 +373,12 @@ function wBadges(g) {
   return pfB+wB+tB+rB;
 }
 
-// ── Slate with expandable game chips ─────────────────────────────────────────
+// ── Slate ─────────────────────────────────────────────────────────────────────
 function renderSlate(games, targets) {
   const el = document.getElementById('games-grid');
   if (!games||!games.length){el.innerHTML='<div class="empty">No games today</div>';return;}
-
-  // Group targets by game key
   const byGame = {};
-  (targets||[]).forEach(t => {
-    const k=t.game; if(!byGame[k])byGame[k]=[];
-    byGame[k].push(t);
-  });
+  (targets||[]).forEach(t => { const k=t.game; if(!byGame[k])byGame[k]=[]; byGame[k].push(t); });
 
   el.innerHTML = games.map((g,gi) => {
     const key = `${g.away_team} @ ${g.home_team}`;
@@ -302,39 +386,31 @@ function renderSlate(games, targets) {
     const prN=tgts.filter(t=>t.tier==='PRIME').length;
     const hiN=tgts.filter(t=>t.tier==='HIGH').length;
     const mdN=tgts.filter(t=>t.tier==='MED').length;
-    const countBits = [
-      prN&&`<span style="color:var(--prime);font-size:10px;font-family:var(--mono)">${prN}P</span>`,
-      hiN&&`<span style="color:var(--high);font-size:10px;font-family:var(--mono)">${hiN}H</span>`,
-      mdN&&`<span style="color:var(--med);font-size:10px;font-family:var(--mono)">${mdN}M</span>`,
+    const counts = [
+      prN&&`<span style="color:var(--prime);font-family:var(--mono);font-size:10px">${prN}P</span>`,
+      hiN&&`<span style="color:var(--high);font-family:var(--mono);font-size:10px">${hiN}H</span>`,
+      mdN&&`<span style="color:var(--med);font-family:var(--mono);font-size:10px">${mdN}M</span>`,
     ].filter(Boolean).join(' ');
 
     const awayP = g.away_probable||{};
     const homeP = g.home_probable||{};
-
-    // Compact batter rows inside chip panel
     const batterRows = tgts.length
-      ? tgts.map((t,ti) => batterCard(t,`g${gi}_${ti}`,true)).join('')
+      ? tgts.map((t,ti) => batterCard(t,`g${gi}_${ti}`)).join('')
       : `<div class="chip-no-targets">No scored targets for this game</div>`;
 
     return `<div class="game-chip" id="chip-${gi}" onclick="toggleChip(${gi},event)">
       <div class="chip-top">
         <div class="chip-matchup">
-          ${key}
-          <span style="display:flex;align-items:center;gap:6px">${countBits}<span class="chip-arrow">▾</span></span>
+          <span>${key}</span>
+          <span style="display:flex;align-items:center;gap:5px">${counts}<span class="chip-arrow">▾</span></span>
         </div>
         <div class="chip-venue">${g.venue||''}</div>
         <div class="chip-badges">${wBadges(g)}</div>
       </div>
       <div class="chip-panel">
         <div class="chip-starters">
-          <div class="chip-starter">
-            <div class="sl">Away starter</div>
-            <div class="sn">${awayP.name||'TBD'}${awayP.throws?' ('+awayP.throws+'HP)':''}</div>
-          </div>
-          <div class="chip-starter">
-            <div class="sl">Home starter</div>
-            <div class="sn">${homeP.name||'TBD'}${homeP.throws?' ('+homeP.throws+'HP)':''}</div>
-          </div>
+          <div class="chip-starter"><div class="sl">Away starter</div><div class="sn">${awayP.name||'TBD'}${awayP.throws?' ('+awayP.throws+'HP)':''}</div></div>
+          <div class="chip-starter"><div class="sl">Home starter</div><div class="sn">${homeP.name||'TBD'}${homeP.throws?' ('+homeP.throws+'HP)':''}</div></div>
         </div>
         <div class="chip-targets">${batterRows}</div>
       </div>
@@ -343,16 +419,14 @@ function renderSlate(games, targets) {
 }
 
 function toggleChip(gi, e) {
-  // Don't toggle if clicking inside an expanded batter card
-  if (e.target.closest('.card-detail') || e.target.closest('.card-header:not(.chip-top *)')) return;
+  if (e.target.closest('.card-detail')) return;
   const chip = document.getElementById(`chip-${gi}`);
   const wasOpen = chip.classList.contains('open');
-  // Close all others
   document.querySelectorAll('.game-chip.open').forEach(c => c.classList.remove('open'));
   if (!wasOpen) chip.classList.add('open');
 }
 
-// ── Ranked targets ────────────────────────────────────────────────────────────
+// ── Ranked ────────────────────────────────────────────────────────────────────
 function sortT(arr) {
   return [...arr].sort((a,b) =>
     TIER_ORDER[a.tier]!==TIER_ORDER[b.tier]
@@ -368,22 +442,22 @@ function renderTargets(targets) {
   let html='', last=null;
   sorted.forEach((t,i) => {
     if (t.tier!==last) {
-      const lbl = t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':'Med — 1 strong factor';
+      const lbl=t.tier==='PRIME'?'Prime — 3+ factors':t.tier==='HIGH'?'High — 2 strong factors':'Med — 1 strong factor';
       html+=`<div class="tier-divider ${t.tier}">${lbl}</div>`;
       last=t.tier;
     }
-    html+=batterCard(t,`r${i}`,false);
+    html+=batterCard(t,`r${i}`);
   });
   el.innerHTML=html;
 }
 
 // ── Batter card ───────────────────────────────────────────────────────────────
-function batterCard(t, idx, compact) {
+function batterCard(t, idx) {
   const meta = t.batter_meta||{};
   const parkBadge = t.park_suppress
     ? `<span class="badge badge-suppress">Park ${t.park_factor-100}%</span>`
     : t.park_factor>=110?`<span class="badge badge-boost">Park +${t.park_factor-100}%</span>`
-    : `<span class="badge badge-neutral">Park ${t.park_factor}</span>`;
+    :`<span class="badge badge-neutral">Park ${t.park_factor}</span>`;
   const wl=t.weather_label||'';
   const windBadge = wl&&wl!=='—'&&wl!=='Dome'
     ?(wl.includes('OUT')?`<span class="badge badge-boost">${wl}</span>`
@@ -392,10 +466,9 @@ function batterCard(t, idx, compact) {
   const platoonBadge = t.batter_hand!==t.pitcher_throws?`<span class="badge badge-boost">Platoon ✓</span>`:'';
   const formBadge = (meta.hr_recent_14d||0)>=2?`<span class="badge badge-boost">${meta.hr_recent_14d} HR L14D</span>`:'';
 
-  // Component bars — L14D shows actual HR count
   const compBars = Object.entries(t.components||{}).map(([k,v]) => {
     const c=COMP_COLORS[k]||'#666';
-    const displayVal = k==='recent_form' ? `${meta.hr_recent_14d||0} HR` : v;
+    const displayVal = k==='recent_form'?`${meta.hr_recent_14d||0} HR`:v;
     return `<div class="comp-item">
       <div class="comp-label">${COMP_LABELS[k]||k}</div>
       <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${c}"></div></div>
@@ -403,7 +476,6 @@ function batterCard(t, idx, compact) {
     </div>`;
   }).join('');
 
-  // Pitch matrix — label includes batter handedness
   const pitchRows = Object.entries(t.pitch_matrix||{}).map(([pt,d]) => {
     const vuln=Math.min((d.pitcher_hr9||0)/2.5*100,100);
     const vc=vuln>65?'hi':vuln>35?'md':'lo';
@@ -418,7 +490,7 @@ function batterCard(t, idx, compact) {
   }).join('');
 
   const hasMatrix = Object.keys(t.pitch_matrix||{}).length>0;
-  const handLabel = t.batter_hand ? ` vs ${t.batter_hand}HB` : '';
+  const handLabel = t.batter_hand?` vs ${t.batter_hand}HB`:'';
   const ev=meta.avg_ev?`${meta.avg_ev} mph EV`:'';
   const barrel=meta.barrel_pct?`${meta.barrel_pct}% barrel`:'';
   const form=(meta.hr_recent_14d||0)>0?`${meta.hr_recent_14d} HR L14D`:'';
@@ -465,12 +537,9 @@ function renderFades(fades) {
   </div>`).join('')}</div>`;
 }
 
-// ── Interactions ──────────────────────────────────────────────────────────────
 function toggleCard(idx) {
-  const card = document.getElementById(`card-${idx}`);
-  card.classList.toggle('expanded');
-  // Stop click from propagating to game chip toggle
   event.stopPropagation();
+  document.getElementById(`card-${idx}`).classList.toggle('expanded');
 }
 
 function setFilter(tier, btn) {

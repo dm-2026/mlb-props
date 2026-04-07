@@ -595,7 +595,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     weather_score = min(max((weather.get("hr_multiplier", 1.0) - 0.85) / 0.30, 0), 1.0)
 
     # 7. Recent form (5%)
-    form_score = min(hr_recent / 4, 1.0)  # 4+ HR in 14 days = max
+    form_score = min(hr_recent / 10, 1.0)  # 4+ HR in 14 days = max
 
     # Weighted total
     raw = (
