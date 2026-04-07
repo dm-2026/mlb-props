@@ -521,16 +521,19 @@ function batterCard(t, idx) {
     </div>`;
   }).join('');
 
-  const pitchRows = Object.entries(t.pitch_matrix||{}).map(([pt,d]) => {
-    const vuln=Math.min((d.pitcher_hr_pct||0)/10*100,100);  // vuln bar uses hr_pct internally
-    const vc=vuln>65?'hi':vuln>35?'md':'lo';
+    const pitchRows = Object.entries(t.pitch_matrix||{}).map(([pt,d]) => {
+    // Combined collision signal: pitcher HR rate × batter SLG — only lights up when both align
+    const pitcherVuln = Math.min((d.pitcher_hr_pct||0) / 10, 1.0);
+    const batterDmg   = Math.min((d.slg||0) / 0.8, 1.0);
+    const collision   = Math.round(pitcherVuln * batterDmg * 100);
+    const vc = collision > 65 ? 'hi' : collision > 35 ? 'md' : 'lo';
     const hrDist = d.pitcher_hr_dist!=null ? d.pitcher_hr_dist+'%' : '—';
     return `<tr>
       <td class="pitch-name">${PITCH_NAMES[pt]||pt}</td>
       <td class="stat-val">${d.pitcher_usage!=null?d.pitcher_usage.toFixed(0)+'%':'—'}</td>
       <td class="stat-val">${d.slg?d.slg.toFixed(3):'—'}</td>
       <td class="stat-val">${hrDist}</td>
-      <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vc}" style="width:${Math.round(vuln)}%"></div></div></div></td>
+      <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vc}" style="width:${collision}%"></div></div></div></td>
       <td class="stat-dim">${d.avg_launch_angle!=null?d.avg_launch_angle.toFixed(1)+'°':'—'}</td>
     </tr>`;
   }).join('');
@@ -571,7 +574,7 @@ function batterCard(t, idx) {
       <div class="components-grid">${compBars}</div>
       ${hasMatrix?`<div class="matrix-label">Pitch collision matrix${handLabel} · HR Dist = % of pitcher's HRs on that pitch</div>
         <table class="pitch-table">
-          <thead><tr><th>Pitch</th><th>Usage</th><th>Batter SLG</th><th>HR Dist${handLabel||''}</th><th>Vuln</th><th>Avg LA</th></tr></thead>
+          <thead><tr><th>Pitch</th><th>Usage</th><th>Batter SLG</th><th>HR Dist${handLabel||''}</th><th>Collision</th><th>Avg LA</th></tr></thead>
           <tbody>${pitchRows}</tbody>
         </table>`:''}
       <div class="meta-row">
