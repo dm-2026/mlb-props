@@ -25,6 +25,7 @@ DEPLOY_BRANCH = "gh-pages"
 DEPLOY_INCLUDES = [
     "index.html",
     "data/data.json",
+    "og-image.png",
 ]
 
 BUILD_DIR = Path("build")
