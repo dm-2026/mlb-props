@@ -154,9 +154,29 @@ def get_roster_batters(team_abbrev, game_pk):
     """
     Fetch active roster for a specific team by abbreviation.
     Always looks up by team abbreviation to avoid home/away cross-contamination.
-    Falls back to confirmed lineup from boxscore if available and matches the team.
+    Gets batting handedness from the roster API (reliable) — boxscore doesn't include it.
+    Uses boxscore batting order if confirmed lineup is available.
     """
-    # First try confirmed lineup from boxscore — but only use it if it matches our team
+    # Always fetch roster first to get reliable handedness data
+    hand_lookup = {}  # player_id -> bats (L/R/S)
+    try:
+        url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
+        r2 = requests.get(url2, timeout=10)
+        teams = r2.json().get("teams", [])
+        team_id = next(
+            (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
+        )
+        if team_id:
+            roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
+            r3 = requests.get(roster_url, timeout=10)
+            for p in r3.json().get("roster", []):
+                pid = p["person"]["id"]
+                hand = p.get("person", {}).get("batSide", {}).get("code", "R")
+                hand_lookup[pid] = hand
+    except Exception as e:
+        log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
+
+    # Try confirmed lineup from boxscore for batting order
     try:
         url = f"https://statsapi.mlb.com/api/v1/game/{game_pk}/boxscore"
         r = requests.get(url, timeout=10)
@@ -175,12 +195,12 @@ def get_roster_batters(team_abbrev, game_pk):
                         p = players.get(f"ID{pid}", {})
                         info = p.get("person", {})
                         pos = p.get("position", {})
-                        # boxscore API can nest batSide at player level or under person
-                        bat_side = (p.get("batSide") or info.get("batSide") or {}).get("code", "R")
+                        # Use hand_lookup for reliable handedness — boxscore doesn't have it
+                        bats = hand_lookup.get(pid, "R")
                         result.append({
                             "id": pid,
                             "name": info.get("fullName", ""),
-                            "bats": bat_side,
+                            "bats": bats,
                             "position": pos.get("abbreviation", ""),
                         })
                     if result:
@@ -189,35 +209,34 @@ def get_roster_batters(team_abbrev, game_pk):
     except Exception:
         pass
 
-    # Fallback: active roster by team abbreviation
-    try:
-        url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
-        r2 = requests.get(url2, timeout=10)
-        teams = r2.json().get("teams", [])
-        team_id = next(
-            (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
-        )
-        if not team_id:
-            log.warning(f"  Could not find team ID for {team_abbrev}")
-            return []
-        roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
-        r3 = requests.get(roster_url, timeout=10)
-        roster = r3.json().get("roster", [])
-        batters = []
-        for p in roster:
-            pos = p.get("position", {}).get("abbreviation", "")
-            if pos not in ("SP", "RP", "P"):
-                batters.append({
-                    "id": p["person"]["id"],
-                    "name": p["person"]["fullName"],
-                    "bats": p.get("person", {}).get("batSide", {}).get("code", "R"),
-                    "position": pos,
-                })
-        log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters")
-        return batters[:13]
-    except Exception as e:
-        log.error(f"Roster fetch failed for {team_abbrev}: {e}")
-        return []
+    # Fallback: return full roster from hand_lookup
+    if hand_lookup:
+        try:
+            url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
+            r2 = requests.get(url2, timeout=10)
+            teams = r2.json().get("teams", [])
+            team_id = next(
+                (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
+            )
+            if team_id:
+                roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
+                r3 = requests.get(roster_url, timeout=10)
+                batters = []
+                for p in r3.json().get("roster", []):
+                    pos = p.get("position", {}).get("abbreviation", "")
+                    if pos not in ("SP", "RP", "P"):
+                        pid = p["person"]["id"]
+                        batters.append({
+                            "id": pid,
+                            "name": p["person"]["fullName"],
+                            "bats": hand_lookup.get(pid, "R"),
+                            "position": pos,
+                        })
+                log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters")
+                return batters[:13]
+        except Exception as e:
+            log.error(f"Roster fetch failed for {team_abbrev}: {e}")
+    return []
 
 
 # ── Weather — RotoWire scraper ────────────────────────────────────────────────
