@@ -455,10 +455,11 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             hr_events = group_vs[group_vs["events"] == "home_run"]
             hr_count_pt = len(hr_events)
 
-            # HR% per PA — used internally for scoring (vuln + collision)
-            # Minimum 30 PA required before rate is meaningful
-            pa_on_pitch = group_vs["at_bat_number"].nunique() if "at_bat_number" in group_vs.columns else len(group_vs) // 4
-            hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch >= 30 else None
+            # HR% per PA — only count PAs that ended on this pitch type
+            # Filter to rows where an actual plate appearance outcome occurred
+            pa_events = group_vs[group_vs["events"].notna() & (group_vs["events"] != "")]
+            pa_on_pitch = len(pa_events)
+            hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch >= 20 else None
 
             barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
@@ -907,6 +908,11 @@ def run():
                 b_id = batter["id"]
                 b_name = batter["name"]
                 b_hand = batter.get("bats", "R")
+
+                # Switch hitters bat opposite to pitcher handedness
+                if b_hand == "S":
+                    b_hand = "L" if pitcher_info.get("throws", "R") == "R" else "R"
+                    log.info(f"  Switch hitter {b_name} batting {b_hand} vs {pitcher_info.get('throws')}HP")
 
                 # Fetch hand-specific arsenal (cached per hand)
                 if b_hand not in arsenal_cache:
