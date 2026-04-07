@@ -94,6 +94,9 @@
   .chip-starter .sn { color: var(--text); font-weight: 500; font-size: 12px; }
   .chip-targets { display: flex; flex-direction: column; gap: 5px; }
   .chip-no-targets { font-family: var(--mono); font-size: 12px; color: var(--text3); padding: 8px 0; }
+  .chip-sort-btn { font-family: var(--mono); font-size: 10px; padding: 3px 10px; border-radius: 3px; border: 1px solid var(--border); background: var(--surface); color: var(--text3); cursor: pointer; transition: all 0.15s; }
+  .chip-sort-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .chip-sort-btn.active { background: var(--prime-bg); border-color: var(--prime-border); color: var(--prime); }
 
   /* Badges */
   .badge { font-family: var(--mono); font-size: 9px; padding: 2px 5px; border-radius: 2px; border: 1px solid; white-space: nowrap; }
@@ -381,6 +384,8 @@ function wBadges(g) {
 }
 
 // ── Slate ─────────────────────────────────────────────────────────────────────
+const gameSort = {}; // tracks 'score' or 'collision' per game index
+
 function renderSlate(games, targets) {
   const el = document.getElementById('games-grid');
   if (!games||!games.length){el.innerHTML='<div class="empty">No games today</div>';return;}
@@ -419,14 +424,47 @@ function renderSlate(games, targets) {
           <div class="chip-starter"><div class="sl">Away starter</div><div class="sn">${awayP.name||'TBD'}${awayP.throws?' ('+awayP.throws+'HP)':''}</div></div>
           <div class="chip-starter"><div class="sl">Home starter</div><div class="sn">${homeP.name||'TBD'}${homeP.throws?' ('+homeP.throws+'HP)':''}</div></div>
         </div>
-        <div class="chip-targets">${batterRows}</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button class="chip-sort-btn active" id="sort-score-${gi}" onclick="setGameSort(${gi},'score',event)">Score</button>
+          <button class="chip-sort-btn" id="sort-collision-${gi}" onclick="setGameSort(${gi},'collision',event)">Pitch Collision</button>
+        </div>
+        <div class="chip-targets" id="chip-targets-${gi}">${batterRows}</div>
       </div>
     </div>`;
   }).join('');
 }
 
+function setGameSort(gi, mode, e) {
+  e.stopPropagation();
+  gameSort[gi] = mode;
+
+  // Update button styles
+  document.getElementById(`sort-score-${gi}`).classList.toggle('active', mode==='score');
+  document.getElementById(`sort-collision-${gi}`).classList.toggle('active', mode==='collision');
+
+  // Re-sort and re-render targets for this game
+  const key = allData.games[gi] ? `${allData.games[gi].away_team} @ ${allData.games[gi].home_team}` : '';
+  const tgts = (allData.targets||[]).filter(t => t.game === key);
+
+  let sorted;
+  if (mode === 'collision') {
+    sorted = [...tgts].sort((a,b) =>
+      (b.components?.pitch_collision||0) - (a.components?.pitch_collision||0)
+    );
+  } else {
+    sorted = sortT(tgts);
+  }
+
+  const html = sorted.length
+    ? sorted.map((t,ti) => batterCard(t,`g${gi}_r${ti}`)).join('')
+    : `<div class="chip-no-targets">No scored targets for this game</div>`;
+
+  document.getElementById(`chip-targets-${gi}`).innerHTML = html;
+}
+
 function toggleChip(gi, e) {
   if (e.target.closest('.card-detail')) return;
+  if (e.target.closest('.chip-sort-btn')) return;
   const chip = document.getElementById(`chip-${gi}`);
   const wasOpen = chip.classList.contains('open');
   document.querySelectorAll('.game-chip.open').forEach(c => c.classList.remove('open'));

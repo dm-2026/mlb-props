@@ -595,7 +595,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     weather_score = min(max((weather.get("hr_multiplier", 1.0) - 0.85) / 0.30, 0), 1.0)
 
     # 7. Recent form (5%)
-    form_score = min(hr_recent / 10, 1.0)  # 4+ HR in 14 days = max
+    form_score = min(hr_recent / 4, 1.0)  # 4+ HR in 14 days = max
 
     # Weighted total
     raw = (
@@ -609,6 +609,31 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     )
 
     score = round(raw * 100)
+
+    # ── Pitcher quality multiplier ────────────────────────────────────────────
+    # Calculate weighted avg HR/9 across the arsenal (usage-weighted, vs this hand)
+    total_usage = sum(pa.get("usage_pct", 0) for pt, pa in arsenal.items() if not pt.startswith("_"))
+    if total_usage > 0:
+        weighted_hr9 = sum(
+            pa.get("hr_per_9", 0) * pa.get("usage_pct", 0)
+            for pt, pa in arsenal.items() if not pt.startswith("_")
+        ) / total_usage
+    else:
+        weighted_hr9 = 1.0  # neutral fallback
+
+    if weighted_hr9 < 0.5:
+        pitcher_mult = 0.85
+    elif weighted_hr9 < 0.8:
+        pitcher_mult = 0.93
+    elif weighted_hr9 < 1.4:
+        pitcher_mult = 1.00
+    elif weighted_hr9 < 2.0:
+        pitcher_mult = 1.05
+    else:
+        pitcher_mult = 1.10
+
+    score = round(score * pitcher_mult)
+    # ─────────────────────────────────────────────────────────────────────────
 
     components = {
         "ev_barrel":       round(ev_barrel_score * 100),
