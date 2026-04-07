@@ -109,7 +109,7 @@ def get_todays_schedule():
     date_str = TODAY.strftime("%Y-%m-%d")
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date_str}&hydrate=probablePitcher,team,venue,weather,lineups"
     try:
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=20)
         r.raise_for_status()
         data = r.json()
     except Exception as e:
@@ -161,25 +161,27 @@ def get_roster_batters(team_abbrev, game_pk):
     hand_lookup = {}  # player_id -> bats (L/R/S)
     try:
         url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
-        r2 = requests.get(url2, timeout=10)
+        r2 = requests.get(url2, timeout=20)
         teams = r2.json().get("teams", [])
         team_id = next(
             (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
         )
         if team_id:
             roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
-            r3 = requests.get(roster_url, timeout=10)
+            r3 = requests.get(roster_url, timeout=20)
             for p in r3.json().get("roster", []):
                 pid = p["person"]["id"]
                 hand = p.get("person", {}).get("batSide", {}).get("code", "R")
-                hand_lookup[pid] = hand
+                hand_lookup[int(pid)] = hand  # store as int to match battingOrder type
+                hand_lookup[str(pid)] = hand  # also store as str for safety
+            log.info(f"  Hand lookup built for {team_abbrev}: {len(hand_lookup)//2} players")
     except Exception as e:
         log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
 
     # Try confirmed lineup from boxscore for batting order
     try:
         url = f"https://statsapi.mlb.com/api/v1/game/{game_pk}/boxscore"
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=20)
         if r.status_code == 200:
             data = r.json()
             for side in ["home", "away"]:
@@ -195,8 +197,8 @@ def get_roster_batters(team_abbrev, game_pk):
                         p = players.get(f"ID{pid}", {})
                         info = p.get("person", {})
                         pos = p.get("position", {})
-                        # Use hand_lookup for reliable handedness — boxscore doesn't have it
-                        bats = hand_lookup.get(pid, "R")
+                        # Try both int and str keys to handle type mismatches
+                        bats = hand_lookup.get(int(pid), hand_lookup.get(str(pid), "R"))
                         result.append({
                             "id": pid,
                             "name": info.get("fullName", ""),
@@ -213,14 +215,14 @@ def get_roster_batters(team_abbrev, game_pk):
     if hand_lookup:
         try:
             url2 = f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={TODAY.year}"
-            r2 = requests.get(url2, timeout=10)
+            r2 = requests.get(url2, timeout=20)
             teams = r2.json().get("teams", [])
             team_id = next(
                 (t["id"] for t in teams if t.get("abbreviation") == team_abbrev), None
             )
             if team_id:
                 roster_url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?rosterType=active"
-                r3 = requests.get(roster_url, timeout=10)
+                r3 = requests.get(roster_url, timeout=20)
                 batters = []
                 for p in r3.json().get("roster", []):
                     pos = p.get("position", {}).get("abbreviation", "")
