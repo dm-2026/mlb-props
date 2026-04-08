@@ -573,7 +573,33 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
             "w26": round(w26, 2),
         }
 
-        log.info(f"  Batter {batter_name}: {len(pitch_stats)-1} pitch types, {pa_2026} PA in 2026")
+        # Force hardcoded seed for players whose 2025 data is unreliable
+        # (injury years, down seasons) — these players are better represented
+        # by career/true-talent numbers than their 2025 Statcast data
+        FORCE_HARDCODED = {
+            670541: "Yordan Alvarez",  # missed significant time in 2025
+        }
+        if batter_id in FORCE_HARDCODED:
+            hardcoded = get_hardcoded_batter_data(batter_id)
+            if hardcoded:
+                log.info(f"  {batter_name}: using hardcoded seed (injury/down 2025 season)")
+                hardcoded["_meta"]["hr_recent_14d"] = hr_recent
+                hardcoded["_meta"]["pa_2026"] = pa_2026
+                return hardcoded
+
+        # If live data is too thin (< 50 total pitches seen), supplement with
+        # hardcoded seed data for known elite players — preserves L14D from live
+        real_pitch_types = len(pitch_stats) - 1  # exclude _meta
+        if real_pitch_types < 3 or len(df) < 50:
+            hardcoded = get_hardcoded_batter_data(batter_id)
+            if hardcoded and batter_id in [670541, 592450, 624413, 660271, 518692, 665489, 621566, 656941]:
+                log.info(f"  {batter_name}: thin live data ({real_pitch_types} pitch types), using hardcoded seed")
+                # Keep live L14D and PA count but use hardcoded pitch stats
+                hardcoded["_meta"]["hr_recent_14d"] = hr_recent
+                hardcoded["_meta"]["pa_2026"] = pa_2026
+                return hardcoded
+
+        log.info(f"  Batter {batter_name}: {real_pitch_types} pitch types, {pa_2026} PA in 2026")
         return pitch_stats
 
     except Exception as e:
