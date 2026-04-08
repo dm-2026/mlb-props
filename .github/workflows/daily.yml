@@ -1,0 +1,76 @@
+name: Daily MLB HR Props Pipeline
+
+on:
+  schedule:
+    - cron: '0 13 * * *'    # 9 AM ET (UTC-4 during daylight saving)
+    - cron: '30 16 * * *'   # 12:30 PM ET — just before first pitch
+  workflow_dispatch:         # manual trigger button on GitHub website/app
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pybaseball data
+        uses: actions/cache@v4
+        with:
+          path: ~/.pybaseball
+          key: pybaseball-${{ runner.os }}-${{ steps.date.outputs.date }}
+          restore-keys: |
+            pybaseball-${{ runner.os }}-
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: |
+          pip install pybaseball requests beautifulsoup4 pandas
+
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      - name: Run pipeline
+        run: python pipeline.py
+
+      - name: Deploy to GitHub Pages
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Save the files we need to deploy
+          cp index.html /tmp/index.html
+          cp data/data.json /tmp/data.json
+          cp og-image.png /tmp/og-image.png 2>/dev/null || true
+
+          # Switch to gh-pages branch
+          git fetch origin gh-pages || true
+          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
+
+          # Clear and replace with fresh deploy files
+          git rm -rf . --quiet 2>/dev/null || true
+
+          cp /tmp/index.html ./index.html
+          mkdir -p data
+          cp /tmp/data.json ./data/data.json
+          cp /tmp/og-image.png ./og-image.png 2>/dev/null || true
+          touch .nojekyll
+
+          # Commit and push
+          git add -A
+          git diff --staged --quiet || git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M ET')"
+          git push origin gh-pages --force
+
+      - name: Done
+        run: echo "✓ Pipeline complete and deployed to https://dm-2026.github.io/mlb-props/"
