@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-08T11:18:09.644807",
+  "generated_at": "2026-04-08T11:31:33.609818",
   "date": "2026-04-08",
   "pybaseball_live": true,
   "games": [
@@ -150,7 +150,7 @@
       "away_team": "SEA",
       "home_team": "TEX",
       "venue": "Globe Life Field",
-      "status": "Scheduled",
+      "status": "Pre-Game",
       "away_probable": {
         "id": 693433,
         "name": "Bryan Woo",
@@ -1751,6 +1751,100 @@
       }
     },
     {
+      "batter_id": 694671,
+      "batter_name": "Wyatt Langford",
+      "batter_team": "TEX",
+      "batter_hand": "R",
+      "pitcher_name": "Bryan Woo",
+      "pitcher_throws": "R",
+      "game": "SEA @ TEX",
+      "venue": "Globe Life Field",
+      "score": 39,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 28,
+        "pitcher_vuln": 53,
+        "pitch_collision": 38,
+        "park_factor": 50,
+        "platoon": 35,
+        "weather": 50,
+        "recent_form": 0
+      },
+      "insight": "throws 47% Four-seam \u2014 5.8% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 105,
+      "park_suppress": false,
+      "weather_label": "Dome",
+      "weather_temp": 72,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 85.9,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 31,
+        "w26": 0.15
+      },
+      "pitcher_overall_hr9": 1.04,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 1,
+          "xbh_count": 5,
+          "run_factor": 6,
+          "slg": 0.257,
+          "avg_launch_angle": 6.1,
+          "sample_pitches": 325,
+          "pitcher_usage": 7.1,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 12,
+          "xbh_count": 17,
+          "run_factor": 29,
+          "slg": 0.411,
+          "avg_launch_angle": 33.5,
+          "sample_pitches": 787,
+          "pitcher_usage": 47.2,
+          "pitcher_hr_pct": 5.8,
+          "pitcher_hr_dist": 50
+        },
+        "SI": {
+          "hr_count": 4,
+          "xbh_count": 11,
+          "run_factor": 15,
+          "slg": 0.393,
+          "avg_launch_angle": 11.4,
+          "sample_pitches": 466,
+          "pitcher_usage": 25.5,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 21
+        },
+        "SL": {
+          "hr_count": 2,
+          "xbh_count": 7,
+          "run_factor": 9,
+          "slg": 0.341,
+          "avg_launch_angle": 14.0,
+          "sample_pitches": 343,
+          "pitcher_usage": 11.1,
+          "pitcher_hr_pct": 7.7,
+          "pitcher_hr_dist": 21
+        },
+        "ST": {
+          "hr_count": 1,
+          "xbh_count": 3,
+          "run_factor": 4,
+          "slg": 0.325,
+          "avg_launch_angle": 29.0,
+          "sample_pitches": 205,
+          "pitcher_usage": 9.1,
+          "pitcher_hr_pct": 1.7,
+          "pitcher_hr_dist": 7
+        }
+      }
+    },
+    {
       "batter_id": 669394,
       "batter_name": "Jake Burger",
       "batter_team": "TEX",
@@ -3347,100 +3441,6 @@
           "pitcher_usage": 22.3,
           "pitcher_hr_pct": 4.8,
           "pitcher_hr_dist": 17
-        }
-      }
-    },
-    {
-      "batter_id": 457705,
-      "batter_name": "Andrew McCutchen",
-      "batter_team": "TEX",
-      "batter_hand": "R",
-      "pitcher_name": "Bryan Woo",
-      "pitcher_throws": "R",
-      "game": "SEA @ TEX",
-      "venue": "Globe Life Field",
-      "score": 37,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 20,
-        "pitcher_vuln": 53,
-        "pitch_collision": 31,
-        "park_factor": 50,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 25
-      },
-      "insight": "throws 47% Four-seam \u2014 5.8% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 105,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 83.5,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 1,
-        "pa_2026": 15,
-        "w26": 0.07
-      },
-      "pitcher_overall_hr9": 1.04,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 1,
-          "xbh_count": 4,
-          "run_factor": 5,
-          "slg": 0.419,
-          "avg_launch_angle": 5.9,
-          "sample_pitches": 164,
-          "pitcher_usage": 7.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 7,
-          "xbh_count": 15,
-          "run_factor": 22,
-          "slg": 0.339,
-          "avg_launch_angle": 27.6,
-          "sample_pitches": 668,
-          "pitcher_usage": 47.2,
-          "pitcher_hr_pct": 5.8,
-          "pitcher_hr_dist": 50
-        },
-        "SI": {
-          "hr_count": 1,
-          "xbh_count": 5,
-          "run_factor": 6,
-          "slg": 0.276,
-          "avg_launch_angle": 7.0,
-          "sample_pitches": 435,
-          "pitcher_usage": 25.5,
-          "pitcher_hr_pct": 1.9,
-          "pitcher_hr_dist": 21
-        },
-        "SL": {
-          "hr_count": 3,
-          "xbh_count": 5,
-          "run_factor": 8,
-          "slg": 0.315,
-          "avg_launch_angle": 11.4,
-          "sample_pitches": 432,
-          "pitcher_usage": 11.1,
-          "pitcher_hr_pct": 7.7,
-          "pitcher_hr_dist": 21
-        },
-        "ST": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.146,
-          "avg_launch_angle": 15.8,
-          "sample_pitches": 226,
-          "pitcher_usage": 9.1,
-          "pitcher_hr_pct": 1.7,
-          "pitcher_hr_dist": 7
         }
       }
     },
@@ -5345,100 +5345,6 @@
       }
     },
     {
-      "batter_id": 681297,
-      "batter_name": "Colton Cowser",
-      "batter_team": "BAL",
-      "batter_hand": "L",
-      "pitcher_name": "Sean Burke",
-      "pitcher_throws": "R",
-      "game": "BAL @ CWS",
-      "venue": "Rate Field",
-      "score": 35,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 20,
-        "pitcher_vuln": 44,
-        "pitch_collision": 30,
-        "park_factor": 38,
-        "platoon": 65,
-        "weather": 50,
-        "recent_form": 0
-      },
-      "insight": "Four-seam (43% usage): 0.513 SLG",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "\u2014",
-      "weather_temp": 70,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 83.4,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 20,
-        "w26": 0.1
-      },
-      "pitcher_overall_hr9": 1.05,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.155,
-          "avg_launch_angle": 0.5,
-          "sample_pitches": 256,
-          "pitcher_usage": 6.5,
-          "pitcher_hr_pct": 11.5,
-          "pitcher_hr_dist": 25
-        },
-        "FF": {
-          "hr_count": 8,
-          "xbh_count": 16,
-          "run_factor": 24,
-          "slg": 0.513,
-          "avg_launch_angle": 25.9,
-          "sample_pitches": 448,
-          "pitcher_usage": 42.9,
-          "pitcher_hr_pct": 3.2,
-          "pitcher_hr_dist": 42
-        },
-        "KC": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.0,
-          "avg_launch_angle": 10.4,
-          "sample_pitches": 37,
-          "pitcher_usage": 23.3,
-          "pitcher_hr_pct": 2.4,
-          "pitcher_hr_dist": 17
-        },
-        "SI": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.298,
-          "avg_launch_angle": 13.1,
-          "sample_pitches": 201,
-          "pitcher_usage": 4.8,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "SL": {
-          "hr_count": 1,
-          "xbh_count": 3,
-          "run_factor": 4,
-          "slg": 0.256,
-          "avg_launch_angle": 13.4,
-          "sample_pitches": 183,
-          "pitcher_usage": 22.3,
-          "pitcher_hr_pct": 4.8,
-          "pitcher_hr_dist": 17
-        }
-      }
-    },
-    {
       "batter_id": 695657,
       "batter_name": "Colson Montgomery",
       "batter_team": "CWS",
@@ -5518,100 +5424,6 @@
           "pitcher_usage": 32.0,
           "pitcher_hr_pct": null,
           "pitcher_hr_dist": 0
-        }
-      }
-    },
-    {
-      "batter_id": 673962,
-      "batter_name": "Josh Jung",
-      "batter_team": "TEX",
-      "batter_hand": "R",
-      "pitcher_name": "Bryan Woo",
-      "pitcher_throws": "R",
-      "game": "SEA @ TEX",
-      "venue": "Globe Life Field",
-      "score": 35,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 19,
-        "pitcher_vuln": 53,
-        "pitch_collision": 33,
-        "park_factor": 50,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 0
-      },
-      "insight": "throws 47% Four-seam \u2014 5.8% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 105,
-      "park_suppress": false,
-      "weather_label": "Dome",
-      "weather_temp": 72,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 82.9,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 25,
-        "w26": 0.12
-      },
-      "pitcher_overall_hr9": 1.04,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 2,
-          "xbh_count": 6,
-          "run_factor": 8,
-          "slg": 0.403,
-          "avg_launch_angle": 7.5,
-          "sample_pitches": 175,
-          "pitcher_usage": 7.1,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 3,
-          "xbh_count": 7,
-          "run_factor": 10,
-          "slg": 0.288,
-          "avg_launch_angle": 29.2,
-          "sample_pitches": 620,
-          "pitcher_usage": 47.2,
-          "pitcher_hr_pct": 5.8,
-          "pitcher_hr_dist": 50
-        },
-        "SI": {
-          "hr_count": 4,
-          "xbh_count": 10,
-          "run_factor": 14,
-          "slg": 0.429,
-          "avg_launch_angle": 8.3,
-          "sample_pitches": 389,
-          "pitcher_usage": 25.5,
-          "pitcher_hr_pct": 1.9,
-          "pitcher_hr_dist": 21
-        },
-        "SL": {
-          "hr_count": 1,
-          "xbh_count": 6,
-          "run_factor": 7,
-          "slg": 0.349,
-          "avg_launch_angle": 18.0,
-          "sample_pitches": 327,
-          "pitcher_usage": 11.1,
-          "pitcher_hr_pct": 7.7,
-          "pitcher_hr_dist": 21
-        },
-        "ST": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.184,
-          "avg_launch_angle": 20.6,
-          "sample_pitches": 207,
-          "pitcher_usage": 9.1,
-          "pitcher_hr_pct": 1.7,
-          "pitcher_hr_dist": 7
         }
       }
     },
@@ -6801,6 +6613,100 @@
       }
     },
     {
+      "batter_id": 621493,
+      "batter_name": "Taylor Ward",
+      "batter_team": "BAL",
+      "batter_hand": "R",
+      "pitcher_name": "Sean Burke",
+      "pitcher_throws": "R",
+      "game": "BAL @ CWS",
+      "venue": "Rate Field",
+      "score": 34,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 23,
+        "pitcher_vuln": 34,
+        "pitch_collision": 44,
+        "park_factor": 45,
+        "platoon": 35,
+        "weather": 50,
+        "recent_form": 0
+      },
+      "insight": "throws 22% Slider \u2014 6.7% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 102,
+      "park_suppress": false,
+      "weather_label": "\u2014",
+      "weather_temp": 70,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 84.3,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 37,
+        "w26": 0.18
+      },
+      "pitcher_overall_hr9": 1.05,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 2,
+          "xbh_count": 4,
+          "run_factor": 6,
+          "slg": 0.339,
+          "avg_launch_angle": 4.7,
+          "sample_pitches": 198,
+          "pitcher_usage": 6.5,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 12,
+          "xbh_count": 26,
+          "run_factor": 38,
+          "slg": 0.467,
+          "avg_launch_angle": 33.5,
+          "sample_pitches": 883,
+          "pitcher_usage": 42.9,
+          "pitcher_hr_pct": 2.5,
+          "pitcher_hr_dist": 25
+        },
+        "KC": {
+          "hr_count": 1,
+          "xbh_count": 2,
+          "run_factor": 3,
+          "slg": 0.429,
+          "avg_launch_angle": 5.2,
+          "sample_pitches": 42,
+          "pitcher_usage": 23.3,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "SI": {
+          "hr_count": 6,
+          "xbh_count": 17,
+          "run_factor": 23,
+          "slg": 0.442,
+          "avg_launch_angle": 12.9,
+          "sample_pitches": 483,
+          "pitcher_usage": 4.8,
+          "pitcher_hr_pct": 2.9,
+          "pitcher_hr_dist": 8
+        },
+        "SL": {
+          "hr_count": 9,
+          "xbh_count": 13,
+          "run_factor": 22,
+          "slg": 0.441,
+          "avg_launch_angle": 15.2,
+          "sample_pitches": 587,
+          "pitcher_usage": 22.3,
+          "pitcher_hr_pct": 6.7,
+          "pitcher_hr_dist": 67
+        }
+      }
+    },
+    {
       "batter_id": 686527,
       "batter_name": "Dominic Canzone",
       "batter_team": "SEA",
@@ -7717,6 +7623,100 @@
           "pitcher_usage": 8.6,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
+        }
+      }
+    },
+    {
+      "batter_id": 663624,
+      "batter_name": "Ryan Mountcastle",
+      "batter_team": "BAL",
+      "batter_hand": "R",
+      "pitcher_name": "Sean Burke",
+      "pitcher_throws": "R",
+      "game": "BAL @ CWS",
+      "venue": "Rate Field",
+      "score": 33,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 20,
+        "pitcher_vuln": 34,
+        "pitch_collision": 41,
+        "park_factor": 45,
+        "platoon": 35,
+        "weather": 50,
+        "recent_form": 0
+      },
+      "insight": "throws 22% Slider \u2014 6.7% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 102,
+      "park_suppress": false,
+      "weather_label": "\u2014",
+      "weather_temp": 70,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 83.3,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 8,
+        "w26": 0.04
+      },
+      "pitcher_overall_hr9": 1.05,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.22,
+          "avg_launch_angle": 7.8,
+          "sample_pitches": 126,
+          "pitcher_usage": 6.5,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 3,
+          "xbh_count": 7,
+          "run_factor": 10,
+          "slg": 0.356,
+          "avg_launch_angle": 24.6,
+          "sample_pitches": 440,
+          "pitcher_usage": 42.9,
+          "pitcher_hr_pct": 2.5,
+          "pitcher_hr_dist": 25
+        },
+        "KC": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.571,
+          "avg_launch_angle": -12.2,
+          "sample_pitches": 20,
+          "pitcher_usage": 23.3,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "SI": {
+          "hr_count": 1,
+          "xbh_count": 5,
+          "run_factor": 6,
+          "slg": 0.429,
+          "avg_launch_angle": 9.2,
+          "sample_pitches": 226,
+          "pitcher_usage": 4.8,
+          "pitcher_hr_pct": 2.9,
+          "pitcher_hr_dist": 8
+        },
+        "SL": {
+          "hr_count": 2,
+          "xbh_count": 6,
+          "run_factor": 8,
+          "slg": 0.41,
+          "avg_launch_angle": 18.0,
+          "sample_pitches": 200,
+          "pitcher_usage": 22.3,
+          "pitcher_hr_pct": 6.7,
+          "pitcher_hr_dist": 67
         }
       }
     },
@@ -10254,100 +10254,6 @@
       }
     },
     {
-      "batter_id": 665750,
-      "batter_name": "Leody Taveras",
-      "batter_team": "BAL",
-      "batter_hand": "L",
-      "pitcher_name": "Sean Burke",
-      "pitcher_throws": "R",
-      "game": "BAL @ CWS",
-      "venue": "Rate Field",
-      "score": 32,
-      "tier": "MED",
-      "components": {
-        "ev_barrel": 10,
-        "pitcher_vuln": 44,
-        "pitch_collision": 26,
-        "park_factor": 45,
-        "platoon": 65,
-        "weather": 50,
-        "recent_form": 0
-      },
-      "insight": "throws 22% Slider \u2014 4.8% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 98,
-      "park_suppress": false,
-      "weather_label": "\u2014",
-      "weather_temp": 70,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 78.6,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 13,
-        "w26": 0.07
-      },
-      "pitcher_overall_hr9": 1.05,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.379,
-          "avg_launch_angle": 12.0,
-          "sample_pitches": 106,
-          "pitcher_usage": 6.5,
-          "pitcher_hr_pct": 11.5,
-          "pitcher_hr_dist": 25
-        },
-        "FF": {
-          "hr_count": 1,
-          "xbh_count": 3,
-          "run_factor": 4,
-          "slg": 0.288,
-          "avg_launch_angle": 37.8,
-          "sample_pitches": 321,
-          "pitcher_usage": 42.9,
-          "pitcher_hr_pct": 3.2,
-          "pitcher_hr_dist": 42
-        },
-        "KC": {
-          "hr_count": 0,
-          "xbh_count": 0,
-          "run_factor": 0,
-          "slg": 0.0,
-          "avg_launch_angle": 26.7,
-          "sample_pitches": 11,
-          "pitcher_usage": 23.3,
-          "pitcher_hr_pct": 2.4,
-          "pitcher_hr_dist": 17
-        },
-        "SI": {
-          "hr_count": 0,
-          "xbh_count": 3,
-          "run_factor": 3,
-          "slg": 0.37,
-          "avg_launch_angle": 15.5,
-          "sample_pitches": 89,
-          "pitcher_usage": 4.8,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "SL": {
-          "hr_count": 1,
-          "xbh_count": 1,
-          "run_factor": 2,
-          "slg": 0.4,
-          "avg_launch_angle": 31.2,
-          "sample_pitches": 54,
-          "pitcher_usage": 22.3,
-          "pitcher_hr_pct": 4.8,
-          "pitcher_hr_dist": 17
-        }
-      }
-    },
-    {
       "batter_id": 677594,
       "batter_name": "Julio Rodr\u00edguez",
       "batter_team": "SEA",
@@ -10438,6 +10344,100 @@
           "pitcher_usage": 11.8,
           "pitcher_hr_pct": null,
           "pitcher_hr_dist": 0
+        }
+      }
+    },
+    {
+      "batter_id": 669701,
+      "batter_name": "Josh Smith",
+      "batter_team": "TEX",
+      "batter_hand": "L",
+      "pitcher_name": "Bryan Woo",
+      "pitcher_throws": "R",
+      "game": "SEA @ TEX",
+      "venue": "Globe Life Field",
+      "score": 32,
+      "tier": "MED",
+      "components": {
+        "ev_barrel": 13,
+        "pitcher_vuln": 36,
+        "pitch_collision": 32,
+        "park_factor": 43,
+        "platoon": 65,
+        "weather": 50,
+        "recent_form": 0
+      },
+      "insight": "throws 47% Four-seam \u2014 4.2% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 101,
+      "park_suppress": false,
+      "weather_label": "Dome",
+      "weather_temp": 72,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 81.1,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 26,
+        "w26": 0.13
+      },
+      "pitcher_overall_hr9": 1.04,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 1,
+          "xbh_count": 9,
+          "run_factor": 10,
+          "slg": 0.315,
+          "avg_launch_angle": 13.2,
+          "sample_pitches": 301,
+          "pitcher_usage": 7.1,
+          "pitcher_hr_pct": 1.9,
+          "pitcher_hr_dist": 8
+        },
+        "FF": {
+          "hr_count": 3,
+          "xbh_count": 8,
+          "run_factor": 11,
+          "slg": 0.292,
+          "avg_launch_angle": 28.3,
+          "sample_pitches": 897,
+          "pitcher_usage": 47.2,
+          "pitcher_hr_pct": 4.2,
+          "pitcher_hr_dist": 62
+        },
+        "SI": {
+          "hr_count": 2,
+          "xbh_count": 5,
+          "run_factor": 7,
+          "slg": 0.341,
+          "avg_launch_angle": 4.4,
+          "sample_pitches": 337,
+          "pitcher_usage": 25.5,
+          "pitcher_hr_pct": 1.2,
+          "pitcher_hr_dist": 8
+        },
+        "SL": {
+          "hr_count": 3,
+          "xbh_count": 4,
+          "run_factor": 7,
+          "slg": 0.324,
+          "avg_launch_angle": 14.7,
+          "sample_pitches": 277,
+          "pitcher_usage": 11.1,
+          "pitcher_hr_pct": 4.2,
+          "pitcher_hr_dist": 15
+        },
+        "ST": {
+          "hr_count": 1,
+          "xbh_count": 3,
+          "run_factor": 4,
+          "slg": 0.4,
+          "avg_launch_angle": 24.0,
+          "sample_pitches": 164,
+          "pitcher_usage": 9.1,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 8
         }
       }
     },
@@ -11669,8 +11669,8 @@
       }
     },
     {
-      "batter_id": 669236,
-      "batter_name": "Jeremiah Jackson",
+      "batter_id": 641933,
+      "batter_name": "Tyler O'Neill",
       "batter_team": "BAL",
       "batter_hand": "R",
       "pitcher_name": "Sean Burke",
@@ -11680,13 +11680,13 @@
       "score": 31,
       "tier": "MED",
       "components": {
-        "ev_barrel": 24,
+        "ev_barrel": 20,
         "pitcher_vuln": 34,
-        "pitch_collision": 27,
+        "pitch_collision": 25,
         "park_factor": 45,
         "platoon": 35,
         "weather": 50,
-        "recent_form": 0
+        "recent_form": 25
       },
       "insight": "throws 22% Slider \u2014 6.7% HR rate allowed",
       "dominant_signals": [],
@@ -11697,32 +11697,32 @@
       "hr_multiplier": 1.0,
       "rain_chance": 0,
       "batter_meta": {
-        "avg_ev": 84.7,
+        "avg_ev": 83.3,
         "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 24,
+        "hr_recent_14d": 1,
+        "pa_2026": 23,
         "w26": 0.12
       },
       "pitcher_overall_hr9": 1.05,
       "pitch_matrix": {
         "CH": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.214,
-          "avg_launch_angle": 13.3,
-          "sample_pitches": 67,
+          "hr_count": 1,
+          "xbh_count": 2,
+          "run_factor": 3,
+          "slg": 0.37,
+          "avg_launch_angle": 5.2,
+          "sample_pitches": 105,
           "pitcher_usage": 6.5,
           "pitcher_hr_pct": null,
           "pitcher_hr_dist": 0
         },
         "FF": {
-          "hr_count": 2,
-          "xbh_count": 3,
-          "run_factor": 5,
-          "slg": 0.327,
-          "avg_launch_angle": 37.2,
-          "sample_pitches": 203,
+          "hr_count": 4,
+          "xbh_count": 7,
+          "run_factor": 11,
+          "slg": 0.354,
+          "avg_launch_angle": 32.1,
+          "sample_pitches": 284,
           "pitcher_usage": 42.9,
           "pitcher_hr_pct": 2.5,
           "pitcher_hr_dist": 25
@@ -11731,31 +11731,31 @@
           "hr_count": 0,
           "xbh_count": 0,
           "run_factor": 0,
-          "slg": 0.5,
-          "avg_launch_angle": 3.7,
-          "sample_pitches": 13,
+          "slg": 0.0,
+          "avg_launch_angle": 35.5,
+          "sample_pitches": 15,
           "pitcher_usage": 23.3,
           "pitcher_hr_pct": 0.0,
           "pitcher_hr_dist": 0
         },
         "SI": {
-          "hr_count": 1,
-          "xbh_count": 2,
-          "run_factor": 3,
-          "slg": 0.3,
-          "avg_launch_angle": 7.5,
-          "sample_pitches": 155,
+          "hr_count": 2,
+          "xbh_count": 3,
+          "run_factor": 5,
+          "slg": 0.356,
+          "avg_launch_angle": 14.8,
+          "sample_pitches": 151,
           "pitcher_usage": 4.8,
           "pitcher_hr_pct": 2.9,
           "pitcher_hr_dist": 8
         },
         "SL": {
           "hr_count": 1,
-          "xbh_count": 3,
-          "run_factor": 4,
-          "slg": 0.474,
-          "avg_launch_angle": 7.6,
-          "sample_pitches": 120,
+          "xbh_count": 2,
+          "run_factor": 3,
+          "slg": 0.25,
+          "avg_launch_angle": 22.5,
+          "sample_pitches": 117,
           "pitcher_usage": 22.3,
           "pitcher_hr_pct": 6.7,
           "pitcher_hr_dist": 67
@@ -15940,100 +15940,6 @@
       }
     },
     {
-      "batter_id": 677942,
-      "batter_name": "Blaze Alexander",
-      "batter_team": "BAL",
-      "batter_hand": "R",
-      "pitcher_name": "Sean Burke",
-      "pitcher_throws": "R",
-      "game": "BAL @ CWS",
-      "venue": "Rate Field",
-      "score": 28,
-      "tier": "LOW",
-      "components": {
-        "ev_barrel": 15,
-        "pitcher_vuln": 34,
-        "pitch_collision": 26,
-        "park_factor": 45,
-        "platoon": 35,
-        "weather": 50,
-        "recent_form": 0
-      },
-      "insight": "throws 22% Slider \u2014 6.7% HR rate allowed",
-      "dominant_signals": [],
-      "park_factor": 102,
-      "park_suppress": false,
-      "weather_label": "\u2014",
-      "weather_temp": 70,
-      "hr_multiplier": 1.0,
-      "rain_chance": 0,
-      "batter_meta": {
-        "avg_ev": 81.7,
-        "barrel_pct": 0.0,
-        "hr_recent_14d": 0,
-        "pa_2026": 22,
-        "w26": 0.11
-      },
-      "pitcher_overall_hr9": 1.05,
-      "pitch_matrix": {
-        "CH": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.391,
-          "avg_launch_angle": 2.7,
-          "sample_pitches": 68,
-          "pitcher_usage": 6.5,
-          "pitcher_hr_pct": null,
-          "pitcher_hr_dist": 0
-        },
-        "FF": {
-          "hr_count": 5,
-          "xbh_count": 9,
-          "run_factor": 14,
-          "slg": 0.366,
-          "avg_launch_angle": 29.3,
-          "sample_pitches": 385,
-          "pitcher_usage": 42.9,
-          "pitcher_hr_pct": 2.5,
-          "pitcher_hr_dist": 25
-        },
-        "KC": {
-          "hr_count": 0,
-          "xbh_count": 1,
-          "run_factor": 1,
-          "slg": 0.5,
-          "avg_launch_angle": -21.8,
-          "sample_pitches": 13,
-          "pitcher_usage": 23.3,
-          "pitcher_hr_pct": 0.0,
-          "pitcher_hr_dist": 0
-        },
-        "SI": {
-          "hr_count": 0,
-          "xbh_count": 2,
-          "run_factor": 2,
-          "slg": 0.25,
-          "avg_launch_angle": 3.7,
-          "sample_pitches": 210,
-          "pitcher_usage": 4.8,
-          "pitcher_hr_pct": 2.9,
-          "pitcher_hr_dist": 8
-        },
-        "SL": {
-          "hr_count": 1,
-          "xbh_count": 1,
-          "run_factor": 2,
-          "slg": 0.286,
-          "avg_launch_angle": 6.9,
-          "sample_pitches": 172,
-          "pitcher_usage": 22.3,
-          "pitcher_hr_pct": 6.7,
-          "pitcher_hr_dist": 67
-        }
-      }
-    },
-    {
       "batter_id": 691723,
       "batter_name": "Coby Mayo",
       "batter_team": "BAL",
@@ -16121,6 +16027,100 @@
           "slg": 0.2,
           "avg_launch_angle": 19.8,
           "sample_pitches": 252,
+          "pitcher_usage": 22.3,
+          "pitcher_hr_pct": 6.7,
+          "pitcher_hr_dist": 67
+        }
+      }
+    },
+    {
+      "batter_id": 677942,
+      "batter_name": "Blaze Alexander",
+      "batter_team": "BAL",
+      "batter_hand": "R",
+      "pitcher_name": "Sean Burke",
+      "pitcher_throws": "R",
+      "game": "BAL @ CWS",
+      "venue": "Rate Field",
+      "score": 28,
+      "tier": "LOW",
+      "components": {
+        "ev_barrel": 15,
+        "pitcher_vuln": 34,
+        "pitch_collision": 26,
+        "park_factor": 45,
+        "platoon": 35,
+        "weather": 50,
+        "recent_form": 0
+      },
+      "insight": "throws 22% Slider \u2014 6.7% HR rate allowed",
+      "dominant_signals": [],
+      "park_factor": 102,
+      "park_suppress": false,
+      "weather_label": "\u2014",
+      "weather_temp": 70,
+      "hr_multiplier": 1.0,
+      "rain_chance": 0,
+      "batter_meta": {
+        "avg_ev": 81.7,
+        "barrel_pct": 0.0,
+        "hr_recent_14d": 0,
+        "pa_2026": 22,
+        "w26": 0.11
+      },
+      "pitcher_overall_hr9": 1.05,
+      "pitch_matrix": {
+        "CH": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.391,
+          "avg_launch_angle": 2.7,
+          "sample_pitches": 68,
+          "pitcher_usage": 6.5,
+          "pitcher_hr_pct": null,
+          "pitcher_hr_dist": 0
+        },
+        "FF": {
+          "hr_count": 5,
+          "xbh_count": 9,
+          "run_factor": 14,
+          "slg": 0.366,
+          "avg_launch_angle": 29.3,
+          "sample_pitches": 385,
+          "pitcher_usage": 42.9,
+          "pitcher_hr_pct": 2.5,
+          "pitcher_hr_dist": 25
+        },
+        "KC": {
+          "hr_count": 0,
+          "xbh_count": 1,
+          "run_factor": 1,
+          "slg": 0.5,
+          "avg_launch_angle": -21.8,
+          "sample_pitches": 13,
+          "pitcher_usage": 23.3,
+          "pitcher_hr_pct": 0.0,
+          "pitcher_hr_dist": 0
+        },
+        "SI": {
+          "hr_count": 0,
+          "xbh_count": 2,
+          "run_factor": 2,
+          "slg": 0.25,
+          "avg_launch_angle": 3.7,
+          "sample_pitches": 210,
+          "pitcher_usage": 4.8,
+          "pitcher_hr_pct": 2.9,
+          "pitcher_hr_dist": 8
+        },
+        "SL": {
+          "hr_count": 1,
+          "xbh_count": 1,
+          "run_factor": 2,
+          "slg": 0.286,
+          "avg_launch_angle": 6.9,
+          "sample_pitches": 172,
           "pitcher_usage": 22.3,
           "pitcher_hr_pct": 6.7,
           "pitcher_hr_dist": 67

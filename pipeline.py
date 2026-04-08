@@ -814,6 +814,55 @@ def get_hardcoded_batter_data(batter_id):
             "SW": {"hr_count": 4,  "xbh_count": 12, "run_factor": 16, "slg": 0.510, "avg_launch_angle": 14.1, "sample_pitches": 180},
             "_meta": {"avg_ev": 91.8, "barrel_pct": 16.1, "hr_recent_14d": 1, "pa_2026": 55, "w26": 0.28},
         },
+        # Yordan Alvarez
+        670541: {
+            "FF": {"hr_count": 20, "xbh_count": 38, "run_factor": 58, "slg": 0.920, "avg_launch_angle": 25.2, "sample_pitches": 380},
+            "SI": {"hr_count": 10, "xbh_count": 22, "run_factor": 32, "slg": 0.820, "avg_launch_angle": 22.1, "sample_pitches": 260},
+            "SL": {"hr_count": 8,  "xbh_count": 18, "run_factor": 26, "slg": 0.730, "avg_launch_angle": 20.3, "sample_pitches": 200},
+            "CH": {"hr_count": 6,  "xbh_count": 14, "run_factor": 20, "slg": 0.680, "avg_launch_angle": 19.1, "sample_pitches": 180},
+            "FC": {"hr_count": 5,  "xbh_count": 12, "run_factor": 17, "slg": 0.640, "avg_launch_angle": 18.5, "sample_pitches": 150},
+            "_meta": {"avg_ev": 95.4, "barrel_pct": 18.2, "hr_recent_14d": 2, "pa_2026": 40, "w26": 0.20},
+        },
+        # Aaron Judge
+        592450: {
+            "FF": {"hr_count": 28, "xbh_count": 45, "run_factor": 73, "slg": 0.980, "avg_launch_angle": 27.1, "sample_pitches": 420},
+            "SL": {"hr_count": 10, "xbh_count": 22, "run_factor": 32, "slg": 0.720, "avg_launch_angle": 22.4, "sample_pitches": 280},
+            "CH": {"hr_count": 8,  "xbh_count": 18, "run_factor": 26, "slg": 0.680, "avg_launch_angle": 20.8, "sample_pitches": 200},
+            "SI": {"hr_count": 6,  "xbh_count": 14, "run_factor": 20, "slg": 0.620, "avg_launch_angle": 19.2, "sample_pitches": 160},
+            "_meta": {"avg_ev": 96.2, "barrel_pct": 22.1, "hr_recent_14d": 2, "pa_2026": 45, "w26": 0.23},
+        },
+        # Pete Alonso
+        624413: {
+            "FF": {"hr_count": 22, "xbh_count": 38, "run_factor": 60, "slg": 0.900, "avg_launch_angle": 26.4, "sample_pitches": 400},
+            "SI": {"hr_count": 12, "xbh_count": 26, "run_factor": 38, "slg": 0.820, "avg_launch_angle": 23.1, "sample_pitches": 280},
+            "CH": {"hr_count": 6,  "xbh_count": 14, "run_factor": 20, "slg": 0.660, "avg_launch_angle": 20.5, "sample_pitches": 180},
+            "SL": {"hr_count": 5,  "xbh_count": 12, "run_factor": 17, "slg": 0.580, "avg_launch_angle": 18.2, "sample_pitches": 160},
+            "_meta": {"avg_ev": 93.8, "barrel_pct": 14.8, "hr_recent_14d": 1, "pa_2026": 42, "w26": 0.21},
+        },
+        # Shohei Ohtani
+        660271: {
+            "FF": {"hr_count": 24, "xbh_count": 40, "run_factor": 64, "slg": 0.940, "avg_launch_angle": 25.8, "sample_pitches": 400},
+            "SL": {"hr_count": 12, "xbh_count": 24, "run_factor": 36, "slg": 0.780, "avg_launch_angle": 22.3, "sample_pitches": 280},
+            "CH": {"hr_count": 8,  "xbh_count": 18, "run_factor": 26, "slg": 0.710, "avg_launch_angle": 20.1, "sample_pitches": 220},
+            "SW": {"hr_count": 6,  "xbh_count": 14, "run_factor": 20, "slg": 0.640, "avg_launch_angle": 18.8, "sample_pitches": 180},
+            "_meta": {"avg_ev": 94.8, "barrel_pct": 19.4, "hr_recent_14d": 2, "pa_2026": 48, "w26": 0.24},
+        },
+        # Freddie Freeman
+        518692: {
+            "FF": {"hr_count": 16, "xbh_count": 34, "run_factor": 50, "slg": 0.820, "avg_launch_angle": 22.8, "sample_pitches": 340},
+            "FS": {"hr_count": 10, "xbh_count": 22, "run_factor": 32, "slg": 0.850, "avg_launch_angle": 20.2, "sample_pitches": 260},
+            "SL": {"hr_count": 6,  "xbh_count": 16, "run_factor": 22, "slg": 0.640, "avg_launch_angle": 18.5, "sample_pitches": 200},
+            "CH": {"hr_count": 4,  "xbh_count": 12, "run_factor": 16, "slg": 0.560, "avg_launch_angle": 16.8, "sample_pitches": 160},
+            "_meta": {"avg_ev": 92.1, "barrel_pct": 12.4, "hr_recent_14d": 2, "pa_2026": 33, "w26": 0.17},
+        },
+        # Vladimir Guerrero Jr.
+        665489: {
+            "FF": {"hr_count": 18, "xbh_count": 34, "run_factor": 52, "slg": 0.860, "avg_launch_angle": 24.2, "sample_pitches": 360},
+            "SI": {"hr_count": 8,  "xbh_count": 18, "run_factor": 26, "slg": 0.720, "avg_launch_angle": 21.8, "sample_pitches": 240},
+            "SL": {"hr_count": 6,  "xbh_count": 14, "run_factor": 20, "slg": 0.640, "avg_launch_angle": 19.4, "sample_pitches": 200},
+            "CH": {"hr_count": 4,  "xbh_count": 10, "run_factor": 14, "slg": 0.580, "avg_launch_angle": 17.2, "sample_pitches": 160},
+            "_meta": {"avg_ev": 92.8, "barrel_pct": 13.6, "hr_recent_14d": 1, "pa_2026": 44, "w26": 0.22},
+        },
     }
     return BATTER_DATA.get(batter_id, {
         "FF": {"hr_count": 8, "xbh_count": 20, "run_factor": 28, "slg": 0.620, "avg_launch_angle": 18.0, "sample_pitches": 200},
