@@ -862,6 +862,52 @@ def run():
         else:
             weather = weather_by_team.get(home, _weather_fallback)
 
+        # ── No HR signal — count suppressive factors ─────────────────────────
+        no_hr_factors = []
+        pf = park.get("overall", 100)
+        w = weather
+        wl = w.get("wind_label", "")
+        dome = park.get("dome", False)
+
+        if pf <= 90:
+            no_hr_factors.append(f"Suppressive park ({pf})")
+        if not dome and "IN" in wl.upper() and w.get("wind_mph", 0) >= 10:
+            no_hr_factors.append(f"Wind IN {w.get('wind_mph')} mph")
+        if not dome and w.get("temp_f", 70) < 50:
+            no_hr_factors.append(f"{w.get('temp_f')}°F — cold suppression")
+        if not dome and w.get("rain_chance", 0) > 0.40:
+            no_hr_factors.append(f"Rain {round(w.get('rain_chance',0)*100)}%")
+
+        # Check both probable pitchers' overall HR/9
+        for side_key in ["away_probable", "home_probable"]:
+            p = game.get(side_key)
+            if not p:
+                continue
+            pid = p.get("id")
+            pname = p.get("name", "")
+            if not pid:
+                continue
+            try:
+                # Use cached arsenal if available, otherwise fetch quickly
+                cache_key = f"{pid}_R"
+                if cache_key not in getattr(run, '_hr9_cache', {}):
+                    if not hasattr(run, '_hr9_cache'):
+                        run._hr9_cache = {}
+                    a = get_pitcher_arsenal(pid, pname, "R")
+                    run._hr9_cache[cache_key] = a.get("_overall_hr9")
+                hr9 = run._hr9_cache.get(cache_key)
+                if hr9 is not None and hr9 < 0.85:
+                    no_hr_factors.append(f"{pname.split()[-1]} HR/9 {hr9}")
+            except Exception:
+                pass
+
+        if len(no_hr_factors) >= 3:
+            no_hr_signal = {"level": "red", "label": "No HR Beta", "factors": no_hr_factors}
+        elif len(no_hr_factors) == 2:
+            no_hr_signal = {"level": "orange", "label": "HR Suppressed", "factors": no_hr_factors}
+        else:
+            no_hr_signal = None
+
         game_entry = {
             "game_pk": game["game_pk"],
             "away_team": away,
@@ -874,6 +920,7 @@ def run():
             "park_suppress": park.get("suppress", False),
             "park_dome": park.get("dome", False),
             "weather": weather,
+            "no_hr_signal": no_hr_signal,
         }
         output_games.append(game_entry)
 

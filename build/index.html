@@ -500,6 +500,13 @@ function renderSlate(games, targets) {
       ? tgts.map((t,ti) => batterCard(t,`g${gi}_${ti}`)).join('')
       : `<div class="chip-no-targets">No scored targets for this game</div>`;
 
+    const nhr = g.no_hr_signal;
+    const nhrBadge = nhr
+      ? nhr.level === 'red'
+        ? `<span class="badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border-color:rgba(239,68,68,0.30)" title="${nhr.factors.join(' · ')}">🚫 No HR Beta</span>`
+        : `<span class="badge" style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.30)" title="${nhr.factors.join(' · ')}">⚠ HR Suppressed</span>`
+      : '';
+
     return `<div class="game-chip" id="chip-${gi}" onclick="toggleChip(${gi},event)">
       <div class="chip-top">
         <div class="chip-matchup">
@@ -507,7 +514,7 @@ function renderSlate(games, targets) {
           <span style="display:flex;align-items:center;gap:5px">${counts}<span class="chip-arrow">▾</span></span>
         </div>
         <div class="chip-venue">${g.venue||''}</div>
-        <div class="chip-badges">${wBadges(g)}</div>
+        <div class="chip-badges">${wBadges(g)}${nhrBadge}</div>
       </div>
       <div class="chip-panel">
         <div class="chip-starters">
