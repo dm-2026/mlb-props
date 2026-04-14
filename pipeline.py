@@ -715,9 +715,9 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         sample = bs.get("sample_pitches", 0)
         if sample < 20:
             continue
-        slg_norm = min(slg / 1.0, 1.0)
+        slg_norm = min(slg / 0.900, 1.0)   # 0.900 SLG = max; stretches curve without hard-capping elite matchups
         # run_factor (hr_count + xbh_count) adds a small HR-count bonus on top of SLG
-        hr_norm = min(bs.get("hr_count", 0) / 12, 1.0)  # 12 HRs on pitch type = max
+        hr_norm = min(bs.get("hr_count", 0) / 8, 1.0)   # 8 HRs on pitch type = max (more attainable elite threshold)
         pt_score = usage * (slg_norm * 0.85 + hr_norm * 0.15)
         collision_score += pt_score
         if usage > 0.25 and slg > 0.500:
