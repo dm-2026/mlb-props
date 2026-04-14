@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Claude Code internals
+.claude/
+
+# Pipeline runtime files
+logs/
+odds_cache.json
+pybaseball_cache/
+
+# OS
+.DS_Store
+Thumbs.db
