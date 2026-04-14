@@ -52,8 +52,8 @@ WEIGHTS = {
     "ev_barrel":        0.25,
     "pitcher_vuln":     0.20,
     "pitch_collision":  0.20,
-    "park_factor":      0.15,
-    "platoon":          0.10,
+    "park_factor":      0.13,  # reduced from 0.15 to fund platoon bump
+    "platoon":          0.12,  # bumped from 0.10 — strong HR predictor
     "weather":          0.05,
     "recent_form":      0.05,
 }
@@ -100,8 +100,16 @@ ELITE_FADE = {
     669923: "Tarik Skubal",
     592789: "Corbin Burnes",
     694973: "Paul Skenes",
-    572971: "Jacob deGrom",
+    # 572971: "Jacob deGrom",  # removed — inactive/retired, won't appear as probable
 }
+
+# Players whose 2025 data is unreliable (injury/down season) — use hardcoded seed instead
+# Add entries as: {player_id: "Player Name"}
+FORCE_HARDCODED = {}
+
+# Module-level cache for pitcher HR/9 lookups during the no-HR signal check
+_HR9_CACHE: dict = {}
+
 # ── MLB Stats API helpers ─────────────────────────────────────────────────────
 
 def get_todays_schedule():
@@ -181,8 +189,6 @@ def get_roster_batters(team_abbrev, game_pk):
             log.info(f"  Hand lookup built for {team_abbrev}: {len(hand_lookup)//2} players")
     except Exception as e:
         log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
-    except Exception as e:
-        log.warning(f"  Hand lookup failed for {team_abbrev}: {e}")
 
     # Try confirmed lineup from boxscore for batting order
     try:
@@ -219,7 +225,7 @@ def get_roster_batters(team_abbrev, game_pk):
                         })
                     if result:
                         log.info(f"  Confirmed lineup for {team_abbrev}: {len(result)} batters")
-                        return result
+                        return result, True   # confirmed lineup
     except Exception:
         pass
 
@@ -246,11 +252,11 @@ def get_roster_batters(team_abbrev, game_pk):
                             "bats": hand_lookup.get(pid, "R"),
                             "position": pos,
                         })
-                log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters")
-                return batters[:13]
+                log.info(f"  Active roster for {team_abbrev}: {len(batters)} batters (projected)")
+                return batters[:13], False   # projected — lineup not yet confirmed
         except Exception as e:
             log.error(f"Roster fetch failed for {team_abbrev}: {e}")
-    return []
+    return [], False
 
 
 # ── Weather — RotoWire scraper ────────────────────────────────────────────────
@@ -317,6 +323,16 @@ def get_weather_rotowire():
         wind_desc = m.group(4).strip().lower()
         city_raw  = m.group(5).strip().lower()
 
+        # ── Regex lazy-match fix ──────────────────────────────────────────────
+        # The lazy quantifier on wind_desc stops at the FIRST " in " it finds.
+        # "blowing in in Chicago" → wind_desc="blowing", city_raw="in chicago"
+        # "blowing in from left field in Chicago" → wind_desc="blowing", city_raw="in from left field in chicago"
+        # Detect this: if wind_desc is bare "blowing" and city_raw starts with "in ",
+        # the actual direction was "blowing in [...]" — recover it.
+        if wind_desc == "blowing" and city_raw.startswith("in "):
+            wind_desc = "blowing in"
+            city_raw = city_raw[3:]  # strip the leading "in "
+
         # Match city string to team abbreviation
         team = None
         # Try longest match first to avoid "new york" matching before "new york city"
@@ -365,7 +381,7 @@ def get_weather_rotowire():
             "rain_pct":      rain_pct,
             "rain_chance":   round(rain_pct / 100, 2),  # keep compat with rest of pipeline
             "rain_risk":     rain_risk,
-            "hr_multiplier": round(hr_wind_mult * temp_mult, 3),
+            "hr_multiplier": round(max(hr_wind_mult * temp_mult, 0.80), 3),  # floor at 0.80
             "wind_label":    wind_label,
             "dome":          False,
         }
@@ -409,21 +425,25 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
         df26 = pb.statcast_pitcher(start_2026, end_2026, pitcher_id)
 
         # Tighter blending — only start mixing in 2026 after 100 batters faced
-        # Below 100 BF, 2025 is far more reliable than noisy early-season data
-        bf_2026 = len(df26["batter"].unique()) if len(df26) > 0 else 0
+        # BF = actual PA outcomes (events.notna()), not unique batter count
+        bf_2026 = int(df26["events"].notna().sum()) if len(df26) > 0 else 0
         if bf_2026 < 100:
             # Use 2025 only — 2026 sample too small to be meaningful
             df_all = df25.copy() if not df25.empty else pd.DataFrame()
             log.info(f"  {pitcher_name}: {bf_2026} BF in 2026 — using 2025 data only")
+        elif bf_2026 >= 200:
+            # 2026 sample large enough — use exclusively
+            df_all = df26.copy()
+            log.info(f"  {pitcher_name}: {bf_2026} BF in 2026 — using 2026 data only")
         else:
-            # Linear blend: 100 BF = 50% 2026, 200 BF = 100% 2026
+            # Linear blend: 100 BF = 0% 2026 contribution, 200 BF = 100% 2026
+            # Subsample df25 proportionally so row counts reflect the weight ratio
             w26 = min((bf_2026 - 100) / 100, 1.0)
             w25 = 1.0 - w26
-            df_all = pd.concat([
-                df25.assign(_weight=w25),
-                df26.assign(_weight=w26)
-            ])
-            log.info(f"  {pitcher_name}: blending 2025 ({round(w25*100)}%) + 2026 ({round(w26*100)}%)")
+            n25_target = int(len(df26) * (w25 / w26)) if w26 > 0 else len(df25)
+            df25_sampled = df25.sample(n=min(n25_target, len(df25)), random_state=42) if len(df25) > 0 else df25
+            df_all = pd.concat([df25_sampled, df26])
+            log.info(f"  {pitcher_name}: blending 2025 ({round(w25*100)}%, {len(df25_sampled)} pitches) + 2026 ({round(w26*100)}%, {len(df26)} pitches)")
 
         if df_all.empty:
             log.warning(f"No Statcast data for pitcher {pitcher_name} ({pitcher_id})")
@@ -461,7 +481,13 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             pa_on_pitch = len(pa_events)
             hr_pct = (hr_count_pt / pa_on_pitch * 100) if pa_on_pitch >= 20 else None
 
-            barrels = group_vs[group_vs["barrel"].notna()]["barrel"].sum() if "barrel" in group_vs.columns else 0
+            # Barrel rate allowed — use launch_speed_angle==6 (pybaseball doesn't return "barrel" column)
+            if "launch_speed_angle" in group_vs.columns:
+                barrels = (group_vs["launch_speed_angle"] == 6).sum()
+            elif "barrel" in group_vs.columns:
+                barrels = group_vs["barrel"].sum()
+            else:
+                barrels = 0
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
             avg_ev = group_vs["launch_speed"].mean() if "launch_speed" in group_vs.columns else None
 
@@ -522,7 +548,15 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
         w25 = 1.0 - w26
 
         import pandas as pd
-        df = pd.concat([df25, df26]) if len(df26) > 0 else df25
+        if w26 >= 1.0 or len(df25) == 0:
+            df = df26.copy() if len(df26) > 0 else df25
+        elif len(df26) == 0:
+            df = df25
+        else:
+            # Subsample df25 proportionally so its row weight matches w25
+            n25_target = int(len(df26) * (w25 / w26)) if w26 > 0 else len(df25)
+            df25_sampled = df25.sample(n=min(n25_target, len(df25)), random_state=42)
+            df = pd.concat([df25_sampled, df26])
 
         if df.empty:
             return {}
@@ -530,13 +564,24 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
         # Global stats
         contact = df[df["launch_speed"].notna()]
         avg_ev = contact["launch_speed"].mean() if len(contact) > 0 else None
-        barrels = df[df.get("barrel", pd.Series()).notna()]["barrel"].sum() if "barrel" in df.columns else 0
+        # Barrel classification: launch_speed_angle == 6 (Statcast standard)
+        # NOTE: pybaseball does not return a "barrel" column — LSA code 6 is the correct source
+        if "launch_speed_angle" in df.columns:
+            barrels = (df["launch_speed_angle"] == 6).sum()
+        elif "barrel" in df.columns:
+            barrels = df["barrel"].sum()  # legacy fallback
+        else:
+            barrels = 0
         barrel_pct = barrels / len(contact) * 100 if len(contact) > 0 else 0
+        contact_events = len(contact)  # passed to score_batter to gate the barrel hard fade
 
-        # L14D form
+        # L14D form — HR/PA rate (more precise than raw count)
         two_weeks_ago = (TODAY - datetime.timedelta(days=14)).strftime("%Y-%m-%d")
         df_recent = df26[df26["game_date"] >= two_weeks_ago] if len(df26) > 0 else df25[df25["game_date"] >= two_weeks_ago]
         hr_recent = len(df_recent[df_recent["events"] == "home_run"])
+        pa_recent = int(df_recent["events"].notna().sum())
+        # Rate only meaningful with 10+ PA — avoids 1 HR in 1 PA = 100% noise
+        hr_rate_14d = round(hr_recent / pa_recent, 3) if pa_recent >= 10 else None
 
         pitch_stats = {}
         for pt, group in df.groupby("pitch_type"):
@@ -568,22 +613,23 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
         pitch_stats["_meta"] = {
             "avg_ev": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
             "barrel_pct": round(barrel_pct, 1),
+            "contact_events": contact_events,  # gates the barrel hard fade in score_batter
             "hr_recent_14d": hr_recent,
+            "hr_rate_14d": hr_rate_14d,   # HR/PA rate — None if < 10 PA sample
+            "pa_recent_14d": pa_recent,
             "pa_2026": pa_2026,
             "w26": round(w26, 2),
         }
 
         # Force hardcoded seed for players whose 2025 data is unreliable
-        # (injury years, down seasons) — these players are better represented
-        # by career/true-talent numbers than their 2025 Statcast data
-        FORCE_HARDCODED = {
-            670541: "Yordan Alvarez",  # missed significant time in 2025
-        }
+        # (injury years, down seasons) — edit FORCE_HARDCODED at module level
         if batter_id in FORCE_HARDCODED:
             hardcoded = get_hardcoded_batter_data(batter_id)
             if hardcoded:
                 log.info(f"  {batter_name}: using hardcoded seed (injury/down 2025 season)")
                 hardcoded["_meta"]["hr_recent_14d"] = hr_recent
+                hardcoded["_meta"]["hr_rate_14d"] = hr_rate_14d
+                hardcoded["_meta"]["pa_recent_14d"] = pa_recent
                 hardcoded["_meta"]["pa_2026"] = pa_2026
                 return hardcoded
 
@@ -596,6 +642,8 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
                 log.info(f"  {batter_name}: thin live data ({real_pitch_types} pitch types), using hardcoded seed")
                 # Keep live L14D and PA count but use hardcoded pitch stats
                 hardcoded["_meta"]["hr_recent_14d"] = hr_recent
+                hardcoded["_meta"]["hr_rate_14d"] = hr_rate_14d
+                hardcoded["_meta"]["pa_recent_14d"] = pa_recent
                 hardcoded["_meta"]["pa_2026"] = pa_2026
                 return hardcoded
 
@@ -615,7 +663,13 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     """
     meta = batter_stats.get("_meta", {})
     avg_ev = meta.get("avg_ev") or 87.0
-    barrel_pct = meta.get("barrel_pct") or 5.0
+    barrel_pct = meta.get("barrel_pct")
+    contact_events = meta.get("contact_events", 100)  # default 100 for hardcoded seed data
+    # Hard rule: 0% barrel rate = automatic FADE — but only with 30+ contact events
+    # (below that, the sample is too thin to trust a 0%; use 5.0 default instead)
+    if barrel_pct == 0 and contact_events >= 30:
+        return 0, {k: 0 for k in WEIGHTS}, "0% barrel rate — hard fade", "FADE", []
+    barrel_pct = barrel_pct or 5.0
     hr_recent = meta.get("hr_recent_14d") or 0
 
     # 1. EV + Barrel (25%) — normalize: EV 80-100, barrel 0-25%
@@ -662,7 +716,9 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         if sample < 20:
             continue
         slg_norm = min(slg / 1.0, 1.0)
-        pt_score = usage * slg_norm
+        # run_factor (hr_count + xbh_count) adds a small HR-count bonus on top of SLG
+        hr_norm = min(bs.get("hr_count", 0) / 12, 1.0)  # 12 HRs on pitch type = max
+        pt_score = usage * (slg_norm * 0.85 + hr_norm * 0.15)
         collision_score += pt_score
         if usage > 0.25 and slg > 0.500:
             pt_name = PITCH_NAMES.get(str(pt), str(pt))
@@ -686,8 +742,14 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     # 6. Weather (5%)
     weather_score = min(max((weather.get("hr_multiplier", 1.0) - 0.85) / 0.30, 0), 1.0)
 
-    # 7. Recent form (5%)
-    form_score = min(hr_recent / 4, 1.0)  # 4+ HR in 14 days = max
+    # 7. Recent form (5%) — HR/PA rate is more precise than raw count
+    # 10% HR/PA over 14 days = max score (elite hot streak)
+    # Falls back to count-based if PA sample is too small (< 10 PA)
+    hr_rate = meta.get("hr_rate_14d")
+    if hr_rate is not None:
+        form_score = min(hr_rate / 0.10, 1.0)
+    else:
+        form_score = min(hr_recent / 4, 1.0)
 
     # Weighted total
     raw = (
@@ -772,7 +834,7 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         weather.get("hr_multiplier", 1.0) > 1.05,
         form_score > 0.4,
     ])
-    if score >= 55 and factors_aligning >= 2:
+    if score >= 55 and factors_aligning >= 3:
         tier = "PRIME"
     elif score >= 46 and factors_aligning >= 2:
         tier = "HIGH"
@@ -946,11 +1008,13 @@ def run():
 
         if pf <= 90:
             no_hr_factors.append(f"Suppressive park ({pf})")
-        if not dome and "IN" in wl.upper() and w.get("wind_mph", 0) >= 10:
+        if not dome and wl.upper().startswith("WIND IN") and w.get("wind_mph", 0) >= 10:
             no_hr_factors.append(f"Wind IN {w.get('wind_mph')} mph")
         if not dome and w.get("temp_f", 70) < 50:
             no_hr_factors.append(f"{w.get('temp_f')}°F — cold suppression")
-        if not dome and w.get("rain_chance", 0) > 0.40:
+        if not dome and w.get("rain_chance", 0) > 0.65:
+            # 65%+ means it's very likely actually raining during the game
+            # (wet ball, reduced carry) — below this it's mainly postponement risk
             no_hr_factors.append(f"Rain {round(w.get('rain_chance',0)*100)}%")
 
         # Check both probable pitchers' overall HR/9
@@ -963,14 +1027,12 @@ def run():
             if not pid:
                 continue
             try:
-                # Use cached arsenal if available, otherwise fetch quickly
+                # Use module-level cache to avoid re-fetching across games
                 cache_key = f"{pid}_R"
-                if cache_key not in getattr(run, '_hr9_cache', {}):
-                    if not hasattr(run, '_hr9_cache'):
-                        run._hr9_cache = {}
+                if cache_key not in _HR9_CACHE:
                     a = get_pitcher_arsenal(pid, pname, "R")
-                    run._hr9_cache[cache_key] = a.get("_overall_hr9")
-                hr9 = run._hr9_cache.get(cache_key)
+                    _HR9_CACHE[cache_key] = a.get("_overall_hr9")
+                hr9 = _HR9_CACHE.get(cache_key)
                 if hr9 is not None and hr9 < 0.85:
                     no_hr_factors.append(f"{pname.split()[-1]} HR/9 {hr9}")
             except Exception:
@@ -1024,7 +1086,7 @@ def run():
 
             log.info(f"  Processing batters vs {pitcher_name} ({batting_team})")
 
-            batters = get_roster_batters(batting_team, game["game_pk"])
+            batters, lineup_confirmed = get_roster_batters(batting_team, game["game_pk"])
             # Cache arsenal per batter hand to avoid re-fetching for same handedness
             arsenal_cache = {}
 
@@ -1074,6 +1136,7 @@ def run():
                     "weather_temp": weather["temp_f"],
                     "hr_multiplier": weather["hr_multiplier"],
                     "rain_chance": weather["rain_chance"],
+                    "lineup_confirmed": lineup_confirmed,
                     "batter_meta": batter_stats.get("_meta", {}),
                     "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
                     "pitch_matrix": {
