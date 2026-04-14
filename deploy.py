@@ -68,65 +68,66 @@ def deploy(dry_run=False):
         print(f"  Build ready in: {BUILD_DIR.resolve()}")
         return
 
-    # Check git available
-    try:
-        run_cmd(["git", "--version"], check=True)
-    except FileNotFoundError:
-        print("  ERROR: git not found. Install git and try again.")
-        sys.exit(1)
-
-    # Ensure we're in a git repo
-    git_dir = Path(".git")
-    if not git_dir.exists():
-        print("  Initializing git repo…")
-        run_cmd(["git", "init"])
-        run_cmd(["git", "remote", "add", "origin", GITHUB_REPO])
-
-    # Check remote exists
-    result = subprocess.run(["git", "remote", "-v"], capture_output=True, text=True)
-    if "origin" not in result.stdout:
-        run_cmd(["git", "remote", "add", "origin", GITHUB_REPO])
-
-    # Use git worktree or subtree push approach
-    # Simplest: commit build/ content to gh-pages
+    # Commit any pending changes on main first
     run_cmd(["git", "add", "-A"])
     try:
         run_cmd(["git", "commit", "-m", "chore: update MLB HR props data"])
     except subprocess.CalledProcessError:
-        print("  Nothing to commit on main branch — continuing")
+        print("  Nothing to commit on main — continuing")
 
-    # Push build/ as gh-pages subtree
+    # ── Fetch remote gh-pages so we're in sync with GitHub Actions pushes ──────
+    # This is the key step that prevents the "rejected — fetch first" error.
+    print(f"  Fetching remote {DEPLOY_BRANCH}…")
+    subprocess.run(
+        ["git", "fetch", "origin", f"{DEPLOY_BRANCH}:{DEPLOY_BRANCH}"],
+        capture_output=False
+    )
+
+    # ── Deploy via worktree — clean, no subtree history issues ─────────────────
+    worktree_path = Path("_gh_pages_tmp")
     try:
-        run_cmd([
-            "git", "subtree", "push",
-            "--prefix", str(BUILD_DIR),
-            "origin", DEPLOY_BRANCH
-        ])
-        print(f"\n  ✓ Deployed to {DEPLOY_BRANCH} branch")
-        print(f"  Dashboard: https://dm-2026.github.io/mlb-props/")
-    except subprocess.CalledProcessError:
-        print("\n  subtree push failed. Trying force push via orphan branch…")
-        # Alternative: create orphan commit from build/
-        worktree_path = Path("_gh_pages_tmp")
+        # Remove any stale worktree from a previous failed run
+        subprocess.run(["git", "worktree", "remove", "--force", str(worktree_path)],
+                       capture_output=True)
+        if worktree_path.exists():
+            shutil.rmtree(worktree_path, ignore_errors=True)
+
+        # Check out the gh-pages branch into a temporary worktree
+        run_cmd(["git", "worktree", "add", str(worktree_path), DEPLOY_BRANCH])
+
+        # Clear existing content (the .git file must stay — it's the worktree link)
+        for item in worktree_path.iterdir():
+            if item.name == ".git":
+                continue
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+
+        # Copy fresh build into the worktree
+        for f in BUILD_DIR.rglob("*"):
+            if f.is_file():
+                rel = f.relative_to(BUILD_DIR)
+                dst = worktree_path / rel
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dst)
+
+        # Commit and push
+        run_cmd(["git", "add", "-A"], cwd=worktree_path)
         try:
-            if worktree_path.exists():
-                shutil.rmtree(worktree_path)
-            run_cmd(["git", "worktree", "add", "--orphan", str(worktree_path), DEPLOY_BRANCH])
-            # Copy build contents into worktree
-            for f in BUILD_DIR.rglob("*"):
-                if f.is_file():
-                    rel = f.relative_to(BUILD_DIR)
-                    dst = worktree_path / rel
-                    dst.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(f, dst)
-            run_cmd(["git", "add", "-A"], cwd=worktree_path)
             run_cmd(["git", "commit", "-m", "deploy: MLB HR props update"], cwd=worktree_path)
-            run_cmd(["git", "push", "origin", DEPLOY_BRANCH, "--force"], cwd=worktree_path)
-            print(f"\n  ✓ Force-deployed to {DEPLOY_BRANCH}")
-        finally:
-            run_cmd(["git", "worktree", "remove", "--force", str(worktree_path)], check=False)
-            if worktree_path.exists():
-                shutil.rmtree(worktree_path, ignore_errors=True)
+        except subprocess.CalledProcessError:
+            print("  Build unchanged — nothing new to push")
+            return
+
+        run_cmd(["git", "push", "origin", DEPLOY_BRANCH], cwd=worktree_path)
+        print(f"\n  ✓ Deployed to {DEPLOY_BRANCH}")
+        print(f"  Dashboard: https://dm-2026.github.io/mlb-props/")
+
+    finally:
+        run_cmd(["git", "worktree", "remove", "--force", str(worktree_path)], check=False)
+        if worktree_path.exists():
+            shutil.rmtree(worktree_path, ignore_errors=True)
 
 
 def main():
