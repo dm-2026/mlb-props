@@ -666,18 +666,22 @@ function batterCard(t, idx) {
 
     const pitchRows = Object.entries(t.pitch_matrix||{}).map(([pt,d]) => {
     // Collision bar — mirrors pipeline formula: usage × (slg 85% + hr_count 15%)
+    // Normalization ceilings match pipeline.py: slg/0.9, hr_count/8
     const usage    = Math.min((d.pitcher_usage||0) / 100, 1.0);
-    const slgNorm  = Math.min((d.slg||0) / 1.0, 1.0);
-    const hrNorm   = Math.min((d.hr_count||0) / 12, 1.0);
+    const slgNorm  = Math.min((d.slg||0) / 0.9, 1.0);
+    const hrNorm   = Math.min((d.hr_count||0) / 8, 1.0);
     const collision = Math.round(usage * (slgNorm * 0.85 + hrNorm * 0.15) * 100);
-    const vc = collision > 65 ? 'hi' : collision > 35 ? 'md' : 'lo';
+    // Visual ceiling: 30 = elite single-pitch contribution (e.g. 35% usage × max SLG)
+    // Scales bar so good matchups fill ~50-80% rather than looking nearly empty
+    const barPct = Math.min(Math.round(collision / 30 * 100), 100);
+    const vc = collision > 20 ? 'hi' : collision > 10 ? 'md' : 'lo';
     const hrDist = d.pitcher_hr_dist!=null ? d.pitcher_hr_dist+'%' : '—';
     return `<tr>
       <td class="pitch-name">${PITCH_NAMES[pt]||pt}</td>
       <td class="stat-val">${d.pitcher_usage!=null?d.pitcher_usage.toFixed(0)+'%':'—'}</td>
       <td class="stat-val">${d.slg?d.slg.toFixed(3):'—'}</td>
       <td class="stat-val">${hrDist}</td>
-      <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vc}" style="width:${collision}%"></div></div></div></td>
+      <td><div class="vuln-cell"><div class="vuln-bar"><div class="vuln-fill ${vc}" style="width:${barPct}%"></div></div></div></td>
       <td class="stat-dim">${d.avg_launch_angle!=null?d.avg_launch_angle.toFixed(1)+'°':'—'}</td>
     </tr>`;
   }).join('');
