@@ -1244,6 +1244,408 @@ def get_hardcoded_batter_data(batter_id):
     })
 
 
+# ── Game Lines model ──────────────────────────────────────────────────────────
+
+ODDS_API_KEY = "155b5429de19953f629634ef23a481d4"
+
+# MLB team name → abbreviation mapping for Odds API
+ODDS_TEAM_MAP = {
+    "Arizona Diamondbacks": "ARI", "Atlanta Braves": "ATL", "Baltimore Orioles": "BAL",
+    "Boston Red Sox": "BOS", "Chicago Cubs": "CHC", "Chicago White Sox": "CHW",
+    "Cincinnati Reds": "CIN", "Cleveland Guardians": "CLE", "Colorado Rockies": "COL",
+    "Detroit Tigers": "DET", "Houston Astros": "HOU", "Kansas City Royals": "KC",
+    "Los Angeles Angels": "LAA", "Los Angeles Dodgers": "LAD", "Miami Marlins": "MIA",
+    "Milwaukee Brewers": "MIL", "Minnesota Twins": "MIN", "New York Mets": "NYM",
+    "New York Yankees": "NYY", "Oakland Athletics": "OAK", "Philadelphia Phillies": "PHI",
+    "Pittsburgh Pirates": "PIT", "San Diego Padres": "SD", "San Francisco Giants": "SF",
+    "Seattle Mariners": "SEA", "St. Louis Cardinals": "STL", "Tampa Bay Rays": "TB",
+    "Texas Rangers": "TEX", "Toronto Blue Jays": "TOR", "Washington Nationals": "WSH",
+    "Athletics": "OAK",
+}
+
+# MLB Stats API team ID → abbreviation
+MLB_TEAM_ID_MAP = {}  # populated lazily
+
+def get_mlb_odds():
+    """
+    Fetch today's MLB moneylines and totals from The Odds API.
+    Returns dict keyed by frozenset of {away_abbrev, home_abbrev}:
+      {away, home, away_ml, home_ml, total_line, total_over_odds, total_under_odds,
+       away_implied, home_implied, bookmaker}
+    """
+    url = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/"
+    params = {
+        "apiKey": ODDS_API_KEY,
+        "regions": "us",
+        "markets": "h2h,totals",
+        "oddsFormat": "american",
+        "dateFormat": "iso",
+    }
+    try:
+        r = requests.get(url, params=params, timeout=15)
+        r.raise_for_status()
+        games = r.json()
+    except Exception as e:
+        log.error(f"Odds API fetch failed: {e}")
+        return {}
+
+    result = {}
+    for g in games:
+        away_name = g.get("away_team", "")
+        home_name = g.get("home_team", "")
+        away_abbr = ODDS_TEAM_MAP.get(away_name)
+        home_abbr = ODDS_TEAM_MAP.get(home_name)
+        if not away_abbr or not home_abbr:
+            continue
+
+        away_ml = home_ml = None
+        total_line = total_over_odds = total_under_odds = None
+        bookmaker_used = None
+
+        # Prefer DraftKings, then FanDuel, then first available
+        bookmakers = g.get("bookmakers", [])
+        priority = ["draftkings", "fanduel", "betmgm", "caesars"]
+        def bk_rank(b): 
+            k = b.get("key", "")
+            return priority.index(k) if k in priority else 99
+        bookmakers_sorted = sorted(bookmakers, key=bk_rank)
+
+        for bk in bookmakers_sorted:
+            for mkt in bk.get("markets", []):
+                if mkt["key"] == "h2h" and away_ml is None:
+                    for out in mkt.get("outcomes", []):
+                        name = out.get("name", "")
+                        price = out.get("price")
+                        abbr = ODDS_TEAM_MAP.get(name)
+                        if abbr == away_abbr:
+                            away_ml = price
+                        elif abbr == home_abbr:
+                            home_ml = price
+                    bookmaker_used = bk.get("title", bk.get("key"))
+                if mkt["key"] == "totals" and total_line is None:
+                    for out in mkt.get("outcomes", []):
+                        pt = out.get("point")
+                        price = out.get("price")
+                        if out.get("name") == "Over":
+                            total_line = pt
+                            total_over_odds = price
+                        elif out.get("name") == "Under":
+                            total_under_odds = price
+
+        if away_ml is None and home_ml is None:
+            continue
+
+        def ml_to_implied(ml):
+            if ml is None: return None
+            if ml > 0: return round(100 / (ml + 100) * 100, 1)
+            else: return round(abs(ml) / (abs(ml) + 100) * 100, 1)
+
+        key = f"{away_abbr}@{home_abbr}"
+        result[key] = {
+            "away": away_abbr, "home": home_abbr,
+            "away_ml": away_ml, "home_ml": home_ml,
+            "away_implied": ml_to_implied(away_ml),
+            "home_implied": ml_to_implied(home_ml),
+            "total_line": total_line,
+            "total_over_odds": total_over_odds,
+            "total_under_odds": total_under_odds,
+            "bookmaker": bookmaker_used,
+        }
+
+    log.info(f"Odds API: {len(result)} MLB games with lines")
+    return result
+
+
+def get_team_season_stats():
+    """
+    Fetch team-level season stats from MLB Stats API.
+    Returns dict keyed by team abbreviation:
+      {runs_per_game, era, whip, hits_per_game, hr_per_game, ops}
+    """
+    season = TODAY.year
+    url = f"https://statsapi.mlb.com/api/v1/teams/stats?season={season}&sportId=1&stats=season&group=pitching"
+    url_hit = f"https://statsapi.mlb.com/api/v1/teams/stats?season={season}&sportId=1&stats=season&group=hitting"
+
+    # Get team ID → abbrev mapping
+    try:
+        r = requests.get(f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={season}", timeout=15)
+        teams = r.json().get("teams", [])
+        id_to_abbr = {t["id"]: t.get("abbreviation", "") for t in teams}
+    except Exception as e:
+        log.error(f"Team ID map failed: {e}")
+        id_to_abbr = {}
+
+    team_stats = {}
+
+    # Pitching stats
+    try:
+        r = requests.get(url, timeout=15)
+        for rec in r.json().get("stats", [{}])[0].get("splits", []):
+            tid = rec.get("team", {}).get("id")
+            abbr = id_to_abbr.get(tid, "")
+            if not abbr: continue
+            s = rec.get("stat", {})
+            team_stats.setdefault(abbr, {})
+            team_stats[abbr].update({
+                "team_era":  float(s.get("era", 4.20) or 4.20),
+                "team_whip": float(s.get("whip", 1.30) or 1.30),
+                "team_k9":   float(s.get("strikeoutsPer9Inn", 8.5) or 8.5),
+            })
+    except Exception as e:
+        log.error(f"Team pitching stats failed: {e}")
+
+    # Hitting stats
+    try:
+        r = requests.get(url_hit, timeout=15)
+        for rec in r.json().get("stats", [{}])[0].get("splits", []):
+            tid = rec.get("team", {}).get("id")
+            abbr = id_to_abbr.get(tid, "")
+            if not abbr: continue
+            s = rec.get("stat", {})
+            gp = float(s.get("gamesPlayed", 1) or 1)
+            team_stats.setdefault(abbr, {})
+            team_stats[abbr].update({
+                "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
+                "ops":           float(s.get("ops", 0.720) or 0.720),
+                "hr_per_game":   round(float(s.get("homeRuns", 0) or 0) / gp, 2),
+            })
+    except Exception as e:
+        log.error(f"Team hitting stats failed: {e}")
+
+    log.info(f"Team season stats: {len(team_stats)} teams loaded")
+    return team_stats
+
+
+def get_pitcher_season_line(pitcher_id, pitcher_name):
+    """
+    Fetch a pitcher's season ERA, WHIP, runs allowed per 9, HR/9 from MLB Stats API.
+    Returns dict or None.
+    """
+    season = TODAY.year
+    url = f"https://statsapi.mlb.com/api/v1/people/{pitcher_id}/stats?stats=season&season={season}&group=pitching&sportId=1"
+    try:
+        r = requests.get(url, timeout=15)
+        splits = r.json().get("stats", [{}])[0].get("splits", [])
+        if not splits:
+            # Try previous season as fallback
+            url2 = f"https://statsapi.mlb.com/api/v1/people/{pitcher_id}/stats?stats=season&season={season-1}&group=pitching&sportId=1"
+            r2 = requests.get(url2, timeout=15)
+            splits = r2.json().get("stats", [{}])[0].get("splits", [])
+        if not splits:
+            return None
+        s = splits[0].get("stat", {})
+        ip = float(s.get("inningsPitched", 1) or 1)
+        return {
+            "era":         float(s.get("era", 4.50) or 4.50),
+            "whip":        float(s.get("whip", 1.35) or 1.35),
+            "ip":          ip,
+            "k9":          float(s.get("strikeoutsPer9Inn", 8.0) or 8.0),
+            "hr9":         float(s.get("homeRunsPer9", 1.2) or 1.2),
+            "runs_per_9":  round(float(s.get("earnedRuns", 0) or 0) / max(ip, 1) * 9, 2),
+            "hits_per_9":  float(s.get("hitsPer9Inn", 8.5) or 8.5),
+            "bb9":         float(s.get("walksPer9Inn", 3.0) or 3.0),
+            "games":       int(s.get("gamesStarted", s.get("gamesPitched", 1)) or 1),
+        }
+    except Exception as e:
+        log.error(f"Pitcher season stats failed for {pitcher_name}: {e}")
+        return None
+
+
+def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
+                     away_pitcher_line, home_pitcher_line, odds, park, weather):
+    """
+    Returns a game lines dict with:
+      - projected_total: model's run total estimate
+      - total_edge: over/under lean + edge % vs posted line
+      - away_win_prob / home_win_prob: model win probabilities
+      - ml_edge: which side has model edge and by how much vs implied odds
+      - factors: list of key factors that drove the model
+    """
+    factors = []
+    LEAGUE_AVG_RUNS_PER_GAME = 4.45  # 2024-2025 MLB average
+
+    # ── Projected run total ───────────────────────────────────────────────────
+    # Base: each team's expected runs = pitcher's runs allowed + opponent offense blend
+    def team_run_expectation(pitcher_line, opp_team_stats):
+        """Runs expected to score against this pitcher."""
+        if pitcher_line:
+            # Pitcher ERA → runs per game (ERA / 9 * ~6 IP average)
+            avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
+            avg_ip = max(avg_ip, 4.5)  # floor at 4.5 IP
+            pitcher_runs = pitcher_line["era"] / 9 * avg_ip
+            # Blend 70% pitcher ERA, 30% opponent offense
+            opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
+            expected = pitcher_runs * 0.70 + opp_rpg * 0.30
+        else:
+            # No pitcher data — use league average + opponent offense
+            opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
+            expected = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
+
+        return round(max(expected, 1.5), 2)
+
+    away_runs = team_run_expectation(home_pitcher_line, away_stats)  # away bats vs home pitcher
+    home_runs = team_run_expectation(away_pitcher_line, home_stats)  # home bats vs away pitcher
+    base_total = round(away_runs + home_runs, 1)
+
+    # ── Park factor adjustment ────────────────────────────────────────────────
+    pf = park.get("overall", 100)
+    pf_mult = pf / 100.0
+    # Softer adjustment — park factor moves total by up to ±1.5 runs at extremes
+    pf_adj = (pf_mult - 1.0) * 3.0  # COL 125 → +0.75, SF 79 → -0.63
+    projected_total = round(base_total + pf_adj, 1)
+    if abs(pf_adj) >= 0.3:
+        direction = "boosting" if pf_adj > 0 else "suppressing"
+        factors.append(f"Park {direction} total by {abs(round(pf_adj,1))} runs (PF {pf})")
+
+    # ── Weather adjustment ────────────────────────────────────────────────────
+    hr_mult = weather.get("hr_multiplier", 1.0)
+    temp_f = weather.get("temp_f", 70)
+    wind_label = weather.get("wind_label", "")
+    dome = park.get("dome", False)
+
+    if not dome:
+        weather_adj = (hr_mult - 1.0) * 2.5  # wind out → +runs, wind in → -runs
+        if temp_f < 50:
+            weather_adj -= 0.4
+            factors.append(f"Cold ({temp_f}°F) suppressing scoring")
+        elif temp_f > 85:
+            weather_adj += 0.2
+        if abs(weather_adj) >= 0.2:
+            projected_total = round(projected_total + weather_adj, 1)
+            if "OUT" in wind_label.upper():
+                factors.append(f"Wind out ({wind_label}) adding ~{abs(round(weather_adj,1))} runs")
+            elif "IN" in wind_label.upper():
+                factors.append(f"Wind in ({wind_label}) removing ~{abs(round(weather_adj,1))} runs")
+
+    # ── Pitcher quality factors ───────────────────────────────────────────────
+    for label, pl, side in [("Away", away_pitcher_line, "away"), ("Home", home_pitcher_line, "home")]:
+        if not pl: continue
+        if pl["era"] <= 2.80:
+            factors.append(f"{label} pitcher (ERA {pl['era']:.2f}) — ace-level, suppressing total")
+        elif pl["era"] >= 5.50:
+            factors.append(f"{label} pitcher (ERA {pl['era']:.2f}) — vulnerable, boosting total")
+        if pl.get("hr9", 0) >= 1.8:
+            factors.append(f"{label} pitcher HR/9 {pl['hr9']:.2f} — HR-prone")
+        if pl.get("k9", 0) >= 11.0:
+            factors.append(f"{label} pitcher K/9 {pl['k9']:.1f} — high strikeout, suppresses scoring")
+
+    # ── Total edge vs posted line ─────────────────────────────────────────────
+    total_line = odds.get("total_line") if odds else None
+    total_edge = None
+    total_lean = None
+    total_edge_pct = None
+
+    if total_line:
+        diff = projected_total - total_line
+        total_lean = "OVER" if diff > 0 else "UNDER"
+        # Convert run difference to edge confidence
+        # 0.3 run diff = slight edge, 0.8 = moderate, 1.5+ = strong
+        abs_diff = abs(diff)
+        if abs_diff >= 1.5:
+            confidence = "STRONG"
+            edge_pct = min(72, 55 + abs_diff * 8)
+        elif abs_diff >= 0.8:
+            confidence = "MODERATE"
+            edge_pct = min(65, 55 + abs_diff * 6)
+        elif abs_diff >= 0.3:
+            confidence = "SLIGHT"
+            edge_pct = min(58, 52 + abs_diff * 5)
+        else:
+            confidence = "NONE"
+            edge_pct = 50.0
+
+        total_edge_pct = round(edge_pct, 1)
+        total_edge = {
+            "lean": total_lean,
+            "confidence": confidence,
+            "projected": projected_total,
+            "line": total_line,
+            "diff": round(diff, 1),
+            "edge_pct": total_edge_pct,
+            "over_odds": odds.get("total_over_odds"),
+            "under_odds": odds.get("total_under_odds"),
+        }
+        factors.append(f"Model projects {projected_total} runs vs posted O/U {total_line} → {total_lean} lean ({confidence})")
+
+    # ── Win probability model ─────────────────────────────────────────────────
+    # Base from run expectation differential + home field advantage
+    HOME_FIELD_BOOST = 0.54  # home teams win ~54% at neutral ERA
+    run_diff = home_runs - away_runs  # positive = home team advantage
+
+    # Convert run differential to win probability via log5-inspired sigmoid
+    # +1 run advantage ≈ 60% win prob, +2 runs ≈ 70%, -1 run ≈ 40%
+    import math as _math
+    home_win_prob_raw = 1 / (1 + _math.exp(-run_diff * 0.45)) * 0.65 + HOME_FIELD_BOOST * 0.35
+    home_win_prob = round(max(0.25, min(0.80, home_win_prob_raw)) * 100, 1)
+    away_win_prob = round(100 - home_win_prob, 1)
+
+    # ── Money line edge ───────────────────────────────────────────────────────
+    ml_edge = None
+    if odds and odds.get("away_implied") and odds.get("home_implied"):
+        away_implied = odds["away_implied"]
+        home_implied = odds["home_implied"]
+
+        away_edge = round(away_win_prob - away_implied, 1)
+        home_edge = round(home_win_prob - home_implied, 1)
+
+        # Only flag edge if model disagrees by 5%+ (noise filter)
+        if abs(away_edge) >= 5 or abs(home_edge) >= 5:
+            if away_edge > home_edge:
+                lean_side = "AWAY"
+                lean_team = game.get("away_team", "")
+                model_prob = away_win_prob
+                implied_prob = away_implied
+                edge_size = away_edge
+                ml_odds = odds.get("away_ml")
+            else:
+                lean_side = "HOME"
+                lean_team = game.get("home_team", "")
+                model_prob = home_win_prob
+                implied_prob = home_implied
+                edge_size = home_edge
+                ml_odds = odds.get("home_ml")
+
+            ml_confidence = "STRONG" if abs(edge_size) >= 10 else "MODERATE" if abs(edge_size) >= 7 else "SLIGHT"
+            ml_edge = {
+                "lean": lean_side,
+                "team": lean_team,
+                "model_prob": model_prob,
+                "implied_prob": implied_prob,
+                "edge": edge_size,
+                "confidence": ml_confidence,
+                "ml_odds": ml_odds,
+            }
+
+    return {
+        "game": f"{game.get('away_team')} @ {game.get('home_team')}",
+        "away_team": game.get("away_team"),
+        "home_team": game.get("home_team"),
+        "venue": game.get("venue_name", ""),
+        "away_pitcher": away_pitcher.get("name", "TBD") if away_pitcher else "TBD",
+        "home_pitcher": home_pitcher.get("name", "TBD") if home_pitcher else "TBD",
+        "away_pitcher_era": away_pitcher_line.get("era") if away_pitcher_line else None,
+        "home_pitcher_era": home_pitcher_line.get("era") if home_pitcher_line else None,
+        "away_pitcher_k9": away_pitcher_line.get("k9") if away_pitcher_line else None,
+        "home_pitcher_k9": home_pitcher_line.get("k9") if home_pitcher_line else None,
+        "away_pitcher_hr9": away_pitcher_line.get("hr9") if away_pitcher_line else None,
+        "home_pitcher_hr9": home_pitcher_line.get("hr9") if home_pitcher_line else None,
+        "projected_total": projected_total,
+        "away_runs": away_runs,
+        "home_runs": home_runs,
+        "away_win_prob": away_win_prob,
+        "home_win_prob": home_win_prob,
+        "total_edge": total_edge,
+        "ml_edge": ml_edge,
+        "park_factor": pf,
+        "park_dome": park.get("dome", False),
+        "weather_label": weather.get("wind_label", ""),
+        "weather_temp": weather.get("temp_f", 72),
+        "hr_multiplier": weather.get("hr_multiplier", 1.0),
+        "factors": factors[:5],  # top 5 most impactful
+        "odds_available": odds is not None,
+    }
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 def run():
@@ -1253,6 +1655,12 @@ def run():
     log.info("Fetching weather from RotoWire…")
     weather_by_team = get_weather_rotowire()
 
+    log.info("Fetching MLB odds…")
+    odds_by_game = get_mlb_odds()
+
+    log.info("Fetching team season stats…")
+    team_season_stats = get_team_season_stats()
+
     games = get_todays_schedule()
     if not games:
         log.warning("No games found. Writing empty slate.")
@@ -1261,6 +1669,7 @@ def run():
     output_games = []
     all_targets = []
     k_targets = []
+    game_lines = []
     auto_fades = []
 
     _weather_fallback = {
@@ -1345,6 +1754,31 @@ def run():
             "no_hr_signal": no_hr_signal,
         }
         output_games.append(game_entry)
+
+        # ── Game lines scoring ────────────────────────────────────────────────
+        away_p = game.get("away_probable")
+        home_p = game.get("home_probable")
+        away_pl = get_pitcher_season_line(away_p["id"], away_p["name"]) if away_p else None
+        home_pl = get_pitcher_season_line(home_p["id"], home_p["name"]) if home_p else None
+        away_ts = team_season_stats.get(away, {})
+        home_ts = team_season_stats.get(home, {})
+        game_odds = odds_by_game.get(f"{away}@{home}") or odds_by_game.get(f"{home}@{away}")
+        # Try alternate key formats
+        if not game_odds:
+            for k in odds_by_game:
+                parts = k.split("@")
+                if len(parts) == 2 and set(parts) == {away, home}:
+                    game_odds = odds_by_game[k]
+                    break
+
+        gl = score_game_lines(
+            game={"away_team": away, "home_team": home, "venue_name": game["venue_name"]},
+            away_pitcher=away_p, home_pitcher=home_p,
+            away_stats=away_ts, home_stats=home_ts,
+            away_pitcher_line=away_pl, home_pitcher_line=home_pl,
+            odds=game_odds, park=park, weather=weather,
+        )
+        game_lines.append(gl)
 
         # Score batters for each side
         for side in ["away", "home"]:
@@ -1545,6 +1979,7 @@ def run():
         "targets": all_targets,
         "laser_targets": laser_targets,
         "k_targets": k_targets,
+        "game_lines": game_lines,
         "auto_fades": deduped_fades,
         "summary": {
             "total_games": len(output_games),

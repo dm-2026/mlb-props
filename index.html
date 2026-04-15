@@ -231,6 +231,56 @@
   @media (max-width: 600px) {
     .k-summary { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ── Game Lines tab styles ── */
+  .gl-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .gl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 8px; transition: border-color 0.15s; }
+  .gl-card:hover { border-color: var(--border2); }
+  .gl-card.expanded { border-color: var(--border2); }
+  .gl-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+  .gl-matchup { flex: 1; min-width: 0; }
+  .gl-teams { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .gl-venue { font-size: 11px; color: var(--text3); }
+  .gl-edge-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .gl-chip { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+  .gl-chip.over    { background: rgba(34,197,94,0.10);  color: var(--prime); border-color: var(--prime-border); }
+  .gl-chip.under   { background: rgba(59,130,246,0.10); color: var(--high);  border-color: var(--high-border); }
+  .gl-chip.ml-away { background: rgba(245,158,11,0.10); color: var(--med);   border-color: var(--med-border); }
+  .gl-chip.ml-home { background: rgba(245,158,11,0.10); color: var(--med);   border-color: var(--med-border); }
+  .gl-chip.neutral { background: var(--surface2); color: var(--text3); border-color: var(--border); }
+  .gl-expand-icon { color: var(--text3); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .gl-card.expanded .gl-expand-icon { transform: rotate(180deg); }
+  .gl-card-detail { display: none; padding: 0 16px 16px; }
+  .gl-card.expanded .gl-card-detail { display: block; }
+  .gl-section { margin-bottom: 14px; }
+  .gl-section-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .gl-pitchers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .gl-pitcher-box { background: var(--surface2); border-radius: 6px; padding: 10px 12px; }
+  .gl-pitcher-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .gl-pitcher-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .gl-stat { }
+  .gl-stat .sk { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; }
+  .gl-stat .sv { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  .gl-stat .sv.good { color: var(--prime); }
+  .gl-stat .sv.bad  { color: var(--fade); }
+  .gl-total-row { display: flex; align-items: center; gap: 16px; background: var(--surface2); border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .gl-total-proj { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--text); }
+  .gl-total-line { font-family: var(--mono); font-size: 13px; color: var(--text3); }
+  .gl-total-arrow { font-size: 18px; }
+  .gl-edge-detail { background: var(--surface2); border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; }
+  .gl-prob-row { display: flex; gap: 0; margin-bottom: 8px; border-radius: 4px; overflow: hidden; height: 28px; }
+  .gl-prob-away { display: flex; align-items: center; justify-content: flex-start; padding: 0 8px; font-family: var(--mono); font-size: 11px; background: rgba(59,130,246,0.15); color: var(--high); transition: width 0.4s; }
+  .gl-prob-home { display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; font-family: var(--mono); font-size: 11px; background: rgba(245,158,11,0.15); color: var(--med); transition: width 0.4s; }
+  .gl-implied-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .gl-factors { margin-top: 10px; }
+  .gl-factor-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+  .gl-factor-item:last-child { border: none; }
+  .gl-factor-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); margin-top: 6px; flex-shrink: 0; }
+  .gl-no-odds { font-family: var(--mono); font-size: 11px; color: var(--text3); padding: 6px 0; font-style: italic; }
+  @media (max-width: 600px) {
+    .gl-summary { grid-template-columns: repeat(2, 1fr); }
+    .gl-pitchers { grid-template-columns: 1fr; }
+  }
   .wrigley-alert { display:none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.30); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--prime); align-items: center; gap: 10px; }
   .wrigley-alert.show { display: flex; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
@@ -259,6 +309,7 @@
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('hr',this)">⚾ HR Props</button>
   <button class="tab-btn" onclick="switchTab('k',this)">🔥 Batter Ks</button>
+  <button class="tab-btn" onclick="switchTab('lines',this)">📊 Game Lines</button>
 </div>
 
 <!-- ── HR Tab ── -->
@@ -340,6 +391,26 @@
   </div>
 
 </div><!-- /tab-k -->
+
+<!-- ── Game Lines Tab ── -->
+<div class="tab-panel" id="tab-lines">
+
+  <div class="gl-summary">
+    <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="gl-s-games">—</div></div>
+    <div class="sum-card"><div class="sum-label">Over Leans</div><div class="sum-value prime" id="gl-s-over">—</div></div>
+    <div class="sum-card"><div class="sum-label">Under Leans</div><div class="sum-value high" id="gl-s-under">—</div></div>
+    <div class="sum-card"><div class="sum-label">ML Edges</div><div class="sum-value" style="color:var(--med)" id="gl-s-ml">—</div></div>
+  </div>
+
+  <div class="section-label">Game Lines — Model vs Market</div>
+  <div id="gl-list"><div class="loading">Loading game lines…</div></div>
+
+  <div class="footer" style="margin-top:40px">
+    <span id="gl-footer-gen">Generated: —</span>
+    <span>Game Lines · MLB Props Pipeline</span>
+  </div>
+
+</div><!-- /tab-lines -->
 
 <script>
 const PITCH_NAMES = {
@@ -435,6 +506,8 @@ function render(data) {
   updateMyListUI();
   renderKSummary(data);
   renderKTargets(data.k_targets || []);
+  renderGameLinesSummary(data);
+  renderGameLines(data.game_lines || []);
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -1035,6 +1108,161 @@ function kCard(t, idx, tierKey) {
 function toggleKCard(idx) {
   event.stopPropagation();
   document.getElementById(`kcard-${idx}`).classList.toggle('expanded');
+}
+
+// ── Game Lines tab ────────────────────────────────────────────────────────────
+function renderGameLinesSummary(data) {
+  const gl = data.game_lines || [];
+  document.getElementById('gl-s-games').textContent = gl.length;
+  document.getElementById('gl-s-over').textContent =
+    gl.filter(g => g.total_edge?.lean === 'OVER' && g.total_edge?.confidence !== 'NONE').length;
+  document.getElementById('gl-s-under').textContent =
+    gl.filter(g => g.total_edge?.lean === 'UNDER' && g.total_edge?.confidence !== 'NONE').length;
+  document.getElementById('gl-s-ml').textContent =
+    gl.filter(g => g.ml_edge).length;
+  const gen = new Date(data.generated_at);
+  const el = document.getElementById('gl-footer-gen');
+  if (el) el.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderGameLines(gameLines) {
+  const el = document.getElementById('gl-list');
+  if (!gameLines || !gameLines.length) {
+    el.innerHTML = '<div class="empty">No game lines — run pipeline.py</div>';
+    return;
+  }
+  // Sort: games with edges first
+  const sorted = [...gameLines].sort((a, b) => {
+    const aEdge = (a.ml_edge ? 2 : 0) + (a.total_edge?.confidence === 'STRONG' ? 2 : a.total_edge?.confidence === 'MODERATE' ? 1 : 0);
+    const bEdge = (b.ml_edge ? 2 : 0) + (b.total_edge?.confidence === 'STRONG' ? 2 : b.total_edge?.confidence === 'MODERATE' ? 1 : 0);
+    return bEdge - aEdge;
+  });
+  el.innerHTML = sorted.map((g, i) => glCard(g, i)).join('');
+}
+
+function glCard(g, idx) {
+  const te = g.total_edge;
+  const ml = g.ml_edge;
+
+  // Edge chips for header
+  let chips = '';
+  if (te && te.confidence !== 'NONE') {
+    const cls = te.lean === 'OVER' ? 'over' : 'under';
+    const oddsStr = te.lean === 'OVER'
+      ? (te.over_odds ? ` (${te.over_odds > 0 ? '+' : ''}${te.over_odds})` : '')
+      : (te.under_odds ? ` (${te.under_odds > 0 ? '+' : ''}${te.under_odds})` : '');
+    chips += `<span class="gl-chip ${cls}">${te.lean} ${te.line}${oddsStr} — ${te.edge_pct}% model</span>`;
+  }
+  if (ml) {
+    const cls = ml.lean === 'AWAY' ? 'ml-away' : 'ml-home';
+    const oddsStr = ml.ml_odds ? ` (${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds})` : '';
+    chips += `<span class="gl-chip ${cls}">${ml.team} ML${oddsStr} — ${ml.model_prob}% vs ${ml.implied_prob}% implied</span>`;
+  }
+  if (!chips) chips = `<span class="gl-chip neutral">No edge — model ~= market</span>`;
+
+  // Pitcher boxes
+  function eraColor(era) {
+    if (era == null) return '';
+    return era <= 3.00 ? 'good' : era >= 5.00 ? 'bad' : '';
+  }
+  function pitcherBox(name, era, k9, hr9, side) {
+    const eraStr = era != null ? era.toFixed(2) : '—';
+    const k9Str = k9 != null ? k9.toFixed(1) : '—';
+    const hr9Str = hr9 != null ? hr9.toFixed(2) : '—';
+    return `<div class="gl-pitcher-box">
+      <div class="gl-section-label">${side} Starter</div>
+      <div class="gl-pitcher-name">${name}</div>
+      <div class="gl-pitcher-stats">
+        <div class="gl-stat"><div class="sk">ERA</div><div class="sv ${eraColor(era)}">${eraStr}</div></div>
+        <div class="gl-stat"><div class="sk">K/9</div><div class="sv">${k9Str}</div></div>
+        <div class="gl-stat"><div class="sk">HR/9</div><div class="sv ${hr9 >= 1.8 ? 'bad' : hr9 <= 0.8 ? 'good' : ''}">${hr9Str}</div></div>
+      </div>
+    </div>`;
+  }
+
+  // Win prob bar
+  const awayPct = g.away_win_prob || 50;
+  const homePct = g.home_win_prob || 50;
+
+  // Implied odds display
+  let impliedStr = '';
+  if (g.odds_available && te) {
+    impliedStr = `<div class="gl-implied-row">
+      <span>${g.away_team} ${te ? '' : ''}</span>
+      <span>O/U Line: ${te?.line ?? '—'} · Proj: ${g.projected_total}</span>
+      <span>${g.home_team}</span>
+    </div>`;
+  }
+
+  // Factors list
+  const factorsHtml = (g.factors || []).map(f =>
+    `<div class="gl-factor-item"><div class="gl-factor-dot"></div><span>${f}</span></div>`
+  ).join('');
+
+  // ML edge detail
+  let mlHtml = '';
+  if (ml) {
+    mlHtml = `<div class="gl-edge-detail" style="margin-bottom:10px">
+      <div class="gl-section-label">Money Line Edge</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--med);margin-bottom:6px">
+        ${ml.team} ML — Model ${ml.model_prob}% vs Market ${ml.implied_prob}% implied
+        <span style="color:var(--prime);margin-left:8px">+${ml.edge}% edge (${ml.confidence})</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
+        ${ml.ml_odds != null ? `Odds: ${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds}` : 'No odds available'}
+      </div>
+    </div>`;
+  }
+
+  return `<div class="gl-card" id="glcard-${idx}">
+    <div class="gl-card-header" onclick="toggleGlCard(${idx})">
+      <div class="gl-matchup">
+        <div class="gl-teams">${g.away_team} @ ${g.home_team}</div>
+        <div class="gl-venue">${g.venue || ''}</div>
+        <div class="gl-edge-chips">${chips}</div>
+      </div>
+      <div class="gl-expand-icon">▾</div>
+    </div>
+    <div class="gl-card-detail">
+      <div class="gl-pitchers">
+        ${pitcherBox(g.away_pitcher, g.away_pitcher_era, g.away_pitcher_k9, g.away_pitcher_hr9, 'Away')}
+        ${pitcherBox(g.home_pitcher, g.home_pitcher_era, g.home_pitcher_k9, g.home_pitcher_hr9, 'Home')}
+      </div>
+
+      <div class="gl-section-label">Projected Total</div>
+      <div class="gl-total-row">
+        <div class="gl-total-proj">${g.projected_total}</div>
+        <div class="gl-total-line">runs projected</div>
+        ${te ? `<div class="gl-total-arrow" style="color:${te.lean==='OVER'?'var(--prime)':'var(--high)'}">${te.lean==='OVER'?'↑':'↓'}</div>
+        <div style="font-family:var(--mono);font-size:13px;color:${te.lean==='OVER'?'var(--prime)':'var(--high)'}">
+          ${te.lean} ${te.line} · ${te.edge_pct}% model confidence
+        </div>` : `<div class="gl-no-odds">No odds available for this game</div>`}
+      </div>
+
+      <div class="gl-section-label">Win Probability</div>
+      <div class="gl-edge-detail">
+        <div class="gl-prob-row">
+          <div class="gl-prob-away" style="width:${awayPct}%">${g.away_team} ${awayPct}%</div>
+          <div class="gl-prob-home" style="width:${homePct}%">${homePct}% ${g.home_team}</div>
+        </div>
+        ${g.odds_available ? `<div class="gl-implied-row">
+          <span>Implied: ${g.away_team} ${te ? (100 - (g.home_win_prob || 50)).toFixed(0) : '—'}%</span>
+          <span style="color:var(--text3)">vs</span>
+          <span>Implied: ${g.home_team} ${g.home_win_prob?.toFixed(0) || '—'}%</span>
+        </div>` : ''}
+      </div>
+
+      ${mlHtml}
+
+      ${factorsHtml ? `<div class="gl-section-label">Key Factors</div>
+      <div class="gl-factors">${factorsHtml}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleGlCard(idx) {
+  event.stopPropagation();
+  document.getElementById(`glcard-${idx}`).classList.toggle('expanded');
 }
 
 loadData();
