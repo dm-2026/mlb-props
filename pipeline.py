@@ -993,35 +993,43 @@ def score_batter_k(batter, pitcher, arsenal, batter_stats):
     batter_whiff_pct = meta.get("whiff_rate")  # overall whiff rate
 
     if batter_k_pct is not None:
-        # Normalize: 10% K = 0.0 (elite contact), 25% = 0.50 (average), 38%+ = 1.0 (high K)
-        batter_k_score = max(0.0, min(1.0, (batter_k_pct - 10.0) / 28.0))
+        # Normalize: 10% K = 0.0 (elite contact), 25% = 0.50 (average), 45%+ = 1.0 (high K)
+        # Ceiling raised to 45% so extreme whiffers don't auto-max
+        batter_k_score = max(0.0, min(1.0, (batter_k_pct - 10.0) / 35.0))
     else:
         # Fallback proxy: low barrel + low EV = more Ks
         barrel_pct = meta.get("barrel_pct") or 5.0
         avg_ev = meta.get("avg_ev") or 87.0
         contact_quality = (barrel_pct * 1.2 + (avg_ev - 80) * 0.8)
-        batter_k_score = max(0.05, min(0.85, 1.0 - contact_quality / 36.0))
+        batter_k_score = max(0.05, min(0.75, 1.0 - contact_quality / 36.0))
         batter_k_pct = None
 
     # ── 2. Batter whiff rate (20%) ────────────────────────────────────────────
     if batter_whiff_pct is not None:
-        # Normalize: 15% whiff = 0.0 (great contact), 25% = 0.50, 38%+ = 1.0 (big whiffer)
-        batter_whiff_score = max(0.0, min(1.0, (batter_whiff_pct - 15.0) / 23.0))
+        # Normalize: 15% = 0.0 (great contact), 28% = 0.50 (average), 45%+ = 1.0 (big whiffer)
+        batter_whiff_score = max(0.0, min(1.0, (batter_whiff_pct - 15.0) / 30.0))
     else:
-        batter_whiff_score = batter_k_score * 0.8  # proxy from K score if unavailable
+        batter_whiff_score = batter_k_score * 0.8
 
     # ── 3. Pitcher K rate vs this hand (25%) ─────────────────────────────────
-    pitcher_k_pct = arsenal.get("_pitcher_k_rate")    # actual K% from Statcast
+    pitcher_k_pct = arsenal.get("_pitcher_k_rate")
     pitcher_whiff_pct = arsenal.get("_pitcher_whiff_rate")
 
-    if pitcher_k_pct is not None:
-        # Normalize: 12% = 0.0 (contact pitcher), 22% = 0.50 (average), 35%+ = 1.0 (elite K)
-        pitcher_k_score = max(0.0, min(1.0, (pitcher_k_pct - 12.0) / 23.0))
+    # Gate: only trust pitcher K% if we have enough PA sample
+    # Small sample (Connelly Early 17 PA) produces extreme/meaningless values
+    total_pitcher_pa = sum(
+        pa.get("pitch_count", 0) for pt, pa in arsenal.items() if not pt.startswith("_")
+    )
+    pitcher_sample_ok = total_pitcher_pa >= 80  # ~20+ IP equivalent
+
+    if pitcher_k_pct is not None and pitcher_sample_ok:
+        # Normalize: 12% = 0.0 (contact), 22% = 0.50 (average), 38%+ = 1.0 (elite K)
+        pitcher_k_score = max(0.0, min(1.0, (pitcher_k_pct - 12.0) / 26.0))
     else:
-        # Fallback: use HR/9 inversely as K proxy
+        # Fallback: use HR/9 inversely — more reliable with small samples
         overall_hr9 = arsenal.get("_overall_hr9") or 1.2
-        pitcher_k_score = max(0.10, min(0.85, (1.6 - overall_hr9) / 1.4))
-        pitcher_k_pct = None
+        pitcher_k_score = max(0.10, min(0.80, (1.6 - overall_hr9) / 1.4))
+        pitcher_k_pct = None  # flag as unavailable for display
 
     # ── 4. Pitch-type K collision (15%) ───────────────────────────────────────
     # The real money: pitcher's best K pitch × batter's whiff rate on that pitch
@@ -1047,8 +1055,7 @@ def score_batter_k(batter, pitcher, arsenal, batter_stats):
 
         # Score this pitch: usage × avg of pitcher and batter whiff signals
         if p_whiff is not None and b_whiff is not None:
-            # Both real — use actual whiff collision
-            # Normalize: 20% whiff = low, 35% = avg, 50%+ = elite
+            # Both real — normalize: 15% = low, 30% = avg, 50%+ = elite
             p_w_norm = max(0, min(1.0, (p_whiff - 15.0) / 35.0))
             b_w_norm = max(0, min(1.0, (b_whiff - 15.0) / 35.0))
             pt_collision = usage * (p_w_norm * 0.6 + b_w_norm * 0.4)
