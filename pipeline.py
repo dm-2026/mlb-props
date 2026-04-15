@@ -1467,30 +1467,38 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
       - factors: list of key factors that drove the model
     """
     factors = []
-    LEAGUE_AVG_RUNS_PER_GAME = 4.45  # 2024-2025 MLB average
+    LEAGUE_AVG_RUNS_PER_GAME = 4.45  # MLB average per team per game
+    BULLPEN_FLOOR = 1.30  # relievers always add runs — ~3 IP per team at league avg ERA
 
     # ── Projected run total ───────────────────────────────────────────────────
-    # Base: each team's expected runs = pitcher's runs allowed + opponent offense blend
+    # Base: each team's expected runs = starter contribution + bullpen floor + offense blend
     def team_run_expectation(pitcher_line, opp_team_stats):
-        """Runs expected to score against this pitcher."""
+        """Runs expected to score against this pitcher + bullpen."""
+        opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
+
         if pitcher_line:
-            # Pitcher ERA → runs per game (ERA / 9 * ~6 IP average)
+            # Starter's expected runs: ERA/9 × avg IP per start
             avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
-            avg_ip = max(avg_ip, 4.5)  # floor at 4.5 IP
-            pitcher_runs = pitcher_line["era"] / 9 * avg_ip
-            # Blend 70% pitcher ERA, 30% opponent offense
-            opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
-            expected = pitcher_runs * 0.70 + opp_rpg * 0.30
+            avg_ip = max(avg_ip, 4.5)  # floor at 4.5 IP per start
+            starter_runs = pitcher_line["era"] / 9 * avg_ip
+            # Blend 60% pitcher ERA, 40% opponent offense
+            starter_contribution = starter_runs * 0.60 + opp_rpg * 0.40
         else:
             # No pitcher data — use league average + opponent offense
-            opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
-            expected = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
+            starter_contribution = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
 
-        return round(max(expected, 1.5), 2)
+        # Always add bullpen floor — relievers pitch ~3 innings every game
+        # Even elite starters leave in the 6th-7th and the pen gives up runs
+        total = starter_contribution + BULLPEN_FLOOR
+        return round(max(total, 2.5), 2)
 
-    away_runs = team_run_expectation(home_pitcher_line, away_stats)  # away bats vs home pitcher
-    home_runs = team_run_expectation(away_pitcher_line, home_stats)  # home bats vs away pitcher
+    away_runs = team_run_expectation(home_pitcher_line, away_stats)
+    home_runs = team_run_expectation(away_pitcher_line, home_stats)
     base_total = round(away_runs + home_runs, 1)
+
+    # Hard floor — no MLB game should ever project under 5.5 runs total
+    # Even the best pitcher matchups in history rarely go under 5
+    base_total = max(base_total, 5.5)
 
     # ── Park factor adjustment ────────────────────────────────────────────────
     pf = park.get("overall", 100)
