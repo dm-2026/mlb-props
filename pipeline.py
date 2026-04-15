@@ -1437,13 +1437,6 @@ def get_pitcher_season_line(pitcher_id, pitcher_name):
         s = splits[0].get("stat", {})
         ip = float(s.get("inningsPitched", 0) or 0)
 
-        # Minimum IP gate — early season small samples are too noisy
-        # 15 IP ≈ 3 starts, enough to have a meaningful ERA signal
-        MIN_IP = 15.0
-        if ip < MIN_IP:
-            log.info(f"  {pitcher_name}: only {ip} IP in {season} — below {MIN_IP} IP threshold, using league avg")
-            return None
-
         era = float(s.get("era", 4.50) or 4.50)
         log.info(f"  {pitcher_name}: {season} ERA {era} over {ip} IP")
         return {
