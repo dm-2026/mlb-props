@@ -182,7 +182,55 @@
   .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; color: var(--text3); font-family: var(--mono); font-size: 13px; }
   .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; justify-content: space-between; }
 
-  /* Wrigley wind alert */
+  /* ── Tab navigation ── */
+  .tab-nav { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab-btn { font-family: var(--mono); font-size: 12px; padding: 8px 18px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text3); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--text2); }
+  .tab-btn.active { color: var(--prime); border-bottom-color: var(--prime); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── K tab styles ── */
+  .k-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .k-filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  .k-threshold-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-left: auto; }
+  .k-thresh-btn { font-family: var(--mono); font-size: 11px; padding: 5px 14px; background: var(--surface); border: none; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+  .k-thresh-btn.active { background: var(--high-bg); color: var(--high); }
+  .k-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color 0.15s; }
+  .k-card:hover { border-color: var(--border2); }
+  .k-card.expanded { border-color: var(--border2); }
+  .k-card-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
+  .k-tier-bar { width: 3px; height: 40px; border-radius: 2px; flex-shrink: 0; }
+  .k-tier-bar.HIGH { background: var(--high); }
+  .k-tier-bar.MED  { background: var(--med); }
+  .k-tier-bar.LOW  { background: var(--low); }
+  .k-score-box { width: 44px; height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 500; flex-shrink: 0; }
+  .k-score-box.HIGH { background: var(--high-bg);  color: var(--high);  border: 1px solid var(--high-border); }
+  .k-score-box.MED  { background: var(--med-bg);   color: var(--med);   border: 1px solid var(--med-border); }
+  .k-score-box.LOW  { background: var(--low-bg);   color: var(--low);   border: 1px solid var(--low-border); }
+  .k-card-info { flex: 1; min-width: 0; }
+  .k-batter-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .k-batter-sub { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .k-badges-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+  .k-expand-icon { color: var(--text3); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .k-card.expanded .k-expand-icon { transform: rotate(180deg); }
+  .k-card-detail { display: none; padding: 0 14px 14px; }
+  .k-card.expanded .k-card-detail { display: block; }
+  .k-insight-box { background: var(--surface2); border-left: 3px solid var(--high-border); border-radius: 0 4px 4px 0; padding: 8px 12px; font-size: 12px; color: var(--text2); font-style: italic; margin-bottom: 12px; }
+  .k-comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-bottom: 12px; }
+  .k-threshold-chips { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .k-chip { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 4px; border: 1px solid; }
+  .k-chip.HIGH { background: var(--high-bg); color: var(--high); border-color: var(--high-border); }
+  .k-chip.MED  { background: var(--med-bg);  color: var(--med);  border-color: var(--med-border); }
+  .k-chip.LOW  { background: var(--low-bg);  color: var(--low);  border-color: var(--low-border); }
+  .k-chip.FADE { background: var(--surface2); color: var(--text3); border-color: var(--border); }
+  .k-tier-divider { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.10em; padding: 6px 0 4px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+  .k-tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .k-tier-divider.HIGH { color: var(--high); } .k-tier-divider.MED { color: var(--med); } .k-tier-divider.LOW { color: var(--low); }
+
+  @media (max-width: 600px) {
+    .k-summary { grid-template-columns: repeat(2, 1fr); }
+  } */
   .wrigley-alert { display:none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.30); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--prime); align-items: center; gap: 10px; }
   .wrigley-alert.show { display: flex; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
@@ -200,12 +248,21 @@
 <body>
 
 <div class="header">
-  <div class="logo">MLB<span>.</span>HR<span>.</span>Props</div>
+  <div class="logo">MLB<span>.</span>Props</div>
   <div class="header-right">
     <div class="header-date" id="header-date">Loading…</div>
     <div class="live-badge seed-badge" id="data-badge">SEED DATA</div>
   </div>
 </div>
+
+<!-- Tab navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('hr',this)">⚾ HR Props</button>
+  <button class="tab-btn" onclick="switchTab('k',this)">🔥 Batter Ks</button>
+</div>
+
+<!-- ── HR Tab ── -->
+<div class="tab-panel active" id="tab-hr">
 
 <!-- Ticker tape -->
 <div class="ticker-wrap">
@@ -247,8 +304,42 @@
 
 <div class="footer">
   <span id="footer-gen">Generated: —</span>
-  <span>MLB HR Props Pipeline · github.com/dm-2026/mlb-props</span>
+  <span>MLB Props Pipeline · github.com/dm-2026/mlb-props</span>
 </div>
+
+</div><!-- /tab-hr -->
+
+<!-- ── Batter Ks Tab ── -->
+<div class="tab-panel" id="tab-k">
+
+  <div class="k-summary">
+    <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="k-s-games">—</div></div>
+    <div class="sum-card"><div class="sum-label">High (0.5)</div><div class="sum-value high" id="k-s-high05">—</div></div>
+    <div class="sum-card"><div class="sum-label">High (1.5)</div><div class="sum-value high" id="k-s-high15">—</div></div>
+    <div class="sum-card"><div class="sum-label">Total Targets</div><div class="sum-value" id="k-s-total">—</div></div>
+  </div>
+
+  <div class="section-label">Batter K Targets — Ranked by K Score</div>
+
+  <div class="k-filter-row">
+    <button class="filter-btn active-all" onclick="setKFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setKFilter('HIGH',this)">High</button>
+    <button class="filter-btn" onclick="setKFilter('MED',this)">Med</button>
+    <button class="filter-btn" onclick="setKFilter('LOW',this)">Low</button>
+    <div class="k-threshold-toggle">
+      <button class="k-thresh-btn active" onclick="setKThreshold('0.5',this)">Over 0.5 K</button>
+      <button class="k-thresh-btn" onclick="setKThreshold('1.5',this)">Over 1.5 K</button>
+    </div>
+  </div>
+
+  <div class="targets-list" id="k-targets-list"><div class="loading">Loading K targets…</div></div>
+
+  <div class="footer" style="margin-top:40px">
+    <span id="k-footer-gen">Generated: —</span>
+    <span>Batter Ks · MLB Props Pipeline</span>
+  </div>
+
+</div><!-- /tab-k -->
 
 <script>
 const PITCH_NAMES = {
@@ -342,6 +433,8 @@ function render(data) {
   renderTargets(data.targets);
   renderFades(data.auto_fades);
   updateMyListUI();
+  renderKSummary(data);
+  renderKTargets(data.k_targets || []);
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -767,6 +860,143 @@ function setFilter(tier, btn) {
     : tier==='LOW'?'filter-btn active-low'
     : 'filter-btn active-mylist';
   if (allData) renderTargets(allData.targets);
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── K tab state ───────────────────────────────────────────────────────────────
+let kFilter = 'all';
+let kThreshold = '0.5';
+
+function setKFilter(tier, btn) {
+  kFilter = tier;
+  document.querySelectorAll('.k-filter-row .filter-btn').forEach(b => b.className = 'filter-btn');
+  btn.className = tier === 'all' ? 'filter-btn active-all'
+    : tier === 'HIGH' ? 'filter-btn active-high'
+    : tier === 'MED'  ? 'filter-btn active-med'
+    : 'filter-btn active-low';
+  if (allData) renderKTargets(allData.k_targets || []);
+}
+
+function setKThreshold(thresh, btn) {
+  kThreshold = thresh;
+  document.querySelectorAll('.k-thresh-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (allData) renderKTargets(allData.k_targets || []);
+}
+
+const K_COMP_LABELS = {
+  batter_k_rate: 'Batter K Rate', pitcher_k_rate: 'Pitcher K Rate',
+  platoon: 'Platoon', recent_form: 'L14D Form',
+};
+const K_COMP_COLORS = {
+  batter_k_rate: '#ef4444', pitcher_k_rate: '#3b82f6',
+  platoon: '#a78bfa', recent_form: '#fb923c',
+};
+
+function renderKSummary(data) {
+  const s = data.summary || {};
+  document.getElementById('k-s-games').textContent   = s.total_games || 0;
+  document.getElementById('k-s-high05').textContent  = s.k_high_05 || 0;
+  document.getElementById('k-s-high15').textContent  = s.k_high_15 || 0;
+  document.getElementById('k-s-total').textContent   = (data.k_targets || []).length;
+  const gen = new Date(data.generated_at);
+  const el = document.getElementById('k-footer-gen');
+  if (el) el.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderKTargets(targets) {
+  const el = document.getElementById('k-targets-list');
+  if (!targets || !targets.length) {
+    el.innerHTML = '<div class="empty">No K targets — run pipeline.py</div>';
+    return;
+  }
+
+  const tierKey = kThreshold === '1.5' ? 'tier_15' : 'tier_05';
+  let filtered = targets.filter(t => t[tierKey] !== 'FADE');
+  if (kFilter !== 'all') filtered = filtered.filter(t => t[tierKey] === kFilter);
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty">No ${kFilter === 'all' ? '' : kFilter + ' '}targets for Over ${kThreshold} Ks</div>`;
+    return;
+  }
+
+  filtered.sort((a, b) => b.score - a.score);
+
+  let html = '', lastTier = null;
+  filtered.forEach((t, i) => {
+    const tier = t[tierKey];
+    if (kFilter === 'all' && tier !== lastTier) {
+      const lbl = tier === 'HIGH' ? 'High — strong K matchup'
+        : tier === 'MED' ? 'Med — moderate K lean'
+        : 'Low — watch list';
+      html += `<div class="k-tier-divider ${tier}">${lbl}</div>`;
+      lastTier = tier;
+    }
+    html += kCard(t, `k${i}`, tierKey);
+  });
+
+  el.innerHTML = html;
+}
+
+function kCard(t, idx, tierKey) {
+  const tier = t[tierKey];
+  const meta = t.batter_meta || {};
+  const platoonBadge = t.batter_hand === t.pitcher_throws
+    ? `<span class="badge" style="background:rgba(239,68,68,0.08);color:#fca5a5;border-color:rgba(239,68,68,0.20)">Same Hand ↑K</span>`
+    : `<span class="badge badge-neutral">Opp Hand</span>`;
+  const lineupBadge = t.lineup_confirmed === false
+    ? `<span class="badge badge-neutral">Projected</span>` : '';
+
+  const compBars = Object.entries(t.components || {}).map(([k, v]) => {
+    const c = K_COMP_COLORS[k] || '#666';
+    return `<div class="comp-item">
+      <div class="comp-label">${K_COMP_LABELS[k] || k}</div>
+      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${c}"></div></div>
+      <div class="comp-value" style="color:${c}">${v}</div>
+    </div>`;
+  }).join('');
+
+  const tier15 = t.tier_15 || 'FADE';
+  const tier05 = t.tier_05 || 'FADE';
+
+  return `<div class="k-card" id="kcard-${idx}">
+    <div class="k-card-header" onclick="toggleKCard('${idx}')">
+      <div class="k-tier-bar ${tier}"></div>
+      <div class="k-score-box ${tier}">${t.score}</div>
+      <div class="k-card-info">
+        <div class="k-batter-name">${t.batter_name}</div>
+        <div class="k-batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue || t.game}</div>
+        <div class="k-badges-row">${platoonBadge}${lineupBadge}</div>
+      </div>
+      <div class="k-expand-icon">▾</div>
+    </div>
+    <div class="k-card-detail">
+      <div class="k-insight-box">${t.insight}</div>
+      <div class="k-comp-grid">${compBars}</div>
+      <div class="k-threshold-chips">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-right:4px">Lines:</span>
+        <span class="k-chip ${tier05}">Over 0.5 Ks — ${tier05}</span>
+        <span class="k-chip ${tier15}">Over 1.5 Ks — ${tier15}</span>
+      </div>
+      ${t.pitcher_overall_hr9 != null ? `<div class="meta-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div class="meta-item"><div class="mk">Pitcher HR/9</div><div class="mv">${t.pitcher_overall_hr9.toFixed(2)}</div></div>
+        ${meta.avg_ev ? `<div class="meta-item"><div class="mk">Batter EV</div><div class="mv">${meta.avg_ev} mph</div></div>` : ''}
+        ${meta.barrel_pct != null ? `<div class="meta-item"><div class="mk">Barrel%</div><div class="mv">${meta.barrel_pct}%</div></div>` : ''}
+        ${meta.pa_2026 ? `<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${meta.pa_2026}</div></div>` : ''}
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleKCard(idx) {
+  event.stopPropagation();
+  document.getElementById(`kcard-${idx}`).classList.toggle('expanded');
 }
 
 loadData();

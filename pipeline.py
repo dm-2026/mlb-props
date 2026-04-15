@@ -858,6 +858,132 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     return score, components, top_insight, tier, dominant_signals
 
 
+# ── K prop scoring model ──────────────────────────────────────────────────────
+
+K_WEIGHTS = {
+    "batter_k_rate":   0.35,  # batter's own K% — most stable predictor
+    "pitcher_k_rate":  0.35,  # pitcher's K/9 or K% — equally stable
+    "platoon":         0.15,  # same-hand matchups produce more Ks
+    "recent_form":     0.15,  # batter's K rate last 14 days
+}
+
+def score_batter_k(batter, pitcher, arsenal, batter_stats):
+    """
+    Returns (score_0_100, components, insight, tier_05, tier_15)
+    tier_05 = HIGH/MED/LOW for over 0.5 Ks (any K)
+    tier_15 = HIGH/MED/LOW for over 1.5 Ks (multiple Ks)
+    """
+    meta = batter_stats.get("_meta", {})
+
+    # 1. Batter K rate — derive from pitch stats
+    # Whiff rate proxy: pitches where event is strikeout / total PA events
+    total_pa = 0
+    total_k = 0
+    for pt, ps in batter_stats.items():
+        if pt.startswith("_"):
+            continue
+        sample = ps.get("sample_pitches", 0)
+        # hr_count, xbh, slg are in batter data but not K — we use sample size
+        # as proxy for PA exposure; actual K count not stored, so we use
+        # the absence of positive contact as a K signal via SLG inversion
+        total_pa += sample
+
+    # Use barrel_pct inversely — low barrel + low SLG = high K tendency
+    barrel_pct = meta.get("barrel_pct") or 5.0
+    avg_ev = meta.get("avg_ev") or 87.0
+
+    # K rate proxy: players with low barrel (<6%) and low EV (<87) K ~26%+
+    # Players with high barrel (>12%) and high EV (>92) K ~18-20%
+    # Normalize 15-32% K range to 0-1
+    k_rate_proxy = max(0, min(1, (28 - (barrel_pct * 0.8 + (avg_ev - 80) * 0.4)) / 20))
+    batter_k_score = k_rate_proxy
+
+    # 2. Pitcher K rate — weighted K% across arsenal
+    total_usage = 0
+    weighted_k = 0
+    pitcher_insights = []
+    PITCH_NAMES_K = {
+        "FF":"Four-seam", "SI":"Sinker", "FC":"Cutter", "CH":"Changeup",
+        "SL":"Slider", "CU":"Curveball", "SW":"Sweeper", "FS":"Splitter",
+        "ST":"Sweeper", "KC":"Knuckle curve", "KN":"Knuckleball",
+    }
+    for pt, pa in arsenal.items():
+        if pt.startswith("_"):
+            continue
+        usage = pa.get("usage_pct", 0) / 100
+        hr_pct = pa.get("hr_pct") or 0
+        # Invert HR% as K proxy — pitches with low HR% tend to be swing-and-miss offerings
+        # Low HR% (<1%) = high K pitch; High HR% (>4%) = contact pitch
+        k_proxy_pt = max(0, 1.0 - min(hr_pct / 4.0, 1.0))
+        weighted_k += usage * k_proxy_pt
+        total_usage += usage
+        if usage > 0.20 and k_proxy_pt > 0.65:
+            pt_name = PITCH_NAMES_K.get(str(pt), str(pt))
+            pitcher_insights.append(f"{pt_name} ({round(usage*100)}% usage) — swing-and-miss offering")
+
+    pitcher_k_score = min(weighted_k / max(total_usage, 0.01), 1.0)
+
+    # Also use overall HR/9 inversely — low HR/9 = dominant pitcher = more Ks
+    overall_hr9 = arsenal.get("_overall_hr9") or 1.2
+    # <0.8 HR/9 = elite K pitcher; >1.5 = contact/HR pitcher
+    hr9_k_bonus = max(0, min(1, (1.5 - overall_hr9) / 1.0))
+    pitcher_k_score = pitcher_k_score * 0.6 + hr9_k_bonus * 0.4
+
+    # 3. Platoon — same-hand matchups generate more Ks
+    b_hand = batter.get("bats", "R")
+    p_throws = pitcher.get("throws", "R")
+    platoon_score = 0.70 if b_hand == p_throws else 0.35  # same hand = more Ks
+
+    # 4. Recent form — use hr_rate_14d inversely (low HR rate recently = more cold/K prone)
+    hr_rate = meta.get("hr_rate_14d")
+    hr_recent = meta.get("hr_recent_14d") or 0
+    if hr_rate is not None:
+        # 0% HR/PA = max K form score; 10%+ HR/PA = min (they're hitting well)
+        form_score = max(0, 1.0 - hr_rate / 0.08)
+    else:
+        form_score = 0.5  # neutral if no data
+
+    # Weighted total
+    raw = (
+        K_WEIGHTS["batter_k_rate"]  * batter_k_score +
+        K_WEIGHTS["pitcher_k_rate"] * pitcher_k_score +
+        K_WEIGHTS["platoon"]        * platoon_score +
+        K_WEIGHTS["recent_form"]    * form_score
+    )
+    score = round(raw * 100)
+
+    components = {
+        "batter_k_rate":  round(batter_k_score * 100),
+        "pitcher_k_rate": round(pitcher_k_score * 100),
+        "platoon":        round(platoon_score * 100),
+        "recent_form":    round(form_score * 100),
+    }
+
+    insight = pitcher_insights[0] if pitcher_insights else "Pitcher K profile based on arsenal mix"
+
+    # Tier for 0.5 Ks (any K) — easier bar, lower threshold
+    if score >= 62:
+        tier_05 = "HIGH"
+    elif score >= 42:
+        tier_05 = "MED"
+    elif score >= 25:
+        tier_05 = "LOW"
+    else:
+        tier_05 = "FADE"
+
+    # Tier for 1.5 Ks (multiple Ks) — harder bar, higher threshold required
+    if score >= 72:
+        tier_15 = "HIGH"
+    elif score >= 54:
+        tier_15 = "MED"
+    elif score >= 38:
+        tier_15 = "LOW"
+    else:
+        tier_15 = "FADE"
+
+    return score, components, insight, tier_05, tier_15
+
+
 # ── Hardcoded seed data (used when pybaseball unavailable) ────────────────────
 # Replace these with real fetched data once pipeline is running
 
@@ -986,6 +1112,7 @@ def run():
 
     output_games = []
     all_targets = []
+    k_targets = []
     auto_fades = []
 
     _weather_fallback = {
@@ -1123,42 +1250,64 @@ def run():
                     batter, pitcher_info, arsenal, batter_stats, park, weather
                 )
 
-                if tier == "FADE":
-                    continue
+                if tier != "FADE":
+                    target = {
+                        "batter_id": b_id,
+                        "batter_name": b_name,
+                        "batter_team": batting_team,
+                        "batter_hand": b_hand,
+                        "pitcher_name": pitcher_name,
+                        "pitcher_throws": pitcher_info.get("throws", "R"),
+                        "game": f"{away} @ {home}",
+                        "venue": game["venue_name"],
+                        "score": score,
+                        "tier": tier,
+                        "components": components,
+                        "insight": insight,
+                        "dominant_signals": dominant_signals,
+                        "park_factor": park.get("lhb" if b_hand == "L" else "rhb", park.get("overall", 100)),
+                        "park_suppress": park.get("suppress", False),
+                        "weather_label": weather["wind_label"],
+                        "weather_temp": weather["temp_f"],
+                        "hr_multiplier": weather["hr_multiplier"],
+                        "rain_chance": weather["rain_chance"],
+                        "lineup_confirmed": lineup_confirmed,
+                        "batter_meta": batter_stats.get("_meta", {}),
+                        "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
+                        "pitch_matrix": {
+                            pt: {**batter_stats.get(pt, {}), **{
+                                "pitcher_usage": arsenal.get(pt, {}).get("usage_pct"),
+                                "pitcher_hr_pct": arsenal.get(pt, {}).get("hr_pct"),
+                                "pitcher_hr_dist": arsenal.get(pt, {}).get("hr_dist_pct"),
+                            }}
+                            for pt in arsenal if not pt.startswith("_") and pt in batter_stats
+                        },
+                    }
+                    all_targets.append(target)
 
-                target = {
-                    "batter_id": b_id,
-                    "batter_name": b_name,
-                    "batter_team": batting_team,
-                    "batter_hand": b_hand,
-                    "pitcher_name": pitcher_name,
-                    "pitcher_throws": pitcher_info.get("throws", "R"),
-                    "game": f"{away} @ {home}",
-                    "venue": game["venue_name"],
-                    "score": score,
-                    "tier": tier,
-                    "components": components,
-                    "insight": insight,
-                    "dominant_signals": dominant_signals,
-                    "park_factor": park.get("lhb" if b_hand == "L" else "rhb", park.get("overall", 100)),
-                    "park_suppress": park.get("suppress", False),
-                    "weather_label": weather["wind_label"],
-                    "weather_temp": weather["temp_f"],
-                    "hr_multiplier": weather["hr_multiplier"],
-                    "rain_chance": weather["rain_chance"],
-                    "lineup_confirmed": lineup_confirmed,
-                    "batter_meta": batter_stats.get("_meta", {}),
-                    "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
-                    "pitch_matrix": {
-                        pt: {**batter_stats.get(pt, {}), **{
-                            "pitcher_usage": arsenal.get(pt, {}).get("usage_pct"),
-                            "pitcher_hr_pct": arsenal.get(pt, {}).get("hr_pct"),
-                            "pitcher_hr_dist": arsenal.get(pt, {}).get("hr_dist_pct"),
-                        }}
-                        for pt in arsenal if not pt.startswith("_") and pt in batter_stats
-                    },
-                }
-                all_targets.append(target)
+                # ── K prop scoring (independent of HR tier) ───────────────────
+                k_score, k_components, k_insight, k_tier_05, k_tier_15 = score_batter_k(
+                    batter, pitcher_info, arsenal, batter_stats
+                )
+                if k_tier_05 != "FADE":
+                    k_targets.append({
+                        "batter_id": b_id,
+                        "batter_name": b_name,
+                        "batter_team": batting_team,
+                        "batter_hand": b_hand,
+                        "pitcher_name": pitcher_name,
+                        "pitcher_throws": pitcher_info.get("throws", "R"),
+                        "game": f"{away} @ {home}",
+                        "venue": game["venue_name"],
+                        "score": k_score,
+                        "tier_05": k_tier_05,
+                        "tier_15": k_tier_15,
+                        "components": k_components,
+                        "insight": k_insight,
+                        "lineup_confirmed": lineup_confirmed,
+                        "batter_meta": batter_stats.get("_meta", {}),
+                        "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
+                    })
 
     # Auto-fades for suppressive park + bad weather
     for g in output_games:
@@ -1228,6 +1377,16 @@ def run():
     laser_targets.sort(key=lambda x: (-(x["avg_ev"] or 0) - (x["barrel_pct"] or 0)))
     log.info(f"  Laser targets: {len(laser_targets)}")
 
+    # Deduplicate K targets — keep highest score per batter
+    seen_k = {}
+    for t in k_targets:
+        key = t["batter_id"]
+        if key not in seen_k or t["score"] > seen_k[key]["score"]:
+            seen_k[key] = t
+    k_targets = list(seen_k.values())
+    k_targets.sort(key=lambda x: -x["score"])
+    log.info(f"  K targets: {len(k_targets)}")
+
     # Build final output
     output = {
         "generated_at": datetime.datetime.now().isoformat(),
@@ -1236,6 +1395,7 @@ def run():
         "games": output_games,
         "targets": all_targets,
         "laser_targets": laser_targets,
+        "k_targets": k_targets,
         "auto_fades": deduped_fades,
         "summary": {
             "total_games": len(output_games),
@@ -1244,6 +1404,9 @@ def run():
             "med_count": sum(1 for t in all_targets if t["tier"] == "MED"),
             "low_count": sum(1 for t in all_targets if t["tier"] == "LOW"),
             "fade_count": len(deduped_fades),
+            "k_high_05": sum(1 for t in k_targets if t["tier_05"] == "HIGH"),
+            "k_med_05":  sum(1 for t in k_targets if t["tier_05"] == "MED"),
+            "k_high_15": sum(1 for t in k_targets if t["tier_15"] == "HIGH"),
         },
     }
 
