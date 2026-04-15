@@ -491,14 +491,32 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             barrel_rate = barrels / len(group_vs) if len(group_vs) > 0 else 0
             avg_ev = group_vs["launch_speed"].mean() if "launch_speed" in group_vs.columns else None
 
+            # ── Pitcher K / whiff metrics per pitch type ──────────────────────
+            swing_desc = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip",
+                          "hit_into_play", "hit_into_play_no_out", "hit_into_play_score"}
+            if "description" in group_vs.columns:
+                swings_p = group_vs[group_vs["description"].isin(swing_desc)]
+                whiffs_p = group_vs[group_vs["description"].isin({"swinging_strike", "swinging_strike_blocked"})]
+                pitcher_whiff_rate = round(len(whiffs_p) / len(swings_p) * 100, 1) if len(swings_p) >= 10 else None
+            else:
+                pitcher_whiff_rate = None
+
+            # Pitcher K% on this pitch = Ks ending on this pitch / PA ending on this pitch
+            pitcher_k_rate_pt = round(len(hr_events[hr_events["events"] == "strikeout"]) / pa_on_pitch * 100, 1) if pa_on_pitch >= 10 else None
+            # (reuse pa_events filter already computed above)
+            k_pa_pt = pa_events[pa_events["events"] == "strikeout"] if pa_on_pitch > 0 else group_vs.iloc[0:0]
+            pitcher_k_rate_pt = round(len(k_pa_pt) / pa_on_pitch * 100, 1) if pa_on_pitch >= 10 else None
+
             arsenal[str(pt)] = {
                 "usage_pct": usage_pct,
-                "hr_pct": round(hr_pct, 1) if hr_pct is not None else None,  # for scoring
-                "hr_count": hr_count_pt,                                        # for distribution
+                "hr_pct": round(hr_pct, 1) if hr_pct is not None else None,
+                "hr_count": hr_count_pt,
                 "barrel_rate_allowed": round(barrel_rate * 100, 1),
                 "avg_ev_allowed": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
                 "pitch_count": len(group_vs),
                 "batter_hand": batter_hand,
+                "whiff_rate": pitcher_whiff_rate,   # % of swings that miss on this pitch
+                "k_rate": pitcher_k_rate_pt,         # % of PAs ending in K on this pitch
             }
 
         # ── HR distribution % — share of total HRs by pitch type ─────────────
@@ -511,7 +529,27 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             hr_ct = arsenal[pt].get("hr_count", 0)
             arsenal[pt]["hr_dist_pct"] = round(hr_ct / total_hrs_vs * 100) if total_hrs_vs > 0 else None
 
-        log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types")
+        # Total HRs allowed to this batter hand — used to supplement platoon score
+        arsenal["_hrs_vs_hand"] = total_hrs_vs
+
+        # Overall pitcher K% and whiff rate vs this batter hand
+        if "description" in df_vs.columns:
+            swing_desc_p = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip",
+                            "hit_into_play", "hit_into_play_no_out", "hit_into_play_score"}
+            p_swings = df_vs[df_vs["description"].isin(swing_desc_p)]
+            p_whiffs = df_vs[df_vs["description"].isin({"swinging_strike", "swinging_strike_blocked"})]
+            overall_pitcher_whiff = round(len(p_whiffs) / len(p_swings) * 100, 1) if len(p_swings) >= 20 else None
+            p_pa = df_vs[df_vs["events"].notna() & (df_vs["events"] != "")]
+            p_ks = p_pa[p_pa["events"] == "strikeout"]
+            overall_pitcher_k_rate = round(len(p_ks) / len(p_pa) * 100, 1) if len(p_pa) >= 20 else None
+        else:
+            overall_pitcher_whiff = None
+            overall_pitcher_k_rate = None
+
+        arsenal["_pitcher_k_rate"] = overall_pitcher_k_rate    # K% vs this batter hand
+        arsenal["_pitcher_whiff_rate"] = overall_pitcher_whiff  # SwStr% vs this batter hand
+
+        log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types, {total_hrs_vs} HR vs {batter_hand}HB, K%={overall_pitcher_k_rate}")
 
         # Overall pitcher HR/9 — calculated across full dataset (all hands, all pitches)
         # This is the accurate traditional HR/9 for the meta row display
@@ -600,25 +638,79 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
 
             avg_la = contact_group["launch_angle"].mean() if len(contact_group) > 0 else None
 
+            # ── K / whiff metrics per pitch type ─────────────────────────────
+            # Whiff rate = swinging strikes / total swings (swinging_strike / all swing descriptions)
+            swing_desc = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip",
+                          "hit_into_play", "hit_into_play_no_out", "hit_into_play_score"}
+            if "description" in group.columns:
+                swings = group[group["description"].isin(swing_desc)]
+                whiffs = group[group["description"].isin({"swinging_strike", "swinging_strike_blocked"})]
+                whiff_rate = round(len(whiffs) / len(swings) * 100, 1) if len(swings) >= 10 else None
+                # Chase rate = swings on pitches outside zone / pitches outside zone
+                # zone col: 11-14 = outside zone in pybaseball
+                if "zone" in group.columns:
+                    outside = group[group["zone"].isin([11, 12, 13, 14])]
+                    chases = outside[outside["description"].isin(swing_desc)]
+                    chase_rate_pt = round(len(chases) / len(outside) * 100, 1) if len(outside) >= 10 else None
+                else:
+                    chase_rate_pt = None
+            else:
+                whiff_rate = None
+                chase_rate_pt = None
+
+            # K rate on this pitch type = strikeouts ending on this pitch / PA ending on this pitch
+            pa_events_pt = group[group["events"].notna() & (group["events"] != "")]
+            k_events_pt = pa_events_pt[pa_events_pt["events"] == "strikeout"]
+            k_rate_pt = round(len(k_events_pt) / len(pa_events_pt) * 100, 1) if len(pa_events_pt) >= 10 else None
+
             pitch_stats[str(pt)] = {
                 "hr_count": len(hrs),
                 "xbh_count": len(xbh),
-                "run_factor": len(hrs) + len(xbh),  # primary proxy per brief
+                "run_factor": len(hrs) + len(xbh),
                 "slg": round(slg, 3),
                 "avg_launch_angle": round(avg_la, 1) if avg_la and not math.isnan(avg_la) else None,
                 "sample_pitches": len(group),
+                "whiff_rate": whiff_rate,       # % of swings that miss — key K signal
+                "k_rate": k_rate_pt,             # % of PAs ending in K on this pitch
+                "chase_rate": chase_rate_pt,     # % of outside pitches swung at
             }
+
+        # ── Global K / whiff stats ────────────────────────────────────────────
+        if "description" in df.columns:
+            swing_desc_g = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip",
+                            "hit_into_play", "hit_into_play_no_out", "hit_into_play_score"}
+            all_swings = df[df["description"].isin(swing_desc_g)]
+            all_whiffs = df[df["description"].isin({"swinging_strike", "swinging_strike_blocked"})]
+            overall_whiff_rate = round(len(all_whiffs) / len(all_swings) * 100, 1) if len(all_swings) >= 20 else None
+            # Overall K rate = strikeouts / total PA outcomes
+            pa_all = df[df["events"].notna() & (df["events"] != "")]
+            k_all = pa_all[pa_all["events"] == "strikeout"]
+            overall_k_rate = round(len(k_all) / len(pa_all) * 100, 1) if len(pa_all) >= 20 else None
+            # Chase rate overall
+            if "zone" in df.columns:
+                outside_all = df[df["zone"].isin([11, 12, 13, 14])]
+                chase_all = outside_all[outside_all["description"].isin(swing_desc_g)]
+                overall_chase_rate = round(len(chase_all) / len(outside_all) * 100, 1) if len(outside_all) >= 20 else None
+            else:
+                overall_chase_rate = None
+        else:
+            overall_whiff_rate = None
+            overall_k_rate = None
+            overall_chase_rate = None
 
         # Attach global stats to result
         pitch_stats["_meta"] = {
             "avg_ev": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
             "barrel_pct": round(barrel_pct, 1),
-            "contact_events": contact_events,  # gates the barrel hard fade in score_batter
+            "contact_events": contact_events,
             "hr_recent_14d": hr_recent,
-            "hr_rate_14d": hr_rate_14d,   # HR/PA rate — None if < 10 PA sample
+            "hr_rate_14d": hr_rate_14d,
             "pa_recent_14d": pa_recent,
             "pa_2026": pa_2026,
             "w26": round(w26, 2),
+            "k_rate": overall_k_rate,           # batter's overall K% — primary K signal
+            "whiff_rate": overall_whiff_rate,   # overall whiff rate — swing-and-miss tendency
+            "chase_rate": overall_chase_rate,   # chase rate — expands zone = more Ks
         }
 
         # Force hardcoded seed for players whose 2025 data is unreliable
@@ -744,10 +836,23 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
     # Normalize: 75=0, 100=0.5, 135=1.0
     park_score = min(max((pf - 75) / 60, 0), 1.0)
 
-    # 5. Platoon (10%)
+    # 5. Platoon (12%) — blended: traditional hand advantage + HRs allowed to this hand
+    # HRs allowed to this hand can override the matchup — 18+ HRs vs RHB beats a same-hand "disadvantage"
     p_throws = pitcher.get("throws", "R")
-    # Advantage if batter hand ≠ pitcher hand
-    platoon_score = 0.65 if batter_hand != p_throws else 0.35
+    hrs_vs_hand = arsenal.get("_hrs_vs_hand", None)
+
+    # Base platoon: advantage if batter hand ≠ pitcher hand
+    platoon_base = 0.65 if batter_hand != p_throws else 0.35
+
+    if hrs_vs_hand is not None:
+        # HR volume signal: 0 HRs = 0.0, 10 HRs = 0.50, 20+ HRs = 1.0
+        hr_vol_score = min(hrs_vs_hand / 20.0, 1.0)
+        # Blend: 60% traditional platoon, 40% HR volume vs this hand
+        # If pitcher has given up 18 HRs to RHBs, that 40% weight pushes score up
+        # regardless of whether batter is same or opposite hand
+        platoon_score = platoon_base * 0.60 + hr_vol_score * 0.40
+    else:
+        platoon_score = platoon_base
 
     # 6. Weather (5%)
     weather_score = min(max((weather.get("hr_multiplier", 1.0) - 0.85) / 0.30, 0), 1.0)
@@ -861,122 +966,158 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
 # ── K prop scoring model ──────────────────────────────────────────────────────
 
 K_WEIGHTS = {
-    "batter_k_rate":   0.35,  # batter's own K% — most stable predictor
-    "pitcher_k_rate":  0.35,  # pitcher's K/9 or K% — equally stable
-    "platoon":         0.15,  # same-hand matchups produce more Ks
-    "recent_form":     0.15,  # batter's K rate last 14 days
+    "batter_k_rate":    0.30,  # batter's actual K% — most stable
+    "batter_whiff":     0.20,  # batter's whiff rate — swing-and-miss tendency
+    "pitcher_k_rate":   0.25,  # pitcher's actual K% vs this hand
+    "k_collision":      0.15,  # pitch-type K collision — batter whiff × pitcher whiff on same pitch
+    "platoon":          0.10,  # same-hand = more Ks
 }
 
 def score_batter_k(batter, pitcher, arsenal, batter_stats):
     """
     Returns (score_0_100, components, insight, tier_05, tier_15)
-    tier_05 = HIGH/MED/LOW for over 0.5 Ks (any K)
-    tier_15 = HIGH/MED/LOW for over 1.5 Ks (multiple Ks)
+    Uses real Statcast K%, whiff rate, and pitch-type collision.
+    Falls back to proxy signals only when live data unavailable.
+    HIGH = genuine K prop edge (~top 15%), not just "everyone strikes out sometimes"
     """
     meta = batter_stats.get("_meta", {})
-
-    # 1. Batter K rate — derive from pitch stats
-    # Whiff rate proxy: pitches where event is strikeout / total PA events
-    total_pa = 0
-    total_k = 0
-    for pt, ps in batter_stats.items():
-        if pt.startswith("_"):
-            continue
-        sample = ps.get("sample_pitches", 0)
-        # hr_count, xbh, slg are in batter data but not K — we use sample size
-        # as proxy for PA exposure; actual K count not stored, so we use
-        # the absence of positive contact as a K signal via SLG inversion
-        total_pa += sample
-
-    # Use barrel_pct inversely — low barrel + low SLG = high K tendency
-    barrel_pct = meta.get("barrel_pct") or 5.0
-    avg_ev = meta.get("avg_ev") or 87.0
-
-    # K rate proxy: players with low barrel (<6%) and low EV (<87) K ~26%+
-    # Players with high barrel (>12%) and high EV (>92) K ~18-20%
-    # Normalize 15-32% K range to 0-1
-    k_rate_proxy = max(0, min(1, (28 - (barrel_pct * 0.8 + (avg_ev - 80) * 0.4)) / 20))
-    batter_k_score = k_rate_proxy
-
-    # 2. Pitcher K rate — weighted K% across arsenal
-    total_usage = 0
-    weighted_k = 0
-    pitcher_insights = []
     PITCH_NAMES_K = {
         "FF":"Four-seam", "SI":"Sinker", "FC":"Cutter", "CH":"Changeup",
         "SL":"Slider", "CU":"Curveball", "SW":"Sweeper", "FS":"Splitter",
         "ST":"Sweeper", "KC":"Knuckle curve", "KN":"Knuckleball",
     }
+
+    # ── 1. Batter K rate (30%) ────────────────────────────────────────────────
+    # Use real K% if available; fall back to barrel/EV proxy only if not
+    batter_k_pct = meta.get("k_rate")       # actual K% from Statcast
+    batter_whiff_pct = meta.get("whiff_rate")  # overall whiff rate
+
+    if batter_k_pct is not None:
+        # Normalize: 10% K = 0.0 (elite contact), 25% = 0.50 (average), 38%+ = 1.0 (high K)
+        batter_k_score = max(0.0, min(1.0, (batter_k_pct - 10.0) / 28.0))
+    else:
+        # Fallback proxy: low barrel + low EV = more Ks
+        barrel_pct = meta.get("barrel_pct") or 5.0
+        avg_ev = meta.get("avg_ev") or 87.0
+        contact_quality = (barrel_pct * 1.2 + (avg_ev - 80) * 0.8)
+        batter_k_score = max(0.05, min(0.85, 1.0 - contact_quality / 36.0))
+        batter_k_pct = None
+
+    # ── 2. Batter whiff rate (20%) ────────────────────────────────────────────
+    if batter_whiff_pct is not None:
+        # Normalize: 15% whiff = 0.0 (great contact), 25% = 0.50, 38%+ = 1.0 (big whiffer)
+        batter_whiff_score = max(0.0, min(1.0, (batter_whiff_pct - 15.0) / 23.0))
+    else:
+        batter_whiff_score = batter_k_score * 0.8  # proxy from K score if unavailable
+
+    # ── 3. Pitcher K rate vs this hand (25%) ─────────────────────────────────
+    pitcher_k_pct = arsenal.get("_pitcher_k_rate")    # actual K% from Statcast
+    pitcher_whiff_pct = arsenal.get("_pitcher_whiff_rate")
+
+    if pitcher_k_pct is not None:
+        # Normalize: 12% = 0.0 (contact pitcher), 22% = 0.50 (average), 35%+ = 1.0 (elite K)
+        pitcher_k_score = max(0.0, min(1.0, (pitcher_k_pct - 12.0) / 23.0))
+    else:
+        # Fallback: use HR/9 inversely as K proxy
+        overall_hr9 = arsenal.get("_overall_hr9") or 1.2
+        pitcher_k_score = max(0.10, min(0.85, (1.6 - overall_hr9) / 1.4))
+        pitcher_k_pct = None
+
+    # ── 4. Pitch-type K collision (15%) ───────────────────────────────────────
+    # The real money: pitcher's best K pitch × batter's whiff rate on that pitch
+    # e.g. Pitcher throws sweeper 30% with 45% whiff rate, batter whiffs on sweepers 40%
+    collision_score = 0.0
+    best_collision = 0.0
+    best_collision_insight = None
+
     for pt, pa in arsenal.items():
         if pt.startswith("_"):
             continue
+        bs = batter_stats.get(pt, {})
+        if not bs:
+            continue
         usage = pa.get("usage_pct", 0) / 100
-        hr_pct = pa.get("hr_pct") or 0
-        # Invert HR% as K proxy — pitches with low HR% tend to be swing-and-miss offerings
-        # Low HR% (<1%) = high K pitch; High HR% (>4%) = contact pitch
-        k_proxy_pt = max(0, 1.0 - min(hr_pct / 4.0, 1.0))
-        weighted_k += usage * k_proxy_pt
-        total_usage += usage
-        if usage > 0.20 and k_proxy_pt > 0.65:
+        p_whiff = pa.get("whiff_rate")       # pitcher's whiff rate on this pitch
+        b_whiff = bs.get("whiff_rate")        # batter's whiff rate on this pitch
+        b_k_rate_pt = bs.get("k_rate")        # batter's K rate on this pitch
+        sample = bs.get("sample_pitches", 0)
+
+        if sample < 15:
+            continue
+
+        # Score this pitch: usage × avg of pitcher and batter whiff signals
+        if p_whiff is not None and b_whiff is not None:
+            # Both real — use actual whiff collision
+            # Normalize: 20% whiff = low, 35% = avg, 50%+ = elite
+            p_w_norm = max(0, min(1.0, (p_whiff - 15.0) / 35.0))
+            b_w_norm = max(0, min(1.0, (b_whiff - 15.0) / 35.0))
+            pt_collision = usage * (p_w_norm * 0.6 + b_w_norm * 0.4)
+        elif b_k_rate_pt is not None:
+            # Use batter K rate on this pitch as proxy
+            pt_collision = usage * max(0, min(1.0, (b_k_rate_pt - 10.0) / 25.0)) * 0.7
+        else:
+            continue
+
+        collision_score += pt_collision
+        if pt_collision > best_collision:
+            best_collision = pt_collision
             pt_name = PITCH_NAMES_K.get(str(pt), str(pt))
-            pitcher_insights.append(f"{pt_name} ({round(usage*100)}% usage) — swing-and-miss offering")
+            p_whiff_str = f"{p_whiff:.0f}% pitcher whiff" if p_whiff else ""
+            b_whiff_str = f"{b_whiff:.0f}% batter whiff" if b_whiff else ""
+            stats_str = " · ".join(filter(None, [p_whiff_str, b_whiff_str]))
+            best_collision_insight = f"{pt_name} ({round(usage*100)}% usage): {stats_str}" if stats_str else f"{pt_name} ({round(usage*100)}% usage) — K collision"
 
-    pitcher_k_score = min(weighted_k / max(total_usage, 0.01), 1.0)
+    collision_score = min(collision_score, 1.0)
 
-    # Also use overall HR/9 inversely — low HR/9 = dominant pitcher = more Ks
-    overall_hr9 = arsenal.get("_overall_hr9") or 1.2
-    # <0.8 HR/9 = elite K pitcher; >1.5 = contact/HR pitcher
-    hr9_k_bonus = max(0, min(1, (1.5 - overall_hr9) / 1.0))
-    pitcher_k_score = pitcher_k_score * 0.6 + hr9_k_bonus * 0.4
-
-    # 3. Platoon — same-hand matchups generate more Ks
+    # ── 5. Platoon (10%) ──────────────────────────────────────────────────────
     b_hand = batter.get("bats", "R")
     p_throws = pitcher.get("throws", "R")
-    platoon_score = 0.70 if b_hand == p_throws else 0.35  # same hand = more Ks
+    platoon_score = 0.65 if b_hand == p_throws else 0.40
 
-    # 4. Recent form — use hr_rate_14d inversely (low HR rate recently = more cold/K prone)
-    hr_rate = meta.get("hr_rate_14d")
-    hr_recent = meta.get("hr_recent_14d") or 0
-    if hr_rate is not None:
-        # 0% HR/PA = max K form score; 10%+ HR/PA = min (they're hitting well)
-        form_score = max(0, 1.0 - hr_rate / 0.08)
-    else:
-        form_score = 0.5  # neutral if no data
-
-    # Weighted total
+    # ── Weighted total ────────────────────────────────────────────────────────
     raw = (
         K_WEIGHTS["batter_k_rate"]  * batter_k_score +
+        K_WEIGHTS["batter_whiff"]   * batter_whiff_score +
         K_WEIGHTS["pitcher_k_rate"] * pitcher_k_score +
-        K_WEIGHTS["platoon"]        * platoon_score +
-        K_WEIGHTS["recent_form"]    * form_score
+        K_WEIGHTS["k_collision"]    * collision_score +
+        K_WEIGHTS["platoon"]        * platoon_score
     )
     score = round(raw * 100)
 
     components = {
         "batter_k_rate":  round(batter_k_score * 100),
+        "batter_whiff":   round(batter_whiff_score * 100),
         "pitcher_k_rate": round(pitcher_k_score * 100),
+        "k_collision":    round(collision_score * 100),
         "platoon":        round(platoon_score * 100),
-        "recent_form":    round(form_score * 100),
     }
 
-    insight = pitcher_insights[0] if pitcher_insights else "Pitcher K profile based on arsenal mix"
+    # Build insight — prefer real collision, fall back to pitcher-level signal
+    if best_collision_insight:
+        insight = best_collision_insight
+    elif pitcher_k_pct is not None:
+        insight = f"Pitcher K% {pitcher_k_pct:.1f}% vs {b_hand}HB"
+    else:
+        overall_hr9 = arsenal.get("_overall_hr9") or 1.2
+        insight = f"Pitcher HR/9 {overall_hr9:.2f} — {'miss-bat profile' if overall_hr9 < 0.9 else 'contact-oriented' if overall_hr9 > 1.4 else 'neutral'}"
 
-    # Tier for 0.5 Ks (any K) — easier bar, lower threshold
-    if score >= 62:
+    # ── Tiers ─────────────────────────────────────────────────────────────────
+    # With real data, expected range: weak matchup 20-35, average 35-52, strong 52-68, elite 68+
+    if score >= 65:
         tier_05 = "HIGH"
-    elif score >= 42:
+    elif score >= 48:
         tier_05 = "MED"
-    elif score >= 25:
+    elif score >= 32:
         tier_05 = "LOW"
     else:
         tier_05 = "FADE"
 
-    # Tier for 1.5 Ks (multiple Ks) — harder bar, higher threshold required
-    if score >= 72:
+    # 1.5 Ks needs elite matchup on both sides
+    if score >= 74:
         tier_15 = "HIGH"
-    elif score >= 54:
+    elif score >= 58:
         tier_15 = "MED"
-    elif score >= 38:
+    elif score >= 44:
         tier_15 = "LOW"
     else:
         tier_15 = "FADE"
@@ -1274,6 +1415,7 @@ def run():
                         "lineup_confirmed": lineup_confirmed,
                         "batter_meta": batter_stats.get("_meta", {}),
                         "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
+                        "pitcher_hrs_vs_hand": arsenal.get("_hrs_vs_hand", None),
                         "pitch_matrix": {
                             pt: {**batter_stats.get(pt, {}), **{
                                 "pitcher_usage": arsenal.get(pt, {}).get("usage_pct"),

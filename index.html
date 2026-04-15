@@ -230,7 +230,7 @@
 
   @media (max-width: 600px) {
     .k-summary { grid-template-columns: repeat(2, 1fr); }
-  } */
+  }
   .wrigley-alert { display:none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.30); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--prime); align-items: center; gap: 10px; }
   .wrigley-alert.show { display: flex; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
@@ -742,6 +742,12 @@ function batterCard(t, idx) {
     :wl.includes('IN')?`<span class="badge badge-suppress">${wl}</span>`
     :`<span class="badge badge-wind">${wl}</span>`):'';
   const platoonBadge = t.batter_hand!==t.pitcher_throws?`<span class="badge badge-boost">Platoon ✓</span>`:'';
+  const hrsVsHand = t.pitcher_hrs_vs_hand;
+  const hrsVsBadge = hrsVsHand != null && hrsVsHand >= 8
+    ? `<span class="badge badge-boost" title="${hrsVsHand} HRs allowed to ${t.batter_hand}HB this season">${hrsVsHand} HR vs ${t.batter_hand}HB</span>`
+    : hrsVsHand != null && hrsVsHand <= 3
+    ? `<span class="badge badge-suppress" title="Only ${hrsVsHand} HRs allowed to ${t.batter_hand}HB">${hrsVsHand} HR vs ${t.batter_hand}HB</span>`
+    : '';
   const formBadge = (meta.hr_recent_14d||0)>=2?`<span class="badge badge-boost">${meta.hr_recent_14d} HR L14D</span>`:'';
   // Only show when lineup is explicitly unconfirmed — confirmed is the expected state
   const lineupBadge = t.lineup_confirmed===false
@@ -809,7 +815,7 @@ function batterCard(t, idx) {
       <div class="card-info">
         <div class="batter-name">${t.batter_name}${laserIds.has(t.batter_name)?` <span title="Laser prop candidate — elite EV + barrel profile" style="color:#fbbf24;font-size:13px">⚡</span>`:''}</div>
         <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue||t.game}</div>
-        <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${formBadge}${lineupBadge}</div>
+        <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${hrsVsBadge}${formBadge}${lineupBadge}</div>
       </div>
       <div class="mylist-check ${isInList?'checked':''}" data-id="${t.batter_id}" onclick="toggleMyList(${t.batter_id},event)" title="Add to My List">${isInList?'✓':''}</div>
       <div class="expand-icon">▾</div>
@@ -892,12 +898,18 @@ function setKThreshold(thresh, btn) {
 }
 
 const K_COMP_LABELS = {
-  batter_k_rate: 'Batter K Rate', pitcher_k_rate: 'Pitcher K Rate',
-  platoon: 'Platoon', recent_form: 'L14D Form',
+  batter_k_rate:  'Batter K%',
+  batter_whiff:   'Batter Whiff',
+  pitcher_k_rate: 'Pitcher K%',
+  k_collision:    'K Collision',
+  platoon:        'Platoon',
 };
 const K_COMP_COLORS = {
-  batter_k_rate: '#ef4444', pitcher_k_rate: '#3b82f6',
-  platoon: '#a78bfa', recent_form: '#fb923c',
+  batter_k_rate:  '#ef4444',
+  batter_whiff:   '#f97316',
+  pitcher_k_rate: '#3b82f6',
+  k_collision:    '#a78bfa',
+  platoon:        '#22c55e',
 };
 
 function renderKSummary(data) {
@@ -953,17 +965,42 @@ function kCard(t, idx, tierKey) {
   const lineupBadge = t.lineup_confirmed === false
     ? `<span class="badge badge-neutral">Projected</span>` : '';
 
+  // Component bars — scale each independently to its own meaningful range
+  // batter_k_rate: 0-100 (already normalized), pitcher_k_rate: 0-100
+  // platoon: either 35 or 65 — show as binary lean
+  // recent_form: 20-80 range
   const compBars = Object.entries(t.components || {}).map(([k, v]) => {
     const c = K_COMP_COLORS[k] || '#666';
+    // Each bar fills relative to its own ceiling so differences are visible
+    const barPct = Math.min(v, 100);
     return `<div class="comp-item">
       <div class="comp-label">${K_COMP_LABELS[k] || k}</div>
-      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${c}"></div></div>
+      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${barPct}%;background:${c}"></div></div>
       <div class="comp-value" style="color:${c}">${v}</div>
     </div>`;
   }).join('');
 
   const tier15 = t.tier_15 || 'FADE';
   const tier05 = t.tier_05 || 'FADE';
+
+  // K-relevant meta stats
+  const hr9 = t.pitcher_overall_hr9;
+  const pitcherKRate = t.pitcher_k_rate_display; // passed from pipeline if available
+  const hr9Label = hr9 != null
+    ? (hr9 < 0.8 ? `${hr9.toFixed(2)} ★ K pitcher` : hr9 > 1.4 ? `${hr9.toFixed(2)} contact` : hr9.toFixed(2))
+    : null;
+  const bKRate = meta.k_rate != null ? meta.k_rate : null;
+  const bWhiff = meta.whiff_rate != null ? meta.whiff_rate : null;
+  const bChase = meta.chase_rate != null ? meta.chase_rate : null;
+  const barrelPct = meta.barrel_pct != null ? meta.barrel_pct : null;
+
+  const kRateLabel = bKRate != null
+    ? (bKRate >= 30 ? `${bKRate}% ↑K` : bKRate <= 15 ? `${bKRate}% ↓K` : `${bKRate}%`)
+    : null;
+  const whiffLabel = bWhiff != null
+    ? (bWhiff >= 30 ? `${bWhiff}% ↑K` : bWhiff <= 18 ? `${bWhiff}% ↓K` : `${bWhiff}%`)
+    : null;
+  const chaseLabel = bChase != null ? `${bChase}%` : null;
 
   return `<div class="k-card" id="kcard-${idx}">
     <div class="k-card-header" onclick="toggleKCard('${idx}')">
@@ -984,12 +1021,13 @@ function kCard(t, idx, tierKey) {
         <span class="k-chip ${tier05}">Over 0.5 Ks — ${tier05}</span>
         <span class="k-chip ${tier15}">Over 1.5 Ks — ${tier15}</span>
       </div>
-      ${t.pitcher_overall_hr9 != null ? `<div class="meta-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-        <div class="meta-item"><div class="mk">Pitcher HR/9</div><div class="mv">${t.pitcher_overall_hr9.toFixed(2)}</div></div>
-        ${meta.avg_ev ? `<div class="meta-item"><div class="mk">Batter EV</div><div class="mv">${meta.avg_ev} mph</div></div>` : ''}
-        ${meta.barrel_pct != null ? `<div class="meta-item"><div class="mk">Barrel%</div><div class="mv">${meta.barrel_pct}%</div></div>` : ''}
+      <div class="meta-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        ${kRateLabel ? `<div class="meta-item"><div class="mk">Batter K%</div><div class="mv">${kRateLabel}</div></div>` : ''}
+        ${whiffLabel ? `<div class="meta-item"><div class="mk">Whiff Rate</div><div class="mv">${whiffLabel}</div></div>` : ''}
+        ${chaseLabel ? `<div class="meta-item"><div class="mk">Chase Rate</div><div class="mv">${chaseLabel}</div></div>` : ''}
+        ${hr9Label ? `<div class="meta-item"><div class="mk">Pitcher HR/9</div><div class="mv">${hr9Label}</div></div>` : ''}
         ${meta.pa_2026 ? `<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${meta.pa_2026}</div></div>` : ''}
-      </div>` : ''}
+      </div>
     </div>
   </div>`;
 }
