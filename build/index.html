@@ -1165,17 +1165,20 @@ function glCard(g, idx) {
     if (era == null) return '';
     return era <= 3.00 ? 'good' : era >= 5.00 ? 'bad' : '';
   }
-  function pitcherBox(name, era, k9, hr9, side) {
+  function pitcherBox(name, era, k9, hr9, side, ip) {
     const eraStr = era != null ? era.toFixed(2) : '—';
     const k9Str = k9 != null ? k9.toFixed(1) : '—';
     const hr9Str = hr9 != null ? hr9.toFixed(2) : '—';
+    const ipStr = ip != null ? `${ip} IP` : '';
+    const eraNote = era == null ? ' <span style="color:var(--text3);font-size:10px">(using league avg)</span>' : '';
     return `<div class="gl-pitcher-box">
       <div class="gl-section-label">${side} Starter</div>
-      <div class="gl-pitcher-name">${name}</div>
+      <div class="gl-pitcher-name">${name}${eraNote}</div>
       <div class="gl-pitcher-stats">
         <div class="gl-stat"><div class="sk">ERA</div><div class="sv ${eraColor(era)}">${eraStr}</div></div>
         <div class="gl-stat"><div class="sk">K/9</div><div class="sv">${k9Str}</div></div>
         <div class="gl-stat"><div class="sk">HR/9</div><div class="sv ${hr9 >= 1.8 ? 'bad' : hr9 <= 0.8 ? 'good' : ''}">${hr9Str}</div></div>
+        ${ipStr ? `<div class="gl-stat"><div class="sk">2026 IP</div><div class="sv" style="color:var(--text3)">${ipStr}</div></div>` : ''}
       </div>
     </div>`;
   }
@@ -1225,8 +1228,8 @@ function glCard(g, idx) {
     </div>
     <div class="gl-card-detail">
       <div class="gl-pitchers">
-        ${pitcherBox(g.away_pitcher, g.away_pitcher_era, g.away_pitcher_k9, g.away_pitcher_hr9, 'Away')}
-        ${pitcherBox(g.home_pitcher, g.home_pitcher_era, g.home_pitcher_k9, g.home_pitcher_hr9, 'Home')}
+        ${pitcherBox(g.away_pitcher, g.away_pitcher_era, g.away_pitcher_k9, g.away_pitcher_hr9, 'Away', g.away_pitcher_ip)}
+        ${pitcherBox(g.home_pitcher, g.home_pitcher_era, g.home_pitcher_k9, g.home_pitcher_hr9, 'Home', g.home_pitcher_ip)}
       </div>
 
       <div class="gl-section-label">Projected Total</div>

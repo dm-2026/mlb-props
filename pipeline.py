@@ -1403,11 +1403,15 @@ def get_team_season_stats():
             if not abbr: continue
             s = rec.get("stat", {})
             gp = float(s.get("gamesPlayed", 1) or 1)
+            # Gate: need at least 5 games for meaningful team offense stats
+            if gp < 5:
+                continue
             team_stats.setdefault(abbr, {})
             team_stats[abbr].update({
                 "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
                 "ops":           float(s.get("ops", 0.720) or 0.720),
                 "hr_per_game":   round(float(s.get("homeRuns", 0) or 0) / gp, 2),
+                "games_played":  int(gp),
             })
     except Exception as e:
         log.error(f"Team hitting stats failed: {e}")
@@ -1418,33 +1422,41 @@ def get_team_season_stats():
 
 def get_pitcher_season_line(pitcher_id, pitcher_name):
     """
-    Fetch a pitcher's season ERA, WHIP, runs allowed per 9, HR/9 from MLB Stats API.
-    Returns dict or None.
+    Fetch a pitcher's 2026 season stats from MLB Stats API.
+    2026 ONLY — no prior season fallback (stale data misleads the model).
+    Returns None if fewer than 15 IP (too small to trust).
     """
-    season = TODAY.year
+    season = TODAY.year  # 2026
     url = f"https://statsapi.mlb.com/api/v1/people/{pitcher_id}/stats?stats=season&season={season}&group=pitching&sportId=1"
     try:
         r = requests.get(url, timeout=15)
         splits = r.json().get("stats", [{}])[0].get("splits", [])
         if not splits:
-            # Try previous season as fallback
-            url2 = f"https://statsapi.mlb.com/api/v1/people/{pitcher_id}/stats?stats=season&season={season-1}&group=pitching&sportId=1"
-            r2 = requests.get(url2, timeout=15)
-            splits = r2.json().get("stats", [{}])[0].get("splits", [])
-        if not splits:
+            log.info(f"  {pitcher_name}: no {season} stats — skipping (model will use league avg)")
             return None
         s = splits[0].get("stat", {})
-        ip = float(s.get("inningsPitched", 1) or 1)
+        ip = float(s.get("inningsPitched", 0) or 0)
+
+        # Minimum IP gate — early season small samples are too noisy
+        # 15 IP ≈ 3 starts, enough to have a meaningful ERA signal
+        MIN_IP = 15.0
+        if ip < MIN_IP:
+            log.info(f"  {pitcher_name}: only {ip} IP in {season} — below {MIN_IP} IP threshold, using league avg")
+            return None
+
+        era = float(s.get("era", 4.50) or 4.50)
+        log.info(f"  {pitcher_name}: {season} ERA {era} over {ip} IP")
         return {
-            "era":         float(s.get("era", 4.50) or 4.50),
-            "whip":        float(s.get("whip", 1.35) or 1.35),
-            "ip":          ip,
-            "k9":          float(s.get("strikeoutsPer9Inn", 8.0) or 8.0),
-            "hr9":         float(s.get("homeRunsPer9", 1.2) or 1.2),
-            "runs_per_9":  round(float(s.get("earnedRuns", 0) or 0) / max(ip, 1) * 9, 2),
-            "hits_per_9":  float(s.get("hitsPer9Inn", 8.5) or 8.5),
-            "bb9":         float(s.get("walksPer9Inn", 3.0) or 3.0),
-            "games":       int(s.get("gamesStarted", s.get("gamesPitched", 1)) or 1),
+            "era":        era,
+            "whip":       float(s.get("whip", 1.35) or 1.35),
+            "ip":         ip,
+            "k9":         float(s.get("strikeoutsPer9Inn", 8.0) or 8.0),
+            "hr9":        float(s.get("homeRunsPer9", 0) or 0),
+            "runs_per_9": round(float(s.get("earnedRuns", 0) or 0) / max(ip, 1) * 9, 2),
+            "hits_per_9": float(s.get("hitsPer9Inn", 8.5) or 8.5),
+            "bb9":        float(s.get("walksPer9Inn", 3.0) or 3.0),
+            "games":      int(s.get("gamesStarted", s.get("gamesPitched", 1)) or 1),
+            "season":     season,
         }
     except Exception as e:
         log.error(f"Pitcher season stats failed for {pitcher_name}: {e}")
@@ -1629,6 +1641,8 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "home_pitcher_k9": home_pitcher_line.get("k9") if home_pitcher_line else None,
         "away_pitcher_hr9": away_pitcher_line.get("hr9") if away_pitcher_line else None,
         "home_pitcher_hr9": home_pitcher_line.get("hr9") if home_pitcher_line else None,
+        "away_pitcher_ip": away_pitcher_line.get("ip") if away_pitcher_line else None,
+        "home_pitcher_ip": home_pitcher_line.get("ip") if home_pitcher_line else None,
         "projected_total": projected_total,
         "away_runs": away_runs,
         "home_runs": home_runs,
