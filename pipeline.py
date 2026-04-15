@@ -49,11 +49,11 @@ SEASON_START_2025 = datetime.date(2025, 3, 20)
 
 # ── Scoring weights (from brief) ──────────────────────────────────────────────
 WEIGHTS = {
-    "ev_barrel":        0.25,
+    "ev_barrel":        0.20,  # reduced from 0.25 to fund collision bump
     "pitcher_vuln":     0.20,
-    "pitch_collision":  0.20,
-    "park_factor":      0.13,  # reduced from 0.15 to fund platoon bump
-    "platoon":          0.12,  # bumped from 0.10 — strong HR predictor
+    "pitch_collision":  0.25,  # bumped from 0.20 — HR Dist now wired in; strongest signal
+    "park_factor":      0.13,
+    "platoon":          0.12,
     "weather":          0.05,
     "recent_form":      0.05,
 }
@@ -700,7 +700,10 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
             )
     pitcher_vuln_score = min(pitcher_vuln_score, 1.0)
 
-    # 3. Pitch collision (20%) — batter damage × pitcher usage on that pitch
+    # 3. Pitch collision (25%) — usage x HR distribution x batter damage
+    # All three signals must align: pitcher throws it often (usage),
+    # pitcher gives up HRs on it specifically (hr_dist_pct), batter crushes it (slg + hr_norm).
+    # hr_dist_pct normalized to [0,1] using 50% as the elite ceiling.
     collision_score = 0.0
     collision_insights = []
     for pt, pa in arsenal.items():
@@ -710,20 +713,27 @@ def score_batter(batter, pitcher, arsenal, batter_stats, park_factor, weather):
         if not bs:
             continue
         usage = pa.get("usage_pct", 0) / 100
-        run_factor = bs.get("run_factor", 0)
+        hr_dist = pa.get("hr_dist_pct")
         slg = bs.get("slg", 0)
         sample = bs.get("sample_pitches", 0)
         if sample < 20:
             continue
-        slg_norm = min(slg / 0.900, 1.0)   # 0.900 SLG = max; stretches curve without hard-capping elite matchups
-        # run_factor (hr_count + xbh_count) adds a small HR-count bonus on top of SLG
-        hr_norm = min(bs.get("hr_count", 0) / 8, 1.0)   # 8 HRs on pitch type = max (more attainable elite threshold)
-        pt_score = usage * (slg_norm * 0.85 + hr_norm * 0.15)
+        slg_norm = min(slg / 0.900, 1.0)
+        hr_norm = min(bs.get("hr_count", 0) / 8, 1.0)
+        batter_damage = slg_norm * 0.80 + hr_norm * 0.20
+
+        if hr_dist is not None:
+            hr_dist_norm = min(hr_dist / 50.0, 1.0)
+            pt_score = usage * hr_dist_norm * batter_damage
+        else:
+            # hr_dist unavailable (hardcoded seed / thin sample) — two-way fallback
+            pt_score = usage * batter_damage * 0.70
         collision_score += pt_score
         if usage > 0.25 and slg > 0.500:
             pt_name = PITCH_NAMES.get(str(pt), str(pt))
+            hr_dist_str = f", {hr_dist}% of pitcher HRs" if hr_dist is not None else ""
             collision_insights.append(
-                f"{pt_name} ({round(usage*100)}% usage): {slg:.3f} SLG"
+                f"{pt_name} ({round(usage*100)}% usage{hr_dist_str}): {slg:.3f} SLG"
             )
     collision_score = min(collision_score, 1.0)
 
