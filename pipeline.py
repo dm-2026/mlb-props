@@ -1785,13 +1785,27 @@ ODDS_TEAM_MAP = {
 # MLB Stats API team ID → abbreviation
 MLB_TEAM_ID_MAP = {}  # populated lazily
 
+ODDS_CACHE_FILE = DATA_DIR / "odds_cache.json"
+
 def get_mlb_odds():
     """
     Fetch today's MLB moneylines and totals from The Odds API.
-    Returns dict keyed by frozenset of {away_abbrev, home_abbrev}:
-      {away, home, away_ml, home_ml, total_line, total_over_odds, total_under_odds,
-       away_implied, home_implied, bookmaker}
+    Cached to data/odds_cache.json — only fetches once per day.
+    Manual re-runs reuse the cached odds so lines don't shift mid-day.
+    Filters out junk lines (totals outside 5-14, ML odds beyond ±900).
     """
+    # ── Check cache ───────────────────────────────────────────────────────────
+    today_str = TODAY.isoformat()
+    if ODDS_CACHE_FILE.exists():
+        try:
+            cached = json.loads(ODDS_CACHE_FILE.read_text())
+            if cached.get("date") == today_str and cached.get("odds"):
+                log.info(f"Odds cache hit for {today_str} — {len(cached['odds'])} games, skipping API call")
+                return cached["odds"]
+        except Exception:
+            pass  # corrupt cache — fall through to fetch
+
+    # ── Fetch from API ────────────────────────────────────────────────────────
     url = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/"
     params = {
         "apiKey": ODDS_API_KEY,
@@ -1806,6 +1820,14 @@ def get_mlb_odds():
         games = r.json()
     except Exception as e:
         log.error(f"Odds API fetch failed: {e}")
+        # Return stale cache if available rather than nothing
+        if ODDS_CACHE_FILE.exists():
+            try:
+                cached = json.loads(ODDS_CACHE_FILE.read_text())
+                log.warning("Using stale odds cache as fallback")
+                return cached.get("odds", {})
+            except Exception:
+                pass
         return {}
 
     result = {}
@@ -1824,7 +1846,7 @@ def get_mlb_odds():
         # Prefer DraftKings, then FanDuel, then first available
         bookmakers = g.get("bookmakers", [])
         priority = ["draftkings", "fanduel", "betmgm", "caesars"]
-        def bk_rank(b): 
+        def bk_rank(b):
             k = b.get("key", "")
             return priority.index(k) if k in priority else 99
         bookmakers_sorted = sorted(bookmakers, key=bk_rank)
@@ -1854,6 +1876,20 @@ def get_mlb_odds():
         if away_ml is None and home_ml is None:
             continue
 
+        # ── Filter junk lines ─────────────────────────────────────────────────
+        # Total outside 5.0-14.0 = alternate/futures line, not game total
+        if total_line is not None and not (5.0 <= total_line <= 14.0):
+            log.warning(f"  {away_abbr}@{home_abbr}: ignoring junk total {total_line}")
+            total_line = total_over_odds = total_under_odds = None
+
+        # ML odds beyond ±900 = massive mismatch or data error, ignore
+        if away_ml is not None and abs(away_ml) > 900:
+            log.warning(f"  {away_abbr}@{home_abbr}: ignoring extreme away ML {away_ml}")
+            away_ml = None
+        if home_ml is not None and abs(home_ml) > 900:
+            log.warning(f"  {away_abbr}@{home_abbr}: ignoring extreme home ML {home_ml}")
+            home_ml = None
+
         def ml_to_implied(ml):
             if ml is None: return None
             if ml > 0: return round(100 / (ml + 100) * 100, 1)
@@ -1871,7 +1907,18 @@ def get_mlb_odds():
             "bookmaker": bookmaker_used,
         }
 
-    log.info(f"Odds API: {len(result)} MLB games with lines")
+    log.info(f"Odds API: {len(result)} MLB games with lines — saving to cache")
+
+    # ── Save to daily cache ───────────────────────────────────────────────────
+    try:
+        ODDS_CACHE_FILE.write_text(json.dumps({
+            "date": today_str,
+            "fetched_at": datetime.datetime.now().isoformat(),
+            "odds": result,
+        }, indent=2))
+    except Exception as e:
+        log.error(f"Failed to write odds cache: {e}")
+
     return result
 
 
