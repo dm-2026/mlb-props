@@ -1195,9 +1195,9 @@ function glCard(g, idx) {
   }
   if (ml) {
     const oddsStr = ml.ml_odds ? ` (${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds})` : '';
-    // Always show the favorite as the primary chip
-    chips += `<span class="gl-chip ml-home">${ml.team} ${ml.model_prob}%${oddsStr} — Favorite</span>`;
-    // If underdog has value angle, show as secondary chip
+    const isFav = ml.ml_odds != null && ml.ml_odds < 0;
+    const label = isFav ? 'Favorite' : 'Model Lean';
+    chips += `<span class="gl-chip ml-home">${ml.team}${oddsStr} — ${label}</span>`;
     if (ml.dog_value) {
       const dogOddsStr = ml.dog_odds ? ` (${ml.dog_odds > 0 ? '+' : ''}${ml.dog_odds})` : '';
       chips += `<span class="gl-chip neutral" style="font-size:10px">${ml.dog_team} value angle${dogOddsStr} +${ml.dog_edge}%</span>`;
@@ -1228,19 +1228,11 @@ function glCard(g, idx) {
     </div>`;
   }
 
-  // Win prob bar
-  const awayPct = g.away_win_prob || 50;
-  const homePct = g.home_win_prob || 50;
-
-  // Implied odds display
-  let impliedStr = '';
-  if (g.odds_available && te) {
-    impliedStr = `<div class="gl-implied-row">
-      <span>${g.away_team} ${te ? '' : ''}</span>
-      <span>O/U Line: ${te?.line ?? '—'} · Proj: ${g.projected_total}</span>
-      <span>${g.home_team}</span>
-    </div>`;
-  }
+  // Win prob — model vs market
+  const awayPct  = g.away_win_prob  || 50;
+  const homePct  = g.home_win_prob  || 50;
+  const awayImpl = g.away_implied   || null;
+  const homeImpl = g.home_implied   || null;
 
   // Factors list
   const factorsHtml = (g.factors || []).map(f =>
@@ -1251,17 +1243,19 @@ function glCard(g, idx) {
   let mlHtml = '';
   if (ml) {
     const oddsStr = ml.ml_odds != null ? `${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds}` : 'N/A';
+    const isFav = ml.ml_odds != null && ml.ml_odds < 0;
     mlHtml = `<div class="gl-edge-detail" style="margin-bottom:10px">
       <div class="gl-section-label">Money Line</div>
-      <div style="font-family:var(--mono);font-size:13px;color:var(--med);margin-bottom:6px">
-        ✓ ${ml.team} — Model ${ml.model_prob}% vs Market ${ml.implied_prob}% implied
-        ${ml.confidence !== 'NONE' ? `<span style="color:var(--prime);margin-left:8px">${ml.edge > 0 ? '+' : ''}${ml.edge}% edge (${ml.confidence})</span>` : ''}
+      <div style="font-family:var(--mono);font-size:13px;color:var(--med);margin-bottom:8px">
+        ${isFav ? '✓ Favorite' : '⚡ Model Lean'}: ${ml.team} (${oddsStr})
+        ${ml.confidence !== 'NONE' ? `<span style="color:var(--prime);margin-left:8px">+${ml.edge}% edge (${ml.confidence})</span>` : ''}
       </div>
-      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:${ml.dog_value ? '8px' : '0'}">
-        Odds: ${oddsStr}
+      <div style="display:flex;gap:24px;font-family:var(--mono);font-size:11px;margin-bottom:${ml.dog_value ? '8px' : '0'}">
+        <span><span style="color:var(--text3)">Model:</span> <span style="color:var(--text)">${ml.model_prob}%</span></span>
+        <span><span style="color:var(--text3)">Market implied:</span> <span style="color:var(--text)">${ml.implied_prob}%</span></span>
       </div>
       ${ml.dog_value ? `<div style="font-size:11px;color:var(--text2);font-family:var(--mono);padding-top:8px;border-top:1px solid var(--border)">
-        Value angle: ${ml.dog_team} at ${ml.dog_odds > 0 ? '+' : ''}${ml.dog_odds} — model gives ${ml.dog_prob}% vs ${ml.dog_implied}% implied (+${ml.dog_edge}%)
+        Value angle: ${ml.dog_team} (${ml.dog_odds > 0 ? '+' : ''}${ml.dog_odds}) — Model ${ml.dog_prob}% vs Market ${ml.dog_implied}% (+${ml.dog_edge}%)
       </div>` : ''}
     </div>`;
   }
@@ -1293,14 +1287,16 @@ function glCard(g, idx) {
 
       <div class="gl-section-label">Win Probability</div>
       <div class="gl-edge-detail">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">Model</div>
         <div class="gl-prob-row">
           <div class="gl-prob-away" style="width:${awayPct}%">${g.away_team} ${awayPct}%</div>
           <div class="gl-prob-home" style="width:${homePct}%">${homePct}% ${g.home_team}</div>
         </div>
-        ${g.odds_available ? `<div class="gl-implied-row">
-          <span>Implied: ${g.away_team} ${te ? (100 - (g.home_win_prob || 50)).toFixed(0) : '—'}%</span>
-          <span style="color:var(--text3)">vs</span>
-          <span>Implied: ${g.home_team} ${g.home_win_prob?.toFixed(0) || '—'}%</span>
+        ${awayImpl != null ? `
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin:8px 0 5px">Market Implied</div>
+        <div class="gl-prob-row" style="opacity:0.6">
+          <div class="gl-prob-away" style="width:${awayImpl}%">${g.away_team} ${awayImpl}%</div>
+          <div class="gl-prob-home" style="width:${homeImpl}%">${homeImpl}% ${g.home_team}</div>
         </div>` : ''}
       </div>
 

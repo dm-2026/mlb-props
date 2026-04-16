@@ -1948,6 +1948,8 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "home_runs": home_runs,
         "away_win_prob": away_win_prob,
         "home_win_prob": home_win_prob,
+        "away_implied": odds.get("away_implied") if odds else None,
+        "home_implied": odds.get("home_implied") if odds else None,
         "total_edge": total_edge,
         "ml_edge": ml_edge,
         "park_factor": pf,
@@ -1955,7 +1957,7 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "weather_label": weather.get("wind_label", ""),
         "weather_temp": weather.get("temp_f", 72),
         "hr_multiplier": weather.get("hr_multiplier", 1.0),
-        "factors": factors[:5],  # top 5 most impactful
+        "factors": factors[:5],
         "odds_available": odds is not None,
     }
 
