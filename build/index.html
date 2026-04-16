@@ -1274,6 +1274,24 @@ function glCard(g, idx) {
         ${pitcherBox(g.away_pitcher, g.away_pitcher_era, g.away_pitcher_k9, g.away_pitcher_hr9, 'Away', g.away_pitcher_ip)}
         ${pitcherBox(g.home_pitcher, g.home_pitcher_era, g.home_pitcher_k9, g.home_pitcher_hr9, 'Home', g.home_pitcher_ip)}
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--surface2);border-radius:6px;padding:8px 12px">
+          <div class="gl-section-label" style="margin-bottom:5px">${g.away_team} Offense vs ${g.home_pitcher ? g.home_pitcher.split(' ').pop() : '?'}HP</div>
+          <div style="display:flex;gap:12px;font-family:var(--mono);font-size:12px">
+            ${g.away_rpg != null ? `<span><span style="color:var(--text3)">R/G</span> <span style="color:${g.away_rpg >= 5.0 ? 'var(--prime)' : g.away_rpg <= 3.5 ? 'var(--fade)' : 'var(--text)'}">${g.away_rpg}</span></span>` : ''}
+            ${g.away_ops != null ? `<span><span style="color:var(--text3)">OPS</span> <span style="color:${g.away_ops >= 0.780 ? 'var(--prime)' : g.away_ops <= 0.660 ? 'var(--fade)' : 'var(--text)'}">${g.away_ops.toFixed(3)}</span></span>` : ''}
+            ${g.away_offense_src === 'splits' ? `<span style="color:var(--text3);font-size:10px">split</span>` : g.away_offense_src === 'default' ? `<span style="color:var(--fade);font-size:10px">avg</span>` : ''}
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:6px;padding:8px 12px">
+          <div class="gl-section-label" style="margin-bottom:5px">${g.home_team} Offense vs ${g.away_pitcher ? g.away_pitcher.split(' ').pop() : '?'}HP</div>
+          <div style="display:flex;gap:12px;font-family:var(--mono);font-size:12px">
+            ${g.home_rpg != null ? `<span><span style="color:var(--text3)">R/G</span> <span style="color:${g.home_rpg >= 5.0 ? 'var(--prime)' : g.home_rpg <= 3.5 ? 'var(--fade)' : 'var(--text)'}">${g.home_rpg}</span></span>` : ''}
+            ${g.home_ops != null ? `<span><span style="color:var(--text3)">OPS</span> <span style="color:${g.home_ops >= 0.780 ? 'var(--prime)' : g.home_ops <= 0.660 ? 'var(--fade)' : 'var(--text)'}">${g.home_ops.toFixed(3)}</span></span>` : ''}
+            ${g.home_offense_src === 'splits' ? `<span style="color:var(--text3);font-size:10px">split</span>` : g.home_offense_src === 'default' ? `<span style="color:var(--fade);font-size:10px">avg</span>` : ''}
+          </div>
+        </div>
+      </div>
 
       <div class="gl-section-label">Projected Total</div>
       <div class="gl-total-row">

@@ -1687,6 +1687,63 @@ def get_team_season_stats():
     return team_stats
 
 
+def get_team_batting_splits():
+    """
+    Fetch team batting stats split by pitcher handedness (vs LHP / vs RHP).
+    Returns dict: {team_abbr: {"vs_LHP": {ops, runs_per_pa, ...}, "vs_RHP": {...}}}
+    Used to adjust run expectation based on opposing starter's throwing hand.
+    """
+    season = TODAY.year
+
+    # Get team ID → abbrev mapping (reuse same endpoint)
+    try:
+        r = requests.get(f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={season}", timeout=15)
+        teams_data = r.json().get("teams", [])
+        id_to_abbr = {t["id"]: t.get("abbreviation", "") for t in teams_data}
+        abbr_to_id = {t.get("abbreviation", ""): t["id"] for t in teams_data}
+    except Exception as e:
+        log.error(f"Team splits ID map failed: {e}")
+        return {}
+
+    splits_data = {}
+
+    for hand in ["L", "R"]:
+        split_key = "vs_LHP" if hand == "L" else "vs_RHP"
+        # MLB Stats API splits endpoint — pitcherHandedness filter
+        url = (f"https://statsapi.mlb.com/api/v1/teams/stats?"
+               f"season={season}&sportId=1&stats=statSplits"
+               f"&group=hitting&sitCodes=vl" if hand == "L" else
+               f"https://statsapi.mlb.com/api/v1/teams/stats?"
+               f"season={season}&sportId=1&stats=statSplits"
+               f"&group=hitting&sitCodes=vr")
+        try:
+            r = requests.get(url, timeout=15)
+            for rec in r.json().get("stats", [{}])[0].get("splits", []):
+                tid = rec.get("team", {}).get("id")
+                abbr = id_to_abbr.get(tid, "")
+                if not abbr:
+                    continue
+                s = rec.get("stat", {})
+                pa = float(s.get("plateAppearances", 1) or 1)
+                if pa < 30:  # need meaningful sample
+                    continue
+                gp = float(s.get("gamesPlayed", 1) or 1)
+                splits_data.setdefault(abbr, {})
+                splits_data[abbr][split_key] = {
+                    "ops":          float(s.get("ops", 0.720) or 0.720),
+                    "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
+                    "avg":          float(s.get("avg", 0.245) or 0.245),
+                    "obp":          float(s.get("obp", 0.315) or 0.315),
+                    "slg":          float(s.get("slg", 0.405) or 0.405),
+                    "pa":           int(pa),
+                }
+        except Exception as e:
+            log.warning(f"Team batting splits vs {hand}HP failed: {e}")
+
+    log.info(f"Team batting splits: {len(splits_data)} teams loaded")
+    return splits_data
+
+
 def get_pitcher_season_line(pitcher_id, pitcher_name):
     """
     Fetch a pitcher's 2026 season stats from MLB Stats API.
@@ -1724,47 +1781,114 @@ def get_pitcher_season_line(pitcher_id, pitcher_name):
 
 
 def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
-                     away_pitcher_line, home_pitcher_line, odds, park, weather):
+                     away_pitcher_line, home_pitcher_line, odds, park, weather,
+                     away_splits=None, home_splits=None):
     """
-    Returns a game lines dict with:
-      - projected_total: model's run total estimate
-      - total_edge: over/under lean + edge % vs posted line
-      - away_win_prob / home_win_prob: model win probabilities
-      - ml_edge: which side has model edge and by how much vs implied odds
-      - factors: list of key factors that drove the model
+    Returns a game lines dict with projected total, O/U edge, win probabilities, ML edge.
+    Uses 55% pitcher / 45% offense blend, composite pitcher quality (ERA+WHIP+HR9),
+    handedness-adjusted team offense splits, and a small home field boost.
     """
     factors = []
-    LEAGUE_AVG_RUNS_PER_GAME = 4.45  # MLB average per team per game
-    BULLPEN_FLOOR = 1.30  # relievers always add runs — ~3 IP per team at league avg ERA
+    LEAGUE_AVG_RUNS_PER_GAME = 4.45
+    BULLPEN_FLOOR = 1.30
+    away_splits = away_splits or {}
+    home_splits = home_splits or {}
+
+    def pitcher_quality_score(pl):
+        """
+        Composite pitcher quality → expected runs per 9 IP.
+        Blends ERA (60%), WHIP-derived RA (25%), HR/9 risk (15%).
+        Returns adjusted runs/9 — lower = better pitcher.
+        """
+        if not pl:
+            return LEAGUE_AVG_RUNS_PER_GAME * 9 / 6  # league avg per 6 IP
+
+        era = pl["era"]
+        whip = pl.get("whip", 1.30)
+        hr9 = pl.get("hr9", 1.0)
+
+        # WHIP → implied RA: each baserunner adds ~0.5 run risk above 1.00 WHIP
+        whip_ra = era * (1.0 + (whip - 1.20) * 0.35)
+
+        # HR/9 risk premium: 1.0 HR/9 is average; above that adds run risk
+        hr_premium = max(0, (hr9 - 1.0) * 0.40)
+
+        composite_ra9 = era * 0.60 + whip_ra * 0.25 + (era + hr_premium) * 0.15
+        return composite_ra9
+
+    def get_offense_rpg(team_stats, splits, pitcher_hand, team_name):
+        """
+        Get team runs per game using handedness splits when available.
+        Falls back to overall season stats, then league average.
+        Logs which data source is being used.
+        """
+        split_key = "vs_LHP" if pitcher_hand == "L" else "vs_RHP"
+        split_data = splits.get(split_key, {})
+
+        if split_data and split_data.get("runs_per_game"):
+            rpg = split_data["runs_per_game"]
+            ops = split_data.get("ops", "—")
+            log.info(f"  {team_name} offense vs {pitcher_hand}HP: {rpg} R/G, OPS {ops} (splits data)")
+            return rpg, split_data.get("ops"), "splits"
+        elif team_stats.get("runs_per_game"):
+            rpg = team_stats["runs_per_game"]
+            ops = team_stats.get("ops", "—")
+            log.info(f"  {team_name} offense: {rpg} R/G, OPS {ops} (season stats)")
+            return rpg, team_stats.get("ops"), "season"
+        else:
+            log.warning(f"  {team_name}: no offense data — using league average ({LEAGUE_AVG_RUNS_PER_GAME})")
+            return LEAGUE_AVG_RUNS_PER_GAME, None, "default"
+
+    # Get pitcher hands for splits lookup
+    away_hand = away_pitcher.get("throws", "R") if away_pitcher else "R"
+    home_hand = home_pitcher.get("throws", "R") if home_pitcher else "R"
 
     # ── Projected run total ───────────────────────────────────────────────────
-    # Base: each team's expected runs = starter contribution + bullpen floor + offense blend
-    def team_run_expectation(pitcher_line, opp_team_stats):
+    def team_run_expectation(pitcher_line, opp_team_stats, opp_splits, opp_pitcher_hand, opp_name):
         """Runs expected to score against this pitcher + bullpen."""
-        opp_rpg = opp_team_stats.get("runs_per_game", LEAGUE_AVG_RUNS_PER_GAME)
+        opp_rpg, opp_ops, data_src = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
 
         if pitcher_line:
-            # Starter's expected runs: ERA/9 × avg IP per start
             avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
-            avg_ip = max(avg_ip, 4.5)  # floor at 4.5 IP per start
-            starter_runs = pitcher_line["era"] / 9 * avg_ip
-            # Blend 60% pitcher ERA, 40% opponent offense
-            starter_contribution = starter_runs * 0.60 + opp_rpg * 0.40
+            avg_ip = max(avg_ip, 4.5)
+            # Composite pitcher quality score
+            composite_ra9 = pitcher_quality_score(pitcher_line)
+            starter_runs = composite_ra9 / 9 * avg_ip
+            # 55% pitcher composite, 45% opponent offense (handedness-adjusted)
+            starter_contribution = starter_runs * 0.55 + opp_rpg * 0.45
         else:
-            # No pitcher data — use league average + opponent offense
             starter_contribution = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
 
-        # Always add bullpen floor — relievers pitch ~3 innings every game
-        # Even elite starters leave in the 6th-7th and the pen gives up runs
         total = starter_contribution + BULLPEN_FLOOR
-        return round(max(total, 2.5), 2)
+        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src
 
-    away_runs = team_run_expectation(home_pitcher_line, away_stats)
-    home_runs = team_run_expectation(away_pitcher_line, home_stats)
+    away_name = game.get("away_team", "Away")
+    home_name = game.get("home_team", "Home")
+
+    away_runs, away_rpg, away_ops, away_src = team_run_expectation(
+        home_pitcher_line, away_stats, away_splits, home_hand, away_name
+    )
+    home_runs, home_rpg, home_ops, home_src = team_run_expectation(
+        away_pitcher_line, home_stats, home_splits, away_hand, home_name
+    )
+
+    # Flag if using defaults
+    if away_src == "default":
+        factors.append(f"{away_name} offense: no data available — using league avg")
+    if home_src == "default":
+        factors.append(f"{home_name} offense: no data available — using league avg")
+
+    # Add offense quality notes to factors when meaningful
+    if away_ops and away_ops >= 0.780:
+        factors.append(f"{away_name} strong offense (OPS {away_ops:.3f}) vs {home_hand}HP")
+    elif away_ops and away_ops <= 0.660:
+        factors.append(f"{away_name} weak offense (OPS {away_ops:.3f}) vs {home_hand}HP")
+    if home_ops and home_ops >= 0.780:
+        factors.append(f"{home_name} strong offense (OPS {home_ops:.3f}) vs {away_hand}HP")
+    elif home_ops and home_ops <= 0.660:
+        factors.append(f"{home_name} weak offense (OPS {home_ops:.3f}) vs {away_hand}HP")
+
     base_total = round(away_runs + home_runs, 1)
-
-    # Hard floor — no MLB game should ever project under 5.5 runs total
-    # Even the best pitcher matchups in history rarely go under 5
     base_total = max(base_total, 5.5)
 
     # ── Park factor adjustment ────────────────────────────────────────────────
@@ -1801,13 +1925,13 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
     for label, pl, side in [("Away", away_pitcher_line, "away"), ("Home", home_pitcher_line, "home")]:
         if not pl: continue
         if pl["era"] <= 2.80:
-            factors.append(f"{label} pitcher (ERA {pl['era']:.2f}) — ace-level, suppressing total")
+            factors.append(f"{label} pitcher ERA {pl['era']:.2f}, WHIP {pl.get('whip',0):.2f} — ace suppressing total")
         elif pl["era"] >= 5.50:
-            factors.append(f"{label} pitcher (ERA {pl['era']:.2f}) — vulnerable, boosting total")
+            factors.append(f"{label} pitcher ERA {pl['era']:.2f} — vulnerable, boosting total")
         if pl.get("hr9", 0) >= 1.8:
-            factors.append(f"{label} pitcher HR/9 {pl['hr9']:.2f} — HR-prone")
+            factors.append(f"{label} pitcher HR/9 {pl['hr9']:.2f} — HR-prone, big inning risk")
         if pl.get("k9", 0) >= 11.0:
-            factors.append(f"{label} pitcher K/9 {pl['k9']:.1f} — high strikeout, suppresses scoring")
+            factors.append(f"{label} pitcher K/9 {pl['k9']:.1f} — misses bats, suppresses scoring")
 
     # ── Total edge vs posted line ─────────────────────────────────────────────
     total_line = odds.get("total_line") if odds else None
@@ -1848,7 +1972,7 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         factors.append(f"Model projects {projected_total} runs vs posted O/U {total_line} → {total_lean} lean ({confidence})")
 
     # ── Win probability model ─────────────────────────────────────────────────
-    HOME_FIELD_BOOST = 0.54
+    HOME_FIELD_BOOST = 0.56  # home teams win ~54-56% — small but consistent edge
     run_diff = home_runs - away_runs
 
     # TBD pitcher adjustment — unknown starters are likely back-of-rotation arms
@@ -1943,6 +2067,12 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "home_pitcher_hr9": home_pitcher_line.get("hr9") if home_pitcher_line else None,
         "away_pitcher_ip": away_pitcher_line.get("ip") if away_pitcher_line else None,
         "home_pitcher_ip": home_pitcher_line.get("ip") if home_pitcher_line else None,
+        "away_rpg": away_rpg,
+        "home_rpg": home_rpg,
+        "away_ops": away_ops,
+        "home_ops": home_ops,
+        "away_offense_src": away_src,
+        "home_offense_src": home_src,
         "projected_total": projected_total,
         "away_runs": away_runs,
         "home_runs": home_runs,
@@ -1976,6 +2106,9 @@ def run():
 
     log.info("Fetching team season stats…")
     team_season_stats = get_team_season_stats()
+
+    log.info("Fetching team batting splits vs LHP/RHP…")
+    team_batting_splits = get_team_batting_splits()
 
     games = get_todays_schedule()
     if not games:
@@ -2079,8 +2212,9 @@ def run():
         home_pl = get_pitcher_season_line(home_p["id"], home_p["name"]) if home_p else None
         away_ts = team_season_stats.get(away, {})
         home_ts = team_season_stats.get(home, {})
+        away_splits = team_batting_splits.get(away, {})
+        home_splits = team_batting_splits.get(home, {})
         game_odds = odds_by_game.get(f"{away}@{home}") or odds_by_game.get(f"{home}@{away}")
-        # Try alternate key formats
         if not game_odds:
             for k in odds_by_game:
                 parts = k.split("@")
@@ -2092,6 +2226,7 @@ def run():
             game={"away_team": away, "home_team": home, "venue_name": game["venue_name"]},
             away_pitcher=away_p, home_pitcher=home_p,
             away_stats=away_ts, home_stats=home_ts,
+            away_splits=away_splits, home_splits=home_splits,
             away_pitcher_line=away_pl, home_pitcher_line=home_pl,
             odds=game_odds, park=park, weather=weather,
         )
