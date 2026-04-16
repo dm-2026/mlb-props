@@ -93,6 +93,43 @@ PARK_FACTORS = {
     "WSH": {"overall": 99,  "lhb": 98,  "rhb": 100, "suppress": False, "dome": False, "lat": 38.8730, "lon": -77.0074},
 }
 
+# ── Park factors for doubles (2B index, 100 = neutral) ───────────────────────
+# Fenway's Green Monster, Wrigley's ivy, Camden's shallow RF all boost doubles.
+# Petco, Oracle, T-Mobile deep gaps suppress them.
+# Source: Statcast park doubles rates 2023-2025 avg
+DOUBLES_PARK_FACTORS = {
+    "BOS": {"overall": 128, "lhb": 115, "rhb": 138},  # Green Monster — massive RHB boost
+    "CHC": {"overall": 118, "lhb": 120, "rhb": 116},  # Ivy walls, gap-friendly
+    "BAL": {"overall": 114, "lhb": 112, "rhb": 116},  # Shallow RF, hard wall
+    "CLE": {"overall": 112, "lhb": 110, "rhb": 114},  # Progressive — gap friendly
+    "TEX": {"overall": 110, "lhb": 108, "rhb": 112},  # Globe Life — large OF
+    "HOU": {"overall": 108, "lhb": 106, "rhb": 110},  # Juice Box gaps
+    "COL": {"overall": 107, "lhb": 105, "rhb": 109},  # Thin air = more gap shots
+    "PHI": {"overall": 106, "lhb": 108, "rhb": 104},
+    "DET": {"overall": 105, "lhb": 103, "rhb": 107},
+    "PIT": {"overall": 104, "lhb": 102, "rhb": 106},
+    "STL": {"overall": 103, "lhb": 101, "rhb": 105},
+    "MIN": {"overall": 103, "lhb": 101, "rhb": 105},
+    "NYY": {"overall": 102, "lhb": 105, "rhb": 99},
+    "ATL": {"overall": 101, "lhb": 103, "rhb": 99},
+    "LAA": {"overall": 100, "lhb": 98,  "rhb": 102},
+    "WSH": {"overall": 100, "lhb": 99,  "rhb": 101},
+    "NYM": {"overall": 99,  "lhb": 98,  "rhb": 100},
+    "MIL": {"overall": 99,  "lhb": 98,  "rhb": 100},
+    "CHW": {"overall": 98,  "lhb": 97,  "rhb": 99},
+    "KC":  {"overall": 98,  "lhb": 97,  "rhb": 99},
+    "TOR": {"overall": 97,  "lhb": 96,  "rhb": 98},
+    "ARI": {"overall": 97,  "lhb": 96,  "rhb": 98},
+    "LAD": {"overall": 96,  "lhb": 97,  "rhb": 95},
+    "TB":  {"overall": 96,  "lhb": 95,  "rhb": 97},
+    "MIA": {"overall": 95,  "lhb": 94,  "rhb": 96},
+    "CIN": {"overall": 95,  "lhb": 94,  "rhb": 96},
+    "OAK": {"overall": 94,  "lhb": 93,  "rhb": 95},
+    "SEA": {"overall": 88,  "lhb": 90,  "rhb": 86},   # T-Mobile — deep gaps suppress
+    "SD":  {"overall": 87,  "lhb": 89,  "rhb": 85},   # Petco — spacious OF
+    "SF":  {"overall": 86,  "lhb": 88,  "rhb": 84},   # Oracle — marine layer + deep CF
+}
+
 # Elite pitcher auto-fade list (mlbam IDs + names)
 ELITE_FADE = {
     663776: "Garrett Crochet",
@@ -546,8 +583,27 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             overall_pitcher_whiff = None
             overall_pitcher_k_rate = None
 
-        arsenal["_pitcher_k_rate"] = overall_pitcher_k_rate    # K% vs this batter hand
-        arsenal["_pitcher_whiff_rate"] = overall_pitcher_whiff  # SwStr% vs this batter hand
+        arsenal["_pitcher_k_rate"] = overall_pitcher_k_rate
+        arsenal["_pitcher_whiff_rate"] = overall_pitcher_whiff
+
+        # ── Pitcher doubles / contact quality allowed ─────────────────────────
+        p_pa_all = df_vs[df_vs["events"].notna() & (df_vs["events"] != "")]
+        p_doubles = p_pa_all[p_pa_all["events"] == "double"]
+        p_contact = df_vs[df_vs["launch_speed"].notna()]
+        pitcher_double_rate = round(len(p_doubles) / len(p_pa_all) * 100, 2) if len(p_pa_all) >= 20 else None
+        pitcher_hard_hit = round(
+            len(p_contact[p_contact["launch_speed"] >= 95]) / len(p_contact) * 100, 1
+        ) if len(p_contact) >= 20 else None
+        # Line drive rate allowed — high LD% allowed = more doubles
+        if "launch_angle" in p_contact.columns and len(p_contact) >= 20:
+            p_ld = len(p_contact[(p_contact["launch_angle"] >= 10) & (p_contact["launch_angle"] <= 25)])
+            pitcher_ld_rate = round(p_ld / len(p_contact) * 100, 1)
+        else:
+            pitcher_ld_rate = None
+
+        arsenal["_pitcher_double_rate"] = pitcher_double_rate  # doubles / PA allowed
+        arsenal["_pitcher_hard_hit"] = pitcher_hard_hit        # hard hit % allowed
+        arsenal["_pitcher_ld_rate"] = pitcher_ld_rate          # LD% allowed
 
         log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types, {total_hrs_vs} HR vs {batter_hand}HB, K%={overall_pitcher_k_rate}")
 
@@ -670,12 +726,50 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
                 "slg": round(slg, 3),
                 "avg_launch_angle": round(avg_la, 1) if avg_la and not math.isnan(avg_la) else None,
                 "sample_pitches": len(group),
-                "whiff_rate": whiff_rate,       # % of swings that miss — key K signal
-                "k_rate": k_rate_pt,             # % of PAs ending in K on this pitch
-                "chase_rate": chase_rate_pt,     # % of outside pitches swung at
+                "whiff_rate": whiff_rate,
+                "k_rate": k_rate_pt,
+                "chase_rate": chase_rate_pt,
+                # ── Doubles-specific stats ────────────────────────────────────
+                "double_count": len(group[group["events"] == "double"]),
+                "ld_rate": round(
+                    len(contact_group[(contact_group["launch_angle"] >= 10) &
+                                      (contact_group["launch_angle"] <= 25)]) /
+                    len(contact_group) * 100, 1
+                ) if len(contact_group) >= 10 else None,  # line drive LA sweet spot
+                "sweet_spot_rate": round(
+                    len(contact_group[(contact_group["launch_angle"] >= 8) &
+                                      (contact_group["launch_angle"] <= 32)]) /
+                    len(contact_group) * 100, 1
+                ) if len(contact_group) >= 10 else None,  # broader contact quality zone
             }
 
-        # ── Global K / whiff stats ────────────────────────────────────────────
+        # ── Global doubles / contact quality stats ───────────────────────────
+        contact_all = df[df["launch_speed"].notna()]
+        # Line drive rate: LA 10-25° on contact
+        ld_count = len(contact_all[(contact_all["launch_angle"] >= 10) &
+                                   (contact_all["launch_angle"] <= 25)]) if "launch_angle" in contact_all.columns else 0
+        overall_ld_rate = round(ld_count / len(contact_all) * 100, 1) if len(contact_all) >= 20 else None
+
+        # Sweet spot rate: LA 8-32° (broader contact quality)
+        ss_count = len(contact_all[(contact_all["launch_angle"] >= 8) &
+                                   (contact_all["launch_angle"] <= 32)]) if "launch_angle" in contact_all.columns else 0
+        overall_sweet_spot = round(ss_count / len(contact_all) * 100, 1) if len(contact_all) >= 20 else None
+
+        # Overall double rate (doubles / PA)
+        pa_all_events = df[df["events"].notna() & (df["events"] != "")]
+        doubles_all = pa_all_events[pa_all_events["events"] == "double"]
+        overall_double_rate = round(len(doubles_all) / len(pa_all_events) * 100, 2) if len(pa_all_events) >= 20 else None
+
+        # L14D doubles
+        doubles_recent = df_recent[df_recent["events"] == "double"] if len(df_recent) > 0 else doubles_all.iloc[0:0]
+        doubles_14d = len(doubles_recent)
+
+        # Hard hit rate (95+ mph EV) — key doubles predictor
+        hard_hit_count = len(contact_all[contact_all["launch_speed"] >= 95]) if "launch_speed" in contact_all.columns else 0
+        hard_hit_rate = round(hard_hit_count / len(contact_all) * 100, 1) if len(contact_all) >= 20 else None
+
+        # Avg launch angle overall
+        avg_la_overall = contact_all["launch_angle"].mean() if "launch_angle" in contact_all.columns and len(contact_all) > 0 else None
         if "description" in df.columns:
             swing_desc_g = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip",
                             "hit_into_play", "hit_into_play_no_out", "hit_into_play_score"}
@@ -698,7 +792,6 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
             overall_k_rate = None
             overall_chase_rate = None
 
-        # Attach global stats to result
         pitch_stats["_meta"] = {
             "avg_ev": round(avg_ev, 1) if avg_ev and not math.isnan(avg_ev) else None,
             "barrel_pct": round(barrel_pct, 1),
@@ -708,9 +801,16 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
             "pa_recent_14d": pa_recent,
             "pa_2026": pa_2026,
             "w26": round(w26, 2),
-            "k_rate": overall_k_rate,           # batter's overall K% — primary K signal
-            "whiff_rate": overall_whiff_rate,   # overall whiff rate — swing-and-miss tendency
-            "chase_rate": overall_chase_rate,   # chase rate — expands zone = more Ks
+            "k_rate": overall_k_rate,
+            "whiff_rate": overall_whiff_rate,
+            "chase_rate": overall_chase_rate,
+            # ── Doubles-specific meta ─────────────────────────────────────────
+            "ld_rate": overall_ld_rate,           # line drive rate (LA 10-25°)
+            "sweet_spot_rate": overall_sweet_spot, # broader contact quality (LA 8-32°)
+            "hard_hit_rate": hard_hit_rate,        # % contact at 95+ mph
+            "double_rate": overall_double_rate,    # doubles / PA
+            "doubles_14d": doubles_14d,            # doubles last 14 days
+            "avg_la": round(avg_la_overall, 1) if avg_la_overall and not math.isnan(avg_la_overall) else None,
         }
 
         # Force hardcoded seed for players whose 2025 data is unreliable
@@ -1130,6 +1230,173 @@ def score_batter_k(batter, pitcher, arsenal, batter_stats):
         tier_15 = "FADE"
 
     return score, components, insight, tier_05, tier_15
+
+
+# ── Doubles prop scoring model ────────────────────────────────────────────────
+
+D2_WEIGHTS = {
+    "contact_quality": 0.30,  # EV + LA sweet spot — hard line drives = doubles
+    "ld_rate":         0.25,  # line drive rate — most direct doubles predictor
+    "pitcher_contact": 0.20,  # pitcher's LD% and hard hit rate allowed
+    "park_factor":     0.15,  # doubles park factor — Fenway, Wrigley, Camden boost
+    "recent_form":     0.10,  # L14D doubles + hot streak signal
+}
+
+def score_batter_doubles(batter, pitcher, arsenal, batter_stats, park_factor):
+    """
+    Returns (score_0_100, components, insight, tier)
+    tier = PRIME / HIGH / MED / LOW / FADE
+    Focuses on contact quality profile, not power — doubles are line drives and gap shots.
+    """
+    meta = batter_stats.get("_meta", {})
+    PITCH_NAMES_D = {
+        "FF":"Four-seam", "SI":"Sinker", "FC":"Cutter", "CH":"Changeup",
+        "SL":"Slider", "CU":"Curveball", "SW":"Sweeper", "FS":"Splitter",
+        "ST":"Sweeper", "KC":"Knuckle curve", "KN":"Knuckleball",
+    }
+
+    # ── 1. Contact quality — EV + LA sweet spot (30%) ─────────────────────────
+    avg_ev = meta.get("avg_ev") or 87.0
+    sweet_spot = meta.get("sweet_spot_rate")  # LA 8-32°
+    hard_hit = meta.get("hard_hit_rate")       # 95+ mph EV
+
+    # EV component: 85 mph = 0.0, 90 mph = 0.40, 95 mph = 0.80, 98+ = 1.0
+    ev_score = max(0.0, min(1.0, (avg_ev - 85.0) / 13.0))
+
+    # Sweet spot LA: below 30% = poor, 40% = average, 55%+ = elite gap hitter
+    if sweet_spot is not None:
+        ss_score = max(0.0, min(1.0, (sweet_spot - 28.0) / 27.0))
+    else:
+        ss_score = 0.45  # neutral default
+
+    # Hard hit rate: below 30% = poor, 40% = average, 55%+ = elite
+    if hard_hit is not None:
+        hh_score = max(0.0, min(1.0, (hard_hit - 28.0) / 27.0))
+    else:
+        hh_score = ev_score * 0.8
+
+    contact_quality_score = ev_score * 0.40 + ss_score * 0.35 + hh_score * 0.25
+
+    # ── 2. Line drive rate (25%) ───────────────────────────────────────────────
+    # LA 10-25° is the doubles sweet spot — too low = grounder, too high = flyout
+    ld_rate = meta.get("ld_rate")  # % of contact in LA 10-25°
+    if ld_rate is not None:
+        # 12% LD = poor, 20% = average, 28%+ = elite doubles profile
+        ld_score = max(0.0, min(1.0, (ld_rate - 12.0) / 18.0))
+    else:
+        # Fallback: use avg_la to estimate LD tendency
+        avg_la = meta.get("avg_la")
+        if avg_la is not None:
+            # LA 15-20° is ideal for doubles; penalize extremes
+            la_dist = abs(avg_la - 17.5)  # distance from ideal 17.5°
+            ld_score = max(0.0, min(1.0, 1.0 - la_dist / 20.0))
+        else:
+            ld_score = 0.40
+
+    # ── 3. Pitcher contact quality allowed (20%) ──────────────────────────────
+    pitcher_ld = arsenal.get("_pitcher_ld_rate")
+    pitcher_hh = arsenal.get("_pitcher_hard_hit")
+    pitcher_dr = arsenal.get("_pitcher_double_rate")
+    pitcher_insights = []
+
+    if pitcher_dr is not None:
+        # Doubles/PA allowed: <4% = stingy, 6% = average, 9%+ = very hittable
+        p_dr_score = max(0.0, min(1.0, (pitcher_dr - 3.5) / 6.0))
+    else:
+        p_dr_score = 0.45
+
+    if pitcher_ld is not None:
+        # LD% allowed: <16% = great, 20% = average, 26%+ = vulnerable
+        p_ld_score = max(0.0, min(1.0, (pitcher_ld - 14.0) / 14.0))
+        if pitcher_ld >= 22:
+            pitcher_insights.append(f"Pitcher allows {pitcher_ld}% LD rate — gap-shot vulnerable")
+    else:
+        p_ld_score = 0.45
+
+    if pitcher_hh is not None and pitcher_hh >= 42:
+        pitcher_insights.append(f"Pitcher allows {pitcher_hh}% hard contact")
+
+    pitcher_contact_score = p_dr_score * 0.55 + p_ld_score * 0.45
+
+    # ── 4. Park doubles factor (15%) ──────────────────────────────────────────
+    b_hand = batter.get("bats", "R")
+    pf_key = "lhb" if b_hand == "L" else "rhb"
+    dpf = park_factor.get(pf_key, park_factor.get("overall", 100))
+    # Normalize: 80 = 0.0, 100 = 0.40, 130+ = 1.0
+    park_score = max(0.0, min(1.0, (dpf - 80.0) / 52.0))
+
+    # ── 5. Recent form (10%) ──────────────────────────────────────────────────
+    doubles_14d = meta.get("doubles_14d", 0)
+    double_rate = meta.get("double_rate")  # career doubles/PA rate
+
+    # L14D doubles: 0 = 0.20 (neutral, not a fade signal), 2 = 0.55, 4+ = 1.0
+    if doubles_14d >= 4:
+        form_score = 1.0
+    elif doubles_14d >= 2:
+        form_score = 0.65
+    elif doubles_14d == 1:
+        form_score = 0.45
+    else:
+        # No recent doubles — use career rate as baseline
+        if double_rate is not None:
+            # 4% doubles/PA = average, 8%+ = elite
+            form_score = max(0.20, min(0.70, double_rate / 7.0))
+        else:
+            form_score = 0.30
+
+    # ── Weighted total ─────────────────────────────────────────────────────────
+    raw = (
+        D2_WEIGHTS["contact_quality"] * contact_quality_score +
+        D2_WEIGHTS["ld_rate"]         * ld_score +
+        D2_WEIGHTS["pitcher_contact"] * pitcher_contact_score +
+        D2_WEIGHTS["park_factor"]     * park_score +
+        D2_WEIGHTS["recent_form"]     * form_score
+    )
+    score = round(raw * 100)
+
+    components = {
+        "contact_quality": round(contact_quality_score * 100),
+        "ld_rate":         round(ld_score * 100),
+        "pitcher_contact": round(pitcher_contact_score * 100),
+        "park_factor":     round(park_score * 100),
+        "recent_form":     round(form_score * 100),
+    }
+
+    # Build insight
+    if pitcher_insights:
+        insight = pitcher_insights[0]
+    elif ld_rate and ld_rate >= 24:
+        insight = f"Elite LD rate {ld_rate}% — gap-shot profile"
+    elif hard_hit and hard_hit >= 48:
+        insight = f"Hard contact {hard_hit}% at 95+ mph — drives to gaps"
+    elif dpf >= 112:
+        insight = f"Premium doubles park (PF {dpf}) — wall-friendly"
+    else:
+        insight = f"Contact quality: {round(avg_ev,1)} mph EV, LA sweet spot {sweet_spot or '—'}%"
+
+    # ── Tiers ─────────────────────────────────────────────────────────────────
+    # Calibrated so PRIME = truly elite doubles matchup (~top 8%)
+    # Most batters will score 30-55
+    factors_aligning = sum([
+        contact_quality_score > 0.55,
+        ld_score > 0.50,
+        pitcher_contact_score > 0.50,
+        park_score > 0.55,
+        form_score > 0.55,
+    ])
+
+    if score >= 62 and factors_aligning >= 3:
+        tier = "PRIME"
+    elif score >= 50 and factors_aligning >= 2:
+        tier = "HIGH"
+    elif score >= 36:
+        tier = "MED"
+    elif score >= 22:
+        tier = "LOW"
+    else:
+        tier = "FADE"
+
+    return score, components, insight, tier
 
 
 # ── Hardcoded seed data (used when pybaseball unavailable) ────────────────────
@@ -1581,18 +1848,27 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         factors.append(f"Model projects {projected_total} runs vs posted O/U {total_line} → {total_lean} lean ({confidence})")
 
     # ── Win probability model ─────────────────────────────────────────────────
-    # Base from run expectation differential + home field advantage
-    HOME_FIELD_BOOST = 0.54  # home teams win ~54% at neutral ERA
-    run_diff = home_runs - away_runs  # positive = home team advantage
+    HOME_FIELD_BOOST = 0.54
+    run_diff = home_runs - away_runs
 
-    # Convert run differential to win probability via log5-inspired sigmoid
-    # +1 run advantage ≈ 60% win prob, +2 runs ≈ 70%, -1 run ≈ 40%
+    # TBD pitcher adjustment — unknown starters are likely back-of-rotation arms
+    # Boost the opposing team's win prob when facing a TBD
+    away_is_tbd = not away_pitcher or away_pitcher.get("name", "TBD") == "TBD"
+    home_is_tbd = not home_pitcher or home_pitcher.get("name", "TBD") == "TBD"
+    tbd_adj = 0.0
+    if away_is_tbd and not home_is_tbd:
+        tbd_adj = 0.08   # home team gets +8% win prob boost when away is TBD
+    elif home_is_tbd and not away_is_tbd:
+        tbd_adj = -0.08  # away team gets boost when home is TBD
+
     import math as _math
-    home_win_prob_raw = 1 / (1 + _math.exp(-run_diff * 0.45)) * 0.65 + HOME_FIELD_BOOST * 0.35
+    home_win_prob_raw = 1 / (1 + _math.exp(-run_diff * 0.45)) * 0.65 + (HOME_FIELD_BOOST + tbd_adj) * 0.35
     home_win_prob = round(max(0.25, min(0.80, home_win_prob_raw)) * 100, 1)
     away_win_prob = round(100 - home_win_prob, 1)
 
     # ── Money line edge ───────────────────────────────────────────────────────
+    # ALWAYS show the favorite (>50% win prob) as the primary lean.
+    # If the underdog has a market value angle (model > implied), flag it separately.
     ml_edge = None
     if odds and odds.get("away_implied") and odds.get("home_implied"):
         away_implied = odds["away_implied"]
@@ -1601,33 +1877,56 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         away_edge = round(away_win_prob - away_implied, 1)
         home_edge = round(home_win_prob - home_implied, 1)
 
-        # Only flag edge if model disagrees by 5%+ (noise filter)
-        if abs(away_edge) >= 5 or abs(home_edge) >= 5:
-            if away_edge > home_edge:
-                lean_side = "AWAY"
-                lean_team = game.get("away_team", "")
-                model_prob = away_win_prob
-                implied_prob = away_implied
-                edge_size = away_edge
-                ml_odds = odds.get("away_ml")
-            else:
-                lean_side = "HOME"
-                lean_team = game.get("home_team", "")
-                model_prob = home_win_prob
-                implied_prob = home_implied
-                edge_size = home_edge
-                ml_odds = odds.get("home_ml")
+        # Determine favorite by model win prob (not edge direction)
+        if home_win_prob >= away_win_prob:
+            fav_side = "HOME"
+            fav_team = game.get("home_team", "")
+            fav_prob = home_win_prob
+            fav_implied = home_implied
+            fav_edge = home_edge
+            fav_odds = odds.get("home_ml")
+            dog_side = "AWAY"
+            dog_team = game.get("away_team", "")
+            dog_prob = away_win_prob
+            dog_implied = away_implied
+            dog_edge = away_edge
+            dog_odds = odds.get("away_ml")
+        else:
+            fav_side = "AWAY"
+            fav_team = game.get("away_team", "")
+            fav_prob = away_win_prob
+            fav_implied = away_implied
+            fav_edge = away_edge
+            fav_odds = odds.get("away_ml")
+            dog_side = "HOME"
+            dog_team = game.get("home_team", "")
+            dog_prob = home_win_prob
+            dog_implied = home_implied
+            dog_edge = home_edge
+            dog_odds = odds.get("home_ml")
 
-            ml_confidence = "STRONG" if abs(edge_size) >= 10 else "MODERATE" if abs(edge_size) >= 7 else "SLIGHT"
-            ml_edge = {
-                "lean": lean_side,
-                "team": lean_team,
-                "model_prob": model_prob,
-                "implied_prob": implied_prob,
-                "edge": edge_size,
-                "confidence": ml_confidence,
-                "ml_odds": ml_odds,
-            }
+        fav_confidence = "STRONG" if abs(fav_edge) >= 10 else "MODERATE" if abs(fav_edge) >= 7 else "SLIGHT" if abs(fav_edge) >= 4 else "NONE"
+
+        # Underdog value: only flag if model gives dog meaningfully more than market
+        dog_value = dog_edge >= 5  # model sees dog as more likely than market prices
+
+        ml_edge = {
+            # Favorite — always the primary lean
+            "lean": fav_side,
+            "team": fav_team,
+            "model_prob": fav_prob,
+            "implied_prob": fav_implied,
+            "edge": fav_edge,
+            "confidence": fav_confidence,
+            "ml_odds": fav_odds,
+            # Underdog value angle — secondary signal
+            "dog_value": dog_value,
+            "dog_team": dog_team,
+            "dog_prob": dog_prob,
+            "dog_implied": dog_implied,
+            "dog_edge": dog_edge,
+            "dog_odds": dog_odds,
+        }
 
     return {
         "game": f"{game.get('away_team')} @ {game.get('home_team')}",
@@ -1684,6 +1983,7 @@ def run():
     output_games = []
     all_targets = []
     k_targets = []
+    d2_targets = []
     game_lines = []
     auto_fades = []
 
@@ -1907,6 +2207,33 @@ def run():
                         "pitcher_overall_hr9": arsenal.get("_overall_hr9", None),
                     })
 
+                # ── Doubles prop scoring ──────────────────────────────────────
+                d2_park = DOUBLES_PARK_FACTORS.get(home, {"overall": 100, "lhb": 100, "rhb": 100})
+                d2_score, d2_components, d2_insight, d2_tier = score_batter_doubles(
+                    batter, pitcher_info, arsenal, batter_stats, d2_park
+                )
+                if d2_tier != "FADE":
+                    d2_targets.append({
+                        "batter_id": b_id,
+                        "batter_name": b_name,
+                        "batter_team": batting_team,
+                        "batter_hand": b_hand,
+                        "pitcher_name": pitcher_name,
+                        "pitcher_throws": pitcher_info.get("throws", "R"),
+                        "game": f"{away} @ {home}",
+                        "venue": game["venue_name"],
+                        "score": d2_score,
+                        "tier": d2_tier,
+                        "components": d2_components,
+                        "insight": d2_insight,
+                        "lineup_confirmed": lineup_confirmed,
+                        "batter_meta": batter_stats.get("_meta", {}),
+                        "park_factor_2b": d2_park.get("lhb" if b_hand == "L" else "rhb", d2_park.get("overall", 100)),
+                        "pitcher_ld_rate": arsenal.get("_pitcher_ld_rate"),
+                        "pitcher_hard_hit": arsenal.get("_pitcher_hard_hit"),
+                        "pitcher_double_rate": arsenal.get("_pitcher_double_rate"),
+                    })
+
     # Auto-fades for suppressive park + bad weather
     for g in output_games:
         if g["park_suppress"] and g["weather"].get("hr_multiplier", 1.0) < 0.95:
@@ -1985,6 +2312,17 @@ def run():
     k_targets.sort(key=lambda x: -x["score"])
     log.info(f"  K targets: {len(k_targets)}")
 
+    # Deduplicate doubles targets — keep highest score per batter
+    seen_d2 = {}
+    for t in d2_targets:
+        key = t["batter_id"]
+        if key not in seen_d2 or t["score"] > seen_d2[key]["score"]:
+            seen_d2[key] = t
+    d2_targets = list(seen_d2.values())
+    tier_order_d2 = {"PRIME": 0, "HIGH": 1, "MED": 2, "LOW": 3}
+    d2_targets.sort(key=lambda x: (tier_order_d2.get(x["tier"], 3), -x["score"]))
+    log.info(f"  Doubles targets: {len(d2_targets)}")
+
     # Build final output
     output = {
         "generated_at": datetime.datetime.now().isoformat(),
@@ -1994,6 +2332,7 @@ def run():
         "targets": all_targets,
         "laser_targets": laser_targets,
         "k_targets": k_targets,
+        "d2_targets": d2_targets,
         "game_lines": game_lines,
         "auto_fades": deduped_fades,
         "summary": {
@@ -2006,6 +2345,8 @@ def run():
             "k_high_05": sum(1 for t in k_targets if t["tier_05"] == "HIGH"),
             "k_med_05":  sum(1 for t in k_targets if t["tier_05"] == "MED"),
             "k_high_15": sum(1 for t in k_targets if t["tier_15"] == "HIGH"),
+            "d2_prime":  sum(1 for t in d2_targets if t["tier"] == "PRIME"),
+            "d2_high":   sum(1 for t in d2_targets if t["tier"] == "HIGH"),
         },
     }
 

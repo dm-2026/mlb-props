@@ -281,6 +281,16 @@
     .gl-summary { grid-template-columns: repeat(2, 1fr); }
     .gl-pitchers { grid-template-columns: 1fr; }
   }
+
+  /* ── Batter Doubles tab — reuses most HR card styles ── */
+  .d2-tier-bar.PRIME { background: var(--prime); }
+  .d2-tier-bar.HIGH  { background: var(--high); }
+  .d2-tier-bar.MED   { background: var(--med); }
+  .d2-tier-bar.LOW   { background: var(--low); }
+  .d2-score-box.PRIME { background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
+  .d2-score-box.HIGH  { background: var(--high-bg);  color: var(--high);  border: 1px solid var(--high-border); }
+  .d2-score-box.MED   { background: var(--med-bg);   color: var(--med);   border: 1px solid var(--med-border); }
+  .d2-score-box.LOW   { background: var(--low-bg);   color: var(--low);   border: 1px solid var(--low-border); }
   .wrigley-alert { display:none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.30); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--prime); align-items: center; gap: 10px; }
   .wrigley-alert.show { display: flex; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
@@ -309,6 +319,7 @@
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('hr',this)">⚾ HR Props</button>
   <button class="tab-btn" onclick="switchTab('k',this)">🔥 Batter Ks <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
+  <button class="tab-btn" onclick="switchTab('d2',this)">🔁 Batter Doubles <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
   <button class="tab-btn" onclick="switchTab('lines',this)">📊 Game Lines <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
 </div>
 
@@ -391,6 +402,33 @@
   </div>
 
 </div><!-- /tab-k -->
+
+<!-- ── Batter Doubles Tab ── -->
+<div class="tab-panel" id="tab-d2">
+
+  <div class="summary">
+    <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="d2-s-games">—</div></div>
+    <div class="sum-card"><div class="sum-label">Prime</div><div class="sum-value prime" id="d2-s-prime">—</div></div>
+    <div class="sum-card"><div class="sum-label">High</div><div class="sum-value high" id="d2-s-high">—</div></div>
+    <div class="sum-card"><div class="sum-label">Total</div><div class="sum-value" id="d2-s-total">—</div></div>
+  </div>
+
+  <div class="section-label">Batter Doubles — Ranked Targets</div>
+  <div class="filter-row" id="d2-filter-row">
+    <button class="filter-btn active-all" onclick="setD2Filter('all',this)">All</button>
+    <button class="filter-btn" onclick="setD2Filter('PRIME',this)">Prime</button>
+    <button class="filter-btn" onclick="setD2Filter('HIGH',this)">High</button>
+    <button class="filter-btn" onclick="setD2Filter('MED',this)">Med</button>
+    <button class="filter-btn" onclick="setD2Filter('LOW',this)">Low</button>
+  </div>
+  <div class="targets-list" id="d2-targets-list"><div class="loading">Loading doubles targets…</div></div>
+
+  <div class="footer" style="margin-top:40px">
+    <span id="d2-footer-gen">Generated: —</span>
+    <span>Batter Doubles · MLB Props Pipeline</span>
+  </div>
+
+</div><!-- /tab-d2 -->
 
 <!-- ── Game Lines Tab ── -->
 <div class="tab-panel" id="tab-lines">
@@ -506,6 +544,8 @@ function render(data) {
   updateMyListUI();
   renderKSummary(data);
   renderKTargets(data.k_targets || []);
+  renderD2Summary(data);
+  renderD2Targets(data.d2_targets || []);
   renderGameLinesSummary(data);
   renderGameLines(data.game_lines || []);
   const gen = new Date(data.generated_at);
@@ -1154,9 +1194,14 @@ function glCard(g, idx) {
     chips += `<span class="gl-chip ${cls}">${te.lean} ${te.line}${oddsStr} — ${te.edge_pct}% model</span>`;
   }
   if (ml) {
-    const cls = ml.lean === 'AWAY' ? 'ml-away' : 'ml-home';
     const oddsStr = ml.ml_odds ? ` (${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds})` : '';
-    chips += `<span class="gl-chip ${cls}">${ml.team} ML${oddsStr} — ${ml.model_prob}% vs ${ml.implied_prob}% implied</span>`;
+    // Always show the favorite as the primary chip
+    chips += `<span class="gl-chip ml-home">${ml.team} ${ml.model_prob}%${oddsStr} — Favorite</span>`;
+    // If underdog has value angle, show as secondary chip
+    if (ml.dog_value) {
+      const dogOddsStr = ml.dog_odds ? ` (${ml.dog_odds > 0 ? '+' : ''}${ml.dog_odds})` : '';
+      chips += `<span class="gl-chip neutral" style="font-size:10px">${ml.dog_team} value angle${dogOddsStr} +${ml.dog_edge}%</span>`;
+    }
   }
   if (!chips) chips = `<span class="gl-chip neutral">No edge — model ~= market</span>`;
 
@@ -1205,15 +1250,19 @@ function glCard(g, idx) {
   // ML edge detail
   let mlHtml = '';
   if (ml) {
+    const oddsStr = ml.ml_odds != null ? `${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds}` : 'N/A';
     mlHtml = `<div class="gl-edge-detail" style="margin-bottom:10px">
-      <div class="gl-section-label">Money Line Edge</div>
+      <div class="gl-section-label">Money Line</div>
       <div style="font-family:var(--mono);font-size:13px;color:var(--med);margin-bottom:6px">
-        ${ml.team} ML — Model ${ml.model_prob}% vs Market ${ml.implied_prob}% implied
-        <span style="color:var(--prime);margin-left:8px">+${ml.edge}% edge (${ml.confidence})</span>
+        ✓ ${ml.team} — Model ${ml.model_prob}% vs Market ${ml.implied_prob}% implied
+        ${ml.confidence !== 'NONE' ? `<span style="color:var(--prime);margin-left:8px">${ml.edge > 0 ? '+' : ''}${ml.edge}% edge (${ml.confidence})</span>` : ''}
       </div>
-      <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
-        ${ml.ml_odds != null ? `Odds: ${ml.ml_odds > 0 ? '+' : ''}${ml.ml_odds}` : 'No odds available'}
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:${ml.dog_value ? '8px' : '0'}">
+        Odds: ${oddsStr}
       </div>
+      ${ml.dog_value ? `<div style="font-size:11px;color:var(--text2);font-family:var(--mono);padding-top:8px;border-top:1px solid var(--border)">
+        Value angle: ${ml.dog_team} at ${ml.dog_odds > 0 ? '+' : ''}${ml.dog_odds} — model gives ${ml.dog_prob}% vs ${ml.dog_implied}% implied (+${ml.dog_edge}%)
+      </div>` : ''}
     </div>`;
   }
 
@@ -1266,6 +1315,157 @@ function glCard(g, idx) {
 function toggleGlCard(idx) {
   event.stopPropagation();
   document.getElementById(`glcard-${idx}`).classList.toggle('expanded');
+}
+
+// ── Batter Doubles tab ───────────────────────────────────────────────────────
+const D2_COMP_LABELS = {
+  contact_quality: 'Contact Quality',
+  ld_rate:         'Line Drive Rate',
+  pitcher_contact: 'Pitcher Contact',
+  park_factor:     'Park Factor (2B)',
+  recent_form:     'Recent Form',
+};
+const D2_COMP_COLORS = {
+  contact_quality: '#3b82f6',
+  ld_rate:         '#22c55e',
+  pitcher_contact: '#ef4444',
+  park_factor:     '#f59e0b',
+  recent_form:     '#fb923c',
+};
+const D2_TIER_ORDER = { PRIME: 0, HIGH: 1, MED: 2, LOW: 3 };
+
+let d2Filter = 'all';
+
+function setD2Filter(tier, btn) {
+  d2Filter = tier;
+  document.querySelectorAll('#d2-filter-row .filter-btn').forEach(b => b.className = 'filter-btn');
+  btn.className = tier === 'all'   ? 'filter-btn active-all'
+    : tier === 'PRIME' ? 'filter-btn active-prime'
+    : tier === 'HIGH'  ? 'filter-btn active-high'
+    : tier === 'MED'   ? 'filter-btn active-med'
+    : 'filter-btn active-low';
+  if (allData) renderD2Targets(allData.d2_targets || []);
+}
+
+function renderD2Summary(data) {
+  const d2 = data.d2_targets || [];
+  const s = data.summary || {};
+  document.getElementById('d2-s-games').textContent  = (data.games || []).length;
+  document.getElementById('d2-s-prime').textContent  = s.d2_prime || 0;
+  document.getElementById('d2-s-high').textContent   = s.d2_high  || 0;
+  document.getElementById('d2-s-total').textContent  = d2.length;
+  const gen = new Date(data.generated_at);
+  const el = document.getElementById('d2-footer-gen');
+  if (el) el.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderD2Targets(targets) {
+  const el = document.getElementById('d2-targets-list');
+  if (!targets || !targets.length) {
+    el.innerHTML = '<div class="empty">No doubles targets — run pipeline.py</div>';
+    return;
+  }
+  let filtered = d2Filter === 'all' ? targets : targets.filter(t => t.tier === d2Filter);
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty">No ${d2Filter} doubles targets today</div>`;
+    return;
+  }
+  const sorted = [...filtered].sort((a,b) =>
+    D2_TIER_ORDER[a.tier] !== D2_TIER_ORDER[b.tier]
+      ? D2_TIER_ORDER[a.tier] - D2_TIER_ORDER[b.tier]
+      : b.score - a.score
+  );
+  let html = '', lastTier = null;
+  sorted.forEach((t, i) => {
+    if (d2Filter === 'all' && t.tier !== lastTier) {
+      const lbl = t.tier === 'PRIME' ? 'Prime — elite doubles profile, 3+ factors aligning'
+        : t.tier === 'HIGH' ? 'High — strong doubles matchup'
+        : t.tier === 'MED'  ? 'Med — moderate lean'
+        : 'Low — watch list';
+      html += `<div class="tier-divider ${t.tier}">${lbl}</div>`;
+      lastTier = t.tier;
+    }
+    html += d2Card(t, `d2_${i}`);
+  });
+  el.innerHTML = html;
+}
+
+function d2Card(t, idx) {
+  const meta = t.batter_meta || {};
+  const tier = t.tier;
+
+  // Badges
+  const pfVal = t.park_factor_2b;
+  const parkBadge = pfVal >= 115
+    ? `<span class="badge badge-boost">Park +${pfVal-100}% 2B</span>`
+    : pfVal <= 88
+    ? `<span class="badge badge-suppress">Park ${pfVal-100}% 2B</span>`
+    : `<span class="badge badge-neutral">Park ${pfVal}</span>`;
+
+  const lineupBadge = t.lineup_confirmed === false
+    ? `<span class="badge badge-neutral">Projected</span>` : '';
+
+  const recentBadge = (meta.doubles_14d || 0) >= 2
+    ? `<span class="badge badge-boost">${meta.doubles_14d} 2B L14D</span>` : '';
+
+  const ldBadge = meta.ld_rate >= 24
+    ? `<span class="badge badge-boost">${meta.ld_rate}% LD Rate</span>` : '';
+
+  // Component bars
+  const compBars = Object.entries(t.components || {}).map(([k, v]) => {
+    const c = D2_COMP_COLORS[k] || '#666';
+    let displayVal = v;
+    if (k === 'recent_form' && meta.doubles_14d != null) displayVal = `${meta.doubles_14d} 2B`;
+    if (k === 'ld_rate' && meta.ld_rate != null) displayVal = `${meta.ld_rate}%`;
+    if (k === 'contact_quality' && meta.hard_hit_rate != null) displayVal = `${meta.hard_hit_rate}% HH`;
+    return `<div class="comp-item">
+      <div class="comp-label">${D2_COMP_LABELS[k] || k}</div>
+      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${c}"></div></div>
+      <div class="comp-value" style="color:${c}">${displayVal}</div>
+    </div>`;
+  }).join('');
+
+  // Meta row — doubles-specific stats
+  const ev = meta.avg_ev ? `${meta.avg_ev} mph` : '';
+  const ld = meta.ld_rate != null ? `${meta.ld_rate}% LD` : '';
+  const hh = meta.hard_hit_rate != null ? `${meta.hard_hit_rate}% HH` : '';
+  const ss = meta.sweet_spot_rate != null ? `${meta.sweet_spot_rate}% SS` : '';
+  const dr = meta.double_rate != null ? `${meta.double_rate}% 2B/PA` : '';
+  const pLd = t.pitcher_ld_rate != null ? `${t.pitcher_ld_rate}% LD alw` : '';
+  const pHh = t.pitcher_hard_hit != null ? `${t.pitcher_hard_hit}% HH alw` : '';
+  const pa26 = meta.pa_2026 ? `${meta.pa_2026} PA '26` : '';
+
+  return `<div class="batter-card" id="d2card-${idx}">
+    <div class="card-header" onclick="toggleD2Card('${idx}')">
+      <div class="tier-bar ${tier} d2-tier-bar"></div>
+      <div class="score-box ${tier} d2-score-box">${t.score}</div>
+      <div class="card-info">
+        <div class="batter-name">${t.batter_name}</div>
+        <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue || t.game}</div>
+        <div class="card-badges-row">${parkBadge}${ldBadge}${recentBadge}${lineupBadge}</div>
+      </div>
+      <div class="expand-icon">▾</div>
+    </div>
+    <div class="card-detail">
+      <div class="insight-box">${t.insight}</div>
+      <div class="components-grid">${compBars}</div>
+      <div class="meta-row">
+        ${ev ? `<div class="meta-item"><div class="mk">Exit Velo</div><div class="mv">${ev}</div></div>` : ''}
+        ${ld ? `<div class="meta-item"><div class="mk">LD Rate</div><div class="mv">${ld}</div></div>` : ''}
+        ${hh ? `<div class="meta-item"><div class="mk">Hard Hit</div><div class="mv">${hh}</div></div>` : ''}
+        ${ss ? `<div class="meta-item"><div class="mk">Sweet Spot</div><div class="mv">${ss}</div></div>` : ''}
+        ${dr ? `<div class="meta-item"><div class="mk">2B Rate</div><div class="mv">${dr}</div></div>` : ''}
+        ${pLd ? `<div class="meta-item"><div class="mk">Pitcher LD</div><div class="mv">${pLd}</div></div>` : ''}
+        ${pHh ? `<div class="meta-item"><div class="mk">Pitcher HH</div><div class="mv">${pHh}</div></div>` : ''}
+        ${pa26 ? `<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${pa26}</div></div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleD2Card(idx) {
+  event.stopPropagation();
+  document.getElementById(`d2card-${idx}`).classList.toggle('expanded');
 }
 
 loadData();
