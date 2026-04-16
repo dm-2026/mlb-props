@@ -320,6 +320,7 @@
   <button class="tab-btn active" onclick="switchTab('hr',this)">⚾ HR Props</button>
   <button class="tab-btn" onclick="switchTab('k',this)">🔥 Batter Ks <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
   <button class="tab-btn" onclick="switchTab('d2',this)">🔁 Batter Doubles <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
+  <button class="tab-btn" onclick="switchTab('tb',this)">📈 Total Bases <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
   <button class="tab-btn" onclick="switchTab('lines',this)">📊 Game Lines <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
 </div>
 
@@ -429,6 +430,36 @@
   </div>
 
 </div><!-- /tab-d2 -->
+
+<!-- ── Total Bases Tab ── -->
+<div class="tab-panel" id="tab-tb">
+
+  <div class="summary">
+    <div class="sum-card"><div class="sum-label">Games</div><div class="sum-value" id="tb-s-games">—</div></div>
+    <div class="sum-card"><div class="sum-label">High (1+)</div><div class="sum-value high" id="tb-s-high1">—</div></div>
+    <div class="sum-card"><div class="sum-label">High (2+)</div><div class="sum-value prime" id="tb-s-high2">—</div></div>
+    <div class="sum-card"><div class="sum-label">Total</div><div class="sum-value" id="tb-s-total">—</div></div>
+  </div>
+
+  <div class="section-label">Total Bases — Ranked Targets</div>
+  <div class="k-filter-row" id="tb-filter-row">
+    <button class="filter-btn active-all" onclick="setTbFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setTbFilter('HIGH',this)">High</button>
+    <button class="filter-btn" onclick="setTbFilter('MED',this)">Med</button>
+    <button class="filter-btn" onclick="setTbFilter('LOW',this)">Low</button>
+    <div class="k-threshold-toggle">
+      <button class="k-thresh-btn active" onclick="setTbThreshold('1',this)">Over 0.5 TB (1+)</button>
+      <button class="k-thresh-btn" onclick="setTbThreshold('2',this)">Over 1.5 TB (2+)</button>
+    </div>
+  </div>
+  <div class="targets-list" id="tb-targets-list"><div class="loading">Loading total bases targets…</div></div>
+
+  <div class="footer" style="margin-top:40px">
+    <span id="tb-footer-gen">Generated: —</span>
+    <span>Total Bases · MLB Props Pipeline</span>
+  </div>
+
+</div><!-- /tab-tb -->
 
 <!-- ── Game Lines Tab ── -->
 <div class="tab-panel" id="tab-lines">
@@ -546,6 +577,8 @@ function render(data) {
   renderKTargets(data.k_targets || []);
   renderD2Summary(data);
   renderD2Targets(data.d2_targets || []);
+  renderTbSummary(data);
+  renderTbTargets(data.tb_targets || []);
   renderGameLinesSummary(data);
   renderGameLines(data.game_lines || []);
   const gen = new Date(data.generated_at);
@@ -1480,6 +1513,171 @@ function d2Card(t, idx) {
 function toggleD2Card(idx) {
   event.stopPropagation();
   document.getElementById(`d2card-${idx}`).classList.toggle('expanded');
+}
+
+// ── Total Bases tab ───────────────────────────────────────────────────────────
+const TB_COMP_LABELS_1 = {
+  contact_rate:    'Contact Rate',
+  pitcher_contact: 'Pitcher Softness',
+  ld_singles:      'LD + Singles Rate',
+  park_form:       'Park + Form',
+};
+const TB_COMP_LABELS_2 = {
+  contact_quality: 'Contact Quality',
+  ld_xbh:          'LD + XBH Rate',
+  pitcher_contact: 'Pitcher Contact',
+  park_form:       'Park + Form',
+};
+const TB_COMP_COLORS = {
+  contact_rate:    '#22c55e',
+  pitcher_contact: '#ef4444',
+  ld_singles:      '#3b82f6',
+  contact_quality: '#3b82f6',
+  ld_xbh:          '#22c55e',
+  park_form:       '#f59e0b',
+};
+
+let tbFilter = 'all';
+let tbThreshold = '1';
+
+function setTbFilter(tier, btn) {
+  tbFilter = tier;
+  document.querySelectorAll('#tb-filter-row .filter-btn').forEach(b => b.className = 'filter-btn');
+  btn.className = tier === 'all' ? 'filter-btn active-all'
+    : tier === 'HIGH' ? 'filter-btn active-high'
+    : tier === 'MED'  ? 'filter-btn active-med'
+    : 'filter-btn active-low';
+  if (allData) renderTbTargets(allData.tb_targets || []);
+}
+
+function setTbThreshold(thresh, btn) {
+  tbThreshold = thresh;
+  document.querySelectorAll('#tb-filter-row .k-thresh-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (allData) renderTbTargets(allData.tb_targets || []);
+}
+
+function renderTbSummary(data) {
+  const s = data.summary || {};
+  document.getElementById('tb-s-games').textContent  = (data.games || []).length;
+  document.getElementById('tb-s-high1').textContent  = s.tb_high_1 || 0;
+  document.getElementById('tb-s-high2').textContent  = s.tb_high_2 || 0;
+  document.getElementById('tb-s-total').textContent  = (data.tb_targets || []).length;
+  const gen = new Date(data.generated_at);
+  const el = document.getElementById('tb-footer-gen');
+  if (el) el.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderTbTargets(targets) {
+  const el = document.getElementById('tb-targets-list');
+  if (!targets || !targets.length) {
+    el.innerHTML = '<div class="empty">No TB targets — run pipeline.py</div>';
+    return;
+  }
+  const tierKey = tbThreshold === '2' ? 'tier_2plus' : 'tier_1plus';
+  let filtered = targets.filter(t => t[tierKey] !== 'FADE');
+  if (tbFilter !== 'all') filtered = filtered.filter(t => t[tierKey] === tbFilter);
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty">No ${tbFilter === 'all' ? '' : tbFilter + ' '}targets for Over ${tbThreshold === '2' ? '1.5' : '0.5'} TB</div>`;
+    return;
+  }
+  // Sort by relevant score
+  filtered.sort((a, b) => {
+    const scoreKey = tbThreshold === '2' ? 'score_2plus' : 'score_1plus';
+    return (b[scoreKey] || 0) - (a[scoreKey] || 0);
+  });
+  let html = '', lastTier = null;
+  filtered.forEach((t, i) => {
+    const tier = t[tierKey];
+    if (tbFilter === 'all' && tier !== lastTier) {
+      const lbl = tier === 'HIGH' ? `High — strong ${tbThreshold === '2' ? '2+' : '1+'} TB matchup`
+        : tier === 'MED' ? 'Med — moderate lean' : 'Low — watch list';
+      html += `<div class="tier-divider ${tier}">${lbl}</div>`;
+      lastTier = tier;
+    }
+    html += tbCard(t, `tb_${i}`, tierKey);
+  });
+  el.innerHTML = html;
+}
+
+function tbCard(t, idx, tierKey) {
+  const meta = t.batter_meta || {};
+  const tier = t[tierKey];
+  const isTwo = tbThreshold === '2';
+  const components = isTwo ? t.components_2plus : t.components_1plus;
+  const compLabels = isTwo ? TB_COMP_LABELS_2 : TB_COMP_LABELS_1;
+  const displayScore = isTwo ? t.score_2plus : t.score_1plus;
+
+  // Badges
+  const hitRate = meta.hit_rate;
+  const hitBadge = hitRate >= 30
+    ? `<span class="badge badge-boost">${hitRate}% Hit Rate</span>` : '';
+  const tbBadge = meta.tb_per_pa >= 0.45
+    ? `<span class="badge badge-boost">${meta.tb_per_pa} TB/PA</span>` : '';
+  const recentBadge = meta.tb_14d >= 8 && meta.pa_14d >= 6
+    ? `<span class="badge badge-boost">${meta.tb_14d} TB L${meta.pa_14d}PA</span>` : '';
+  const lineupBadge = t.lineup_confirmed === false
+    ? `<span class="badge badge-neutral">Projected</span>` : '';
+  const pitcherBadge = t.pitcher_hit_rate >= 30
+    ? `<span class="badge badge-boost">Pitcher ${t.pitcher_hit_rate}% hit rate</span>` : '';
+
+  // Component bars
+  const compBars = Object.entries(components || {}).map(([k, v]) => {
+    const c = TB_COMP_COLORS[k] || '#666';
+    let displayVal = v;
+    if (k === 'contact_rate' && meta.hit_rate) displayVal = `${meta.hit_rate}% BA`;
+    if (k === 'ld_singles' && meta.single_rate) displayVal = `${meta.single_rate}% 1B`;
+    if (k === 'ld_xbh' && meta.tb_per_pa) displayVal = `${meta.tb_per_pa} TB/PA`;
+    if (k === 'contact_quality' && meta.hard_hit_rate) displayVal = `${meta.hard_hit_rate}% HH`;
+    if (k === 'park_form' && meta.tb_14d > 0) displayVal = `${meta.tb_14d} TB`;
+    return `<div class="comp-item">
+      <div class="comp-label">${compLabels[k] || k}</div>
+      <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${v}%;background:${c}"></div></div>
+      <div class="comp-value" style="color:${c}">${displayVal}</div>
+    </div>`;
+  }).join('');
+
+  // Threshold chips
+  const t1cls = t.tier_1plus === 'HIGH' ? 'k-chip HIGH' : t.tier_1plus === 'MED' ? 'k-chip MED' : t.tier_1plus === 'LOW' ? 'k-chip LOW' : 'k-chip FADE';
+  const t2cls = t.tier_2plus === 'HIGH' ? 'k-chip HIGH' : t.tier_2plus === 'MED' ? 'k-chip MED' : t.tier_2plus === 'LOW' ? 'k-chip LOW' : 'k-chip FADE';
+
+  return `<div class="batter-card" id="tbcard-${idx}">
+    <div class="card-header" onclick="toggleTbCard('${idx}')">
+      <div class="tier-bar ${tier}"></div>
+      <div class="score-box ${tier}">${displayScore}</div>
+      <div class="card-info">
+        <div class="batter-name">${t.batter_name}</div>
+        <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue || t.game}</div>
+        <div class="card-badges-row">${hitBadge}${tbBadge}${recentBadge}${pitcherBadge}${lineupBadge}</div>
+      </div>
+      <div class="expand-icon">▾</div>
+    </div>
+    <div class="card-detail">
+      <div class="insight-box">${t.insight}</div>
+      <div class="components-grid">${compBars}</div>
+      <div class="k-threshold-chips">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-right:4px">Lines:</span>
+        <span class="${t1cls}">Over 0.5 TB (1+) — ${t.tier_1plus} (${t.score_1plus})</span>
+        <span class="${t2cls}">Over 1.5 TB (2+) — ${t.tier_2plus} (${t.score_2plus})</span>
+      </div>
+      <div class="meta-row">
+        ${meta.hit_rate ? `<div class="meta-item"><div class="mk">Hit Rate</div><div class="mv">${meta.hit_rate}%</div></div>` : ''}
+        ${meta.single_rate ? `<div class="meta-item"><div class="mk">Singles/PA</div><div class="mv">${meta.single_rate}%</div></div>` : ''}
+        ${meta.double_rate ? `<div class="meta-item"><div class="mk">Doubles/PA</div><div class="mv">${meta.double_rate}%</div></div>` : ''}
+        ${meta.tb_per_pa ? `<div class="meta-item"><div class="mk">TB/PA</div><div class="mv">${meta.tb_per_pa}</div></div>` : ''}
+        ${meta.ld_rate ? `<div class="meta-item"><div class="mk">LD Rate</div><div class="mv">${meta.ld_rate}%</div></div>` : ''}
+        ${meta.hard_hit_rate ? `<div class="meta-item"><div class="mk">Hard Hit</div><div class="mv">${meta.hard_hit_rate}%</div></div>` : ''}
+        ${t.pitcher_hit_rate ? `<div class="meta-item"><div class="mk">Pitcher H%</div><div class="mv">${t.pitcher_hit_rate}%</div></div>` : ''}
+        ${meta.k_rate ? `<div class="meta-item"><div class="mk">K Rate</div><div class="mv">${meta.k_rate}%</div></div>` : ''}
+        ${meta.pa_2026 ? `<div class="meta-item"><div class="mk">2026 PA</div><div class="mv">${meta.pa_2026}</div></div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleTbCard(idx) {
+  event.stopPropagation();
+  document.getElementById(`tbcard-${idx}`).classList.toggle('expanded');
 }
 
 loadData();

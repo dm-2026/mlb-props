@@ -601,9 +601,18 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
         else:
             pitcher_ld_rate = None
 
-        arsenal["_pitcher_double_rate"] = pitcher_double_rate  # doubles / PA allowed
-        arsenal["_pitcher_hard_hit"] = pitcher_hard_hit        # hard hit % allowed
-        arsenal["_pitcher_ld_rate"] = pitcher_ld_rate          # LD% allowed
+        arsenal["_pitcher_double_rate"] = pitcher_double_rate
+        arsenal["_pitcher_hard_hit"] = pitcher_hard_hit
+        arsenal["_pitcher_ld_rate"] = pitcher_ld_rate
+
+        # Hit rate allowed — hits / PA (contact rate, key for TB model)
+        p_hits = p_pa_all[p_pa_all["events"].isin(["single", "double", "triple", "home_run"])]
+        pitcher_hit_rate = round(len(p_hits) / len(p_pa_all) * 100, 2) if len(p_pa_all) >= 20 else None
+        # Singles rate allowed specifically
+        p_singles = p_pa_all[p_pa_all["events"] == "single"]
+        pitcher_single_rate = round(len(p_singles) / len(p_pa_all) * 100, 2) if len(p_pa_all) >= 20 else None
+        arsenal["_pitcher_hit_rate"] = pitcher_hit_rate      # hits / PA allowed
+        arsenal["_pitcher_single_rate"] = pitcher_single_rate  # singles / PA allowed
 
         log.info(f"  Pitcher {pitcher_name} vs {batter_hand}HB: {len(arsenal)} pitch types, {total_hrs_vs} HR vs {batter_hand}HB, K%={overall_pitcher_k_rate}")
 
@@ -764,6 +773,20 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
         doubles_recent = df_recent[df_recent["events"] == "double"] if len(df_recent) > 0 else doubles_all.iloc[0:0]
         doubles_14d = len(doubles_recent)
 
+        # ── Total Bases stats ─────────────────────────────────────────────────
+        singles_all  = pa_all_events[pa_all_events["events"] == "single"]
+        triples_all  = pa_all_events[pa_all_events["events"] == "triple"]
+        hrs_all_tb   = pa_all_events[pa_all_events["events"] == "home_run"]
+        total_pa_count = len(pa_all_events)
+        single_rate  = round(len(singles_all) / total_pa_count * 100, 2) if total_pa_count >= 20 else None
+        hit_rate     = round((len(singles_all) + len(doubles_all) + len(triples_all) + len(hrs_all_tb)) / total_pa_count * 100, 2) if total_pa_count >= 20 else None
+        tb_numerator = (len(singles_all) * 1 + len(doubles_all) * 2 + len(triples_all) * 3 + len(hrs_all_tb) * 4)
+        tb_per_pa    = round(tb_numerator / total_pa_count, 3) if total_pa_count >= 20 else None
+        singles_14d  = len(df_recent[df_recent["events"] == "single"]) if len(df_recent) > 0 else 0
+        triples_14d  = len(df_recent[df_recent["events"] == "triple"]) if len(df_recent) > 0 else 0
+        tb_14d       = (singles_14d * 1 + doubles_14d * 2 + triples_14d * 3 + hr_recent * 4)
+        pa_14d_for_tb = pa_recent
+
         # Hard hit rate (95+ mph EV) — key doubles predictor
         hard_hit_count = len(contact_all[contact_all["launch_speed"] >= 95]) if "launch_speed" in contact_all.columns else 0
         hard_hit_rate = round(hard_hit_count / len(contact_all) * 100, 1) if len(contact_all) >= 20 else None
@@ -805,12 +828,18 @@ def get_batter_pitch_stats(batter_id, batter_name, batter_hand):
             "whiff_rate": overall_whiff_rate,
             "chase_rate": overall_chase_rate,
             # ── Doubles-specific meta ─────────────────────────────────────────
-            "ld_rate": overall_ld_rate,           # line drive rate (LA 10-25°)
-            "sweet_spot_rate": overall_sweet_spot, # broader contact quality (LA 8-32°)
-            "hard_hit_rate": hard_hit_rate,        # % contact at 95+ mph
-            "double_rate": overall_double_rate,    # doubles / PA
-            "doubles_14d": doubles_14d,            # doubles last 14 days
+            "ld_rate": overall_ld_rate,
+            "sweet_spot_rate": overall_sweet_spot,
+            "hard_hit_rate": hard_hit_rate,
+            "double_rate": overall_double_rate,
+            "doubles_14d": doubles_14d,
             "avg_la": round(avg_la_overall, 1) if avg_la_overall and not math.isnan(avg_la_overall) else None,
+            # ── Total Bases meta ──────────────────────────────────────────────
+            "single_rate": single_rate,     # singles / PA
+            "hit_rate": hit_rate,           # hits / PA (batting average proxy)
+            "tb_per_pa": tb_per_pa,         # total bases / PA
+            "tb_14d": tb_14d,               # total bases last 14 days
+            "pa_14d": pa_14d_for_tb,        # PA last 14 days
         }
 
         # Force hardcoded seed for players whose 2025 data is unreliable
@@ -1230,6 +1259,229 @@ def score_batter_k(batter, pitcher, arsenal, batter_stats):
         tier_15 = "FADE"
 
     return score, components, insight, tier_05, tier_15
+
+
+# ── Total Bases prop scoring model ───────────────────────────────────────────
+
+TB_WEIGHTS_1 = {
+    "contact_rate":    0.35,  # K% / hit rate — can they even get on base
+    "pitcher_contact": 0.30,  # pitcher H/9, hit rate allowed — do they give up hits
+    "ld_singles":      0.20,  # LD rate + singles rate — quality contact volume
+    "park_form":       0.15,  # park + recent form
+}
+
+TB_WEIGHTS_2 = {
+    "contact_quality": 0.25,  # EV + sweet spot — hard contact = extra bases
+    "ld_xbh":          0.30,  # LD rate + XBH rate — gap shots and extra bases
+    "pitcher_contact": 0.25,  # pitcher LD%, hard hit%, doubles allowed
+    "park_form":       0.20,  # park doubles factor + recent TB
+}
+
+def score_batter_tb(batter, pitcher, arsenal, batter_stats, park_factor, doubles_park):
+    """
+    Returns (score_0_100, components_1plus, components_2plus, insight, tier_1plus, tier_2plus)
+    1+ TB = get any hit — driven by contact rate and pitcher softness
+    2+ TB = extra base hit OR two singles — driven by hard contact and gap power
+    """
+    meta = batter_stats.get("_meta", {})
+    PITCH_NAMES_TB = {
+        "FF":"Four-seam", "SI":"Sinker", "FC":"Cutter", "CH":"Changeup",
+        "SL":"Slider", "CU":"Curveball", "SW":"Sweeper", "FS":"Splitter",
+        "ST":"Sweeper", "KC":"Knuckle curve", "KN":"Knuckleball",
+    }
+
+    # ── Batter contact signals ────────────────────────────────────────────────
+    k_rate      = meta.get("k_rate")         # strikeout %
+    hit_rate    = meta.get("hit_rate")        # hits / PA (BA proxy)
+    single_rate = meta.get("single_rate")     # singles / PA
+    double_rate = meta.get("double_rate")     # doubles / PA
+    tb_per_pa   = meta.get("tb_per_pa")       # total bases / PA
+    ld_rate     = meta.get("ld_rate")         # line drive rate
+    sweet_spot  = meta.get("sweet_spot_rate") # LA 8-32°
+    hard_hit    = meta.get("hard_hit_rate")   # 95+ mph contact
+    avg_ev      = meta.get("avg_ev") or 87.0
+    tb_14d      = meta.get("tb_14d", 0)
+    pa_14d      = meta.get("pa_14d", 0)
+
+    # ── 1+ TB signals ─────────────────────────────────────────────────────────
+
+    # Contact rate score — low K% + high hit rate = gets on base a lot
+    if k_rate is not None:
+        # 10% K = elite contact (0.90), 22% = avg (0.55), 35%+ = low (0.10)
+        k_score = max(0.0, min(1.0, 1.0 - (k_rate - 10.0) / 28.0))
+    else:
+        k_score = 0.50
+
+    if hit_rate is not None:
+        # 20% BA = poor (0.10), 26% = avg (0.45), 32%+ = elite (0.90)
+        hit_score = max(0.0, min(1.0, (hit_rate - 18.0) / 16.0))
+    else:
+        hit_score = 0.45
+
+    contact_rate_score = k_score * 0.55 + hit_score * 0.45
+
+    # LD + singles rate for 1+ TB
+    if ld_rate is not None:
+        ld_score_1 = max(0.0, min(1.0, (ld_rate - 12.0) / 18.0))
+    else:
+        ld_score_1 = 0.40
+
+    if single_rate is not None:
+        # 8% singles/PA = low, 14% = avg, 20%+ = high singles hitter
+        single_score = max(0.0, min(1.0, (single_rate - 7.0) / 14.0))
+    else:
+        single_score = 0.40
+
+    ld_singles_score = ld_score_1 * 0.55 + single_score * 0.45
+
+    # Pitcher contact allowed (for 1+)
+    pitcher_hit_rate  = arsenal.get("_pitcher_hit_rate")
+    pitcher_sing_rate = arsenal.get("_pitcher_single_rate")
+    pitcher_k_rate    = arsenal.get("_pitcher_k_rate")
+
+    if pitcher_hit_rate is not None:
+        # <22% hit rate allowed = stingy, 27% = avg, 33%+ = very hittable
+        p_hit_score = max(0.0, min(1.0, (pitcher_hit_rate - 20.0) / 14.0))
+    else:
+        p_hit_score = 0.45
+
+    if pitcher_k_rate is not None:
+        # High pitcher K% = fewer balls in play = fewer hits
+        p_k_suppress = max(0.0, min(1.0, 1.0 - (pitcher_k_rate - 12.0) / 26.0))
+    else:
+        p_k_suppress = 0.50
+
+    pitcher_contact_score_1 = p_hit_score * 0.65 + p_k_suppress * 0.35
+
+    # Park + recent form for 1+
+    pf_1 = park_factor.get("overall", 100)  # HR park factor as proxy for run environment
+    park_score_1 = max(0.0, min(1.0, (pf_1 - 80.0) / 52.0))
+
+    tb_rate_14d = round(tb_14d / pa_14d, 3) if pa_14d >= 8 else None
+    if tb_rate_14d is not None:
+        # 0.20 TB/PA = cold, 0.35 = avg, 0.55+ = hot
+        form_score_1 = max(0.1, min(1.0, (tb_rate_14d - 0.15) / 0.45))
+    else:
+        form_score_1 = 0.40
+
+    park_form_score_1 = park_score_1 * 0.55 + form_score_1 * 0.45
+
+    raw_1 = (
+        TB_WEIGHTS_1["contact_rate"]    * contact_rate_score +
+        TB_WEIGHTS_1["pitcher_contact"] * pitcher_contact_score_1 +
+        TB_WEIGHTS_1["ld_singles"]      * ld_singles_score +
+        TB_WEIGHTS_1["park_form"]       * park_form_score_1
+    )
+    score_1 = round(raw_1 * 100)
+
+    # ── 2+ TB signals ─────────────────────────────────────────────────────────
+
+    # Contact quality — hard contact = extra bases
+    ev_score = max(0.0, min(1.0, (avg_ev - 85.0) / 13.0))
+    ss_score = max(0.0, min(1.0, (sweet_spot - 28.0) / 27.0)) if sweet_spot else ev_score * 0.7
+    hh_score = max(0.0, min(1.0, (hard_hit - 28.0) / 27.0)) if hard_hit else ev_score * 0.7
+    contact_quality_score = ev_score * 0.40 + ss_score * 0.35 + hh_score * 0.25
+
+    # LD + XBH rate
+    if ld_rate is not None:
+        ld_score_2 = max(0.0, min(1.0, (ld_rate - 12.0) / 18.0))
+    else:
+        ld_score_2 = 0.40
+
+    if tb_per_pa is not None:
+        # 0.25 TB/PA = below avg, 0.38 = avg, 0.55+ = elite
+        tb_rate_score = max(0.0, min(1.0, (tb_per_pa - 0.22) / 0.35))
+    else:
+        tb_rate_score = 0.40
+
+    ld_xbh_score = ld_score_2 * 0.45 + tb_rate_score * 0.55
+
+    # Pitcher contact quality allowed for 2+
+    pitcher_ld    = arsenal.get("_pitcher_ld_rate")
+    pitcher_hh    = arsenal.get("_pitcher_hard_hit")
+    pitcher_dr    = arsenal.get("_pitcher_double_rate")
+
+    if pitcher_dr is not None:
+        p_dr_score = max(0.0, min(1.0, (pitcher_dr - 3.5) / 6.0))
+    else:
+        p_dr_score = 0.45
+
+    if pitcher_ld is not None:
+        p_ld_score = max(0.0, min(1.0, (pitcher_ld - 14.0) / 14.0))
+    else:
+        p_ld_score = 0.45
+
+    if pitcher_hh is not None:
+        p_hh_score = max(0.0, min(1.0, (pitcher_hh - 28.0) / 24.0))
+    else:
+        p_hh_score = 0.45
+
+    pitcher_contact_score_2 = p_dr_score * 0.40 + p_ld_score * 0.35 + p_hh_score * 0.25
+
+    # Park + form for 2+
+    dpf = doubles_park.get("lhb" if batter.get("bats","R") == "L" else "rhb", doubles_park.get("overall", 100))
+    park_score_2 = max(0.0, min(1.0, (dpf - 80.0) / 52.0))
+    park_form_score_2 = park_score_2 * 0.55 + form_score_1 * 0.45  # reuse form score
+
+    raw_2 = (
+        TB_WEIGHTS_2["contact_quality"] * contact_quality_score +
+        TB_WEIGHTS_2["ld_xbh"]         * ld_xbh_score +
+        TB_WEIGHTS_2["pitcher_contact"] * pitcher_contact_score_2 +
+        TB_WEIGHTS_2["park_form"]       * park_form_score_2
+    )
+    score_2 = round(raw_2 * 100)
+
+    # Combined display score = blend of both (weighted toward 1+)
+    display_score = round(score_1 * 0.55 + score_2 * 0.45)
+
+    # ── Components for display ────────────────────────────────────────────────
+    components_1 = {
+        "contact_rate":    round(contact_rate_score * 100),
+        "pitcher_contact": round(pitcher_contact_score_1 * 100),
+        "ld_singles":      round(ld_singles_score * 100),
+        "park_form":       round(park_form_score_1 * 100),
+    }
+    components_2 = {
+        "contact_quality": round(contact_quality_score * 100),
+        "ld_xbh":          round(ld_xbh_score * 100),
+        "pitcher_contact": round(pitcher_contact_score_2 * 100),
+        "park_form":       round(park_form_score_2 * 100),
+    }
+
+    # Insight
+    if pitcher_hit_rate and pitcher_hit_rate >= 30:
+        insight = f"Pitcher allows {pitcher_hit_rate}% hit rate — contact-heavy matchup"
+    elif hit_rate and hit_rate >= 30:
+        insight = f"Elite contact rate {hit_rate}% — high base hit frequency"
+    elif ld_rate and ld_rate >= 24 and tb_per_pa and tb_per_pa >= 0.42:
+        insight = f"Gap-shot profile: {ld_rate}% LD, {tb_per_pa:.3f} TB/PA"
+    elif tb_14d >= 6 and pa_14d >= 8:
+        insight = f"Hot streak: {tb_14d} TB over last {pa_14d} PA"
+    else:
+        insight = f"Contact: {hit_rate or '—'}% hit rate, {avg_ev:.1f} mph EV"
+
+    # ── Tiers — separate for 1+ and 2+ ───────────────────────────────────────
+    # 1+ TB — easier bar (just get a hit)
+    if score_1 >= 68:
+        tier_1 = "HIGH"
+    elif score_1 >= 52:
+        tier_1 = "MED"
+    elif score_1 >= 36:
+        tier_1 = "LOW"
+    else:
+        tier_1 = "FADE"
+
+    # 2+ TB — harder bar, needs extra base or two hits
+    if score_2 >= 65:
+        tier_2 = "HIGH"
+    elif score_2 >= 48:
+        tier_2 = "MED"
+    elif score_2 >= 32:
+        tier_2 = "LOW"
+    else:
+        tier_2 = "FADE"
+
+    return display_score, components_1, components_2, insight, tier_1, tier_2, score_1, score_2
 
 
 # ── Doubles prop scoring model ────────────────────────────────────────────────
@@ -2119,6 +2371,7 @@ def run():
     all_targets = []
     k_targets = []
     d2_targets = []
+    tb_targets = []
     game_lines = []
     auto_fades = []
 
@@ -2371,7 +2624,36 @@ def run():
                         "pitcher_double_rate": arsenal.get("_pitcher_double_rate"),
                     })
 
-    # Auto-fades for suppressive park + bad weather
+                # ── Total Bases prop scoring ──────────────────────────────────
+                tb_disp, tb_comp1, tb_comp2, tb_insight, tb_tier1, tb_tier2, tb_s1, tb_s2 = score_batter_tb(
+                    batter, pitcher_info, arsenal, batter_stats, park, d2_park
+                )
+                if tb_tier1 != "FADE" or tb_tier2 != "FADE":
+                    tb_targets.append({
+                        "batter_id": b_id,
+                        "batter_name": b_name,
+                        "batter_team": batting_team,
+                        "batter_hand": b_hand,
+                        "pitcher_name": pitcher_name,
+                        "pitcher_throws": pitcher_info.get("throws", "R"),
+                        "game": f"{away} @ {home}",
+                        "venue": game["venue_name"],
+                        "score": tb_disp,
+                        "score_1plus": tb_s1,
+                        "score_2plus": tb_s2,
+                        "tier_1plus": tb_tier1,
+                        "tier_2plus": tb_tier2,
+                        "components_1plus": tb_comp1,
+                        "components_2plus": tb_comp2,
+                        "insight": tb_insight,
+                        "lineup_confirmed": lineup_confirmed,
+                        "batter_meta": batter_stats.get("_meta", {}),
+                        "park_factor_2b": d2_park.get("lhb" if b_hand == "L" else "rhb", d2_park.get("overall", 100)),
+                        "pitcher_hit_rate": arsenal.get("_pitcher_hit_rate"),
+                        "pitcher_single_rate": arsenal.get("_pitcher_single_rate"),
+                        "pitcher_ld_rate": arsenal.get("_pitcher_ld_rate"),
+                        "pitcher_hard_hit": arsenal.get("_pitcher_hard_hit"),
+                    })
     for g in output_games:
         if g["park_suppress"] and g["weather"].get("hr_multiplier", 1.0) < 0.95:
             auto_fades.append({
@@ -2449,7 +2731,15 @@ def run():
     k_targets.sort(key=lambda x: -x["score"])
     log.info(f"  K targets: {len(k_targets)}")
 
-    # Deduplicate doubles targets — keep highest score per batter
+    # Deduplicate TB targets
+    seen_tb = {}
+    for t in tb_targets:
+        key = t["batter_id"]
+        if key not in seen_tb or t["score"] > seen_tb[key]["score"]:
+            seen_tb[key] = t
+    tb_targets = list(seen_tb.values())
+    tb_targets.sort(key=lambda x: -x["score"])
+    log.info(f"  TB targets: {len(tb_targets)}")
     seen_d2 = {}
     for t in d2_targets:
         key = t["batter_id"]
@@ -2470,6 +2760,7 @@ def run():
         "laser_targets": laser_targets,
         "k_targets": k_targets,
         "d2_targets": d2_targets,
+        "tb_targets": tb_targets,
         "game_lines": game_lines,
         "auto_fades": deduped_fades,
         "summary": {
@@ -2484,6 +2775,8 @@ def run():
             "k_high_15": sum(1 for t in k_targets if t["tier_15"] == "HIGH"),
             "d2_prime":  sum(1 for t in d2_targets if t["tier"] == "PRIME"),
             "d2_high":   sum(1 for t in d2_targets if t["tier"] == "HIGH"),
+            "tb_high_1": sum(1 for t in tb_targets if t["tier_1plus"] == "HIGH"),
+            "tb_high_2": sum(1 for t in tb_targets if t["tier_2plus"] == "HIGH"),
         },
     }
 
