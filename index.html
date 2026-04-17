@@ -47,12 +47,30 @@
 
   /* Header */
   .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .logo { font-family: var(--mono); font-size: 18px; font-weight: 500; letter-spacing: -0.5px; }
-  .logo span { color: var(--prime); }
+  .logo { font-family: var(--mono); font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+  .logo-mlb { color: #22c55e; }
+  .logo-sep { color: rgba(255,255,255,0.10); }
+  .logo-props { background: linear-gradient(90deg, #ffffff 0%, #a8c8e8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .header-date { font-family: var(--mono); font-size: 12px; color: var(--text2); }
   .live-badge { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 2px; background: var(--prime-bg); color: var(--prime); border: 1px solid var(--prime-border); }
   .seed-badge { background: var(--med-bg); color: var(--med); border-color: var(--med-border); }
+
+  /* Live scoreboard strip */
+  .scoreboard-wrap { width: 100%; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; display: flex; align-items: stretch; min-height: 52px; }
+  .scoreboard-wrap::-webkit-scrollbar { display: none; }
+  .sb-loading { font-family: var(--mono); font-size: 11px; color: var(--text3); padding: 0 16px; display: flex; align-items: center; }
+  .sb-game { display: flex; flex-direction: column; justify-content: center; padding: 6px 14px; border-right: 1px solid var(--border); min-width: 110px; flex-shrink: 0; cursor: default; transition: background 0.15s; }
+  .sb-game:hover { background: var(--surface2); }
+  .sb-game:last-child { border-right: none; }
+  .sb-matchup { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text2); letter-spacing: 0.03em; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sb-score { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sb-score .win { color: var(--prime); }
+  .sb-status { font-family: var(--mono); font-size: 9px; color: var(--text3); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .sb-live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--prime); animation: sbpulse 1.5s ease-in-out infinite; flex-shrink: 0; }
+  .sb-final { color: var(--text3); }
+  .sb-pre { color: var(--med); }
+  @keyframes sbpulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   /* Ticker */
   .ticker-wrap { width: 100%; overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); margin-bottom: 20px; height: 28px; display: flex; align-items: center; }
@@ -309,11 +327,16 @@
 <body>
 
 <div class="header">
-  <div class="logo">MLB<span>.</span>Props</div>
+  <div class="logo"><span class="logo-mlb">MLB</span><span class="logo-sep">.</span><span class="logo-props">Props</span></div>
   <div class="header-right">
     <div class="header-date" id="header-date">Loading…</div>
     <div class="live-badge seed-badge" id="data-badge">SEED DATA</div>
   </div>
+</div>
+
+<!-- Live scoreboard strip -->
+<div class="scoreboard-wrap" id="scoreboard-wrap">
+  <div class="sb-loading" id="sb-loading">Loading live scores…</div>
 </div>
 
 <!-- Tab navigation -->
@@ -1680,6 +1703,84 @@ function toggleTbCard(idx) {
   event.stopPropagation();
   document.getElementById(`tbcard-${idx}`).classList.toggle('expanded');
 }
+
+// ── Live scoreboard ───────────────────────────────────────────────────────────
+async function fetchLiveScores() {
+  const today = new Date().toISOString().split('T')[0];
+  const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}&hydrate=linescore,team`;
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    const games = [];
+    for (const date of (data.dates || [])) {
+      for (const g of (date.games || [])) {
+        games.push(g);
+      }
+    }
+    renderScoreboard(games);
+  } catch(e) {
+    document.getElementById('sb-loading').textContent = 'Scores unavailable';
+  }
+}
+
+function renderScoreboard(games) {
+  const wrap = document.getElementById('scoreboard-wrap');
+  if (!games || !games.length) {
+    wrap.innerHTML = '<div class="sb-loading">No games today</div>';
+    return;
+  }
+
+  wrap.innerHTML = games.map(g => {
+    const away = g.teams?.away;
+    const home = g.teams?.home;
+    const awayAbbr = away?.team?.abbreviation || '???';
+    const homeAbbr = home?.team?.abbreviation || '???';
+    const awayScore = away?.score ?? '—';
+    const homeScore = home?.score ?? '—';
+    const status = g.status?.abstractGameState || '';
+    const detailedState = g.status?.detailedState || '';
+    const linescore = g.linescore || {};
+    const inning = linescore.currentInning;
+    const inningHalf = linescore.inningHalf;
+
+    // Determine winning team for color
+    const awayWin = typeof awayScore === 'number' && typeof homeScore === 'number' && awayScore > homeScore;
+    const homeWin = typeof homeScore === 'number' && typeof awayScore === 'number' && homeScore > awayScore;
+
+    // Status line
+    let statusHtml = '';
+    if (status === 'Live' || status === 'In Progress') {
+      const half = inningHalf === 'Top' ? '▲' : '▼';
+      statusHtml = `<div class="sb-status"><div class="sb-live-dot"></div>${half}${inning || '?'}</div>`;
+    } else if (status === 'Final') {
+      statusHtml = `<div class="sb-status sb-final">FINAL</div>`;
+    } else {
+      // Pre-game — show start time
+      const gameTime = g.gameDate ? new Date(g.gameDate).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : detailedState;
+      statusHtml = `<div class="sb-status sb-pre">${gameTime}</div>`;
+    }
+
+    const scoresKnown = status === 'Live' || status === 'Final' || status === 'In Progress';
+
+    return `<div class="sb-game">
+      <div class="sb-matchup">
+        <span>${awayAbbr}</span>
+        <span style="color:var(--text3);font-size:9px">@</span>
+        <span>${homeAbbr}</span>
+      </div>
+      <div class="sb-score">
+        <span class="${awayWin && status==='Final' ? 'win' : ''}">${scoresKnown ? awayScore : '·'}</span>
+        <span style="color:var(--text3);font-size:10px">-</span>
+        <span class="${homeWin && status==='Final' ? 'win' : ''}">${scoresKnown ? homeScore : '·'}</span>
+      </div>
+      ${statusHtml}
+    </div>`;
+  }).join('');
+}
+
+// Fetch on load then refresh every 60 seconds
+fetchLiveScores();
+setInterval(fetchLiveScores, 60000);
 
 loadData();
 </script>
