@@ -923,6 +923,17 @@ function batterCard(t, idx) {
   const lineupBadge = t.lineup_confirmed===false
     ?`<span class="badge badge-neutral" title="Lineup not yet posted — player may not start">Projected</span>`:'';
 
+  // 🎯 Dominant collision: usage >=20% + HR dist >=25% + batter SLG >=0.500
+  var pm = t.pitch_matrix || {};
+  var dcKey = null;
+  for (var dcPt in pm) {
+    var dcD = pm[dcPt];
+    if ((dcD.pitcher_usage||0)>=20 && (dcD.pitcher_hr_dist||0)>=25 && (dcD.slg||0)>=0.500) {
+      if (!dcKey || (dcD.pitcher_hr_dist||0)>(pm[dcKey].pitcher_hr_dist||0)) dcKey=dcPt;
+    }
+  }
+  const dcBadge = dcKey ? `<span class="badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.30)">&#127919; ${PITCH_NAMES[dcKey]||dcKey}</span>` : '';
+
   const compBars = Object.entries(t.components||{}).map(([k,v]) => {
     const c=COMP_COLORS[k]||'#666';
     const displayVal = k==='recent_form'?`${meta.hr_recent_14d||0} HR`:v;
@@ -985,7 +996,7 @@ function batterCard(t, idx) {
       <div class="card-info">
         <div class="batter-name">${t.batter_name}${laserIds.has(t.batter_name)?` <span title="Laser prop candidate — elite EV + barrel profile" style="color:#fbbf24;font-size:13px">⚡</span>`:''}</div>
         <div class="batter-sub">${t.batter_team} vs ${t.pitcher_name} (${t.pitcher_throws}HP) · ${t.venue||t.game}</div>
-        <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${hrsVsBadge}${formBadge}${lineupBadge}</div>
+        <div class="card-badges-row">${parkBadge}${windBadge}${platoonBadge}${hrsVsBadge}${dcBadge}${formBadge}${lineupBadge}</div>
       </div>
       <div class="mylist-check ${isInList?'checked':''}" data-id="${t.batter_id}" onclick="toggleMyList(${t.batter_id},event)" title="Add to My List">${isInList?'✓':''}</div>
       <div class="expand-icon">▾</div>
