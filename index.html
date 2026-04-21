@@ -896,7 +896,7 @@ function renderTargets(targets) {
   const sorted = currentFilter === 'MYLIST' ? sortT(filtered) : sortT(filtered);
   let html='', last=null;
   sorted.forEach((t,i) => {
-    if (currentFilter !== 'MYLIST') {
+    if (currentFilter !== 'MYLIST' && currentSort === 'score') {
       if (t.tier!==last) {
         const lbl=t.tier==='PRIME'?'Prime — score ≥55, 3+ factors aligning':t.tier==='HIGH'?'High — score ≥46, 2+ factors aligning':t.tier==='MED'?'Med — score ≥30':'Low — watch list';
         html+=`<div class="tier-divider ${t.tier}">${lbl}</div>`;
