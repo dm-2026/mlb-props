@@ -841,9 +841,22 @@ function toggleChip(gi, e) {
 function sortT(arr) {
   return [...arr].sort((a,b) => {
     if (currentSort === 'collision') {
-      var ac = (a.components&&a.components.pitch_collision)||0;
-      var bc = (b.components&&b.components.pitch_collision)||0;
-      return bc - ac;
+      // Score each player: 2=green badge, 1=amber badge, 0=none
+      function dcRank(t) {
+        var pm = t.pitch_matrix || {};
+        var best = 0;
+        for (var pt in pm) {
+          var d = pm[pt];
+          if ((d.pitcher_usage||0)>=20 && (d.pitcher_hr_dist||0)>=25 && (d.slg||0)>=0.500) {
+            var elite = (d.pitcher_usage||0)>=30 && (d.pitcher_hr_dist||0)>=30 && (d.slg||0)>=0.600;
+            best = Math.max(best, elite ? 2 : 1);
+          }
+        }
+        return best;
+      }
+      var ar = dcRank(a), br = dcRank(b);
+      if (br !== ar) return br - ar;
+      return b.score - a.score;
     }
     if (currentSort === 'ev') {
       var am = a.batter_meta||{}, bm = b.batter_meta||{};
