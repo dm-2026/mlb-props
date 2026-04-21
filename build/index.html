@@ -383,6 +383,11 @@
   <button class="filter-btn" onclick="setFilter('MED',this)">Med</button>
   <button class="filter-btn" onclick="setFilter('LOW',this)">Low</button>
   <button class="filter-btn" id="mylist-btn" onclick="setFilter('MYLIST',this)">My List <span id="mylist-count"></span></button>
+  <div style="margin-left:auto;display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden">
+    <button class="filter-btn active-all" id="sort-score-btn" onclick="setMainSort('score',this)" style="border:none;border-radius:0;margin:0;padding:5px 12px">Score</button>
+    <button class="filter-btn" id="sort-collision-btn" onclick="setMainSort('collision',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 12px">&#127919; Collision</button>
+    <button class="filter-btn" id="sort-ev-btn" onclick="setMainSort('ev',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 12px">EV</button>
+  </div>
 </div>
 <div class="targets-list" id="targets-list"><div class="loading">Scoring matchups…</div></div>
 
@@ -563,6 +568,7 @@ let myList = loadMyList();
 let laserIds = new Set(); // league average HRs per team per game ~2026
 
 let currentFilter = 'all';
+let currentSort = 'score';
 let allData = null;
 
 async function loadData() {
@@ -833,9 +839,28 @@ function toggleChip(gi, e) {
 
 // ── Ranked ────────────────────────────────────────────────────────────────────
 function sortT(arr) {
-  return [...arr].sort((a,b) =>
-    TIER_ORDER[a.tier]!==TIER_ORDER[b.tier]
-      ? TIER_ORDER[a.tier]-TIER_ORDER[b.tier] : b.score-a.score);
+  return [...arr].sort((a,b) => {
+    if (currentSort === 'collision') {
+      var ac = (a.components&&a.components.pitch_collision)||0;
+      var bc = (b.components&&b.components.pitch_collision)||0;
+      return bc - ac;
+    }
+    if (currentSort === 'ev') {
+      var am = a.batter_meta||{}, bm = b.batter_meta||{};
+      return (bm.avg_ev||0) - (am.avg_ev||0);
+    }
+    return TIER_ORDER[a.tier]!==TIER_ORDER[b.tier]
+      ? TIER_ORDER[a.tier]-TIER_ORDER[b.tier] : b.score-a.score;
+  });
+}
+
+function setMainSort(mode, btn) {
+  currentSort = mode;
+  document.querySelectorAll('#sort-score-btn,#sort-collision-btn,#sort-ev-btn').forEach(function(b){
+    b.className = 'filter-btn';
+  });
+  btn.className = 'filter-btn active-all';
+  if (allData) renderTargets(allData.targets||[]);
 }
 
 function renderTargets(targets) {
@@ -932,7 +957,15 @@ function batterCard(t, idx) {
       if (!dcKey || (dcD.pitcher_hr_dist||0)>(pm[dcKey].pitcher_hr_dist||0)) dcKey=dcPt;
     }
   }
-  const dcBadge = dcKey ? `<span class="badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.30)">&#127919; ${PITCH_NAMES[dcKey]||dcKey}</span>` : '';
+  var dcBadge = '';
+  if (dcKey) {
+    var dcFinal = pm[dcKey];
+    var dcElite = (dcFinal.pitcher_usage||0)>=30 && (dcFinal.pitcher_hr_dist||0)>=30 && (dcFinal.slg||0)>=0.600;
+    var dcBg    = dcElite ? 'rgba(34,197,94,0.12)'   : 'rgba(251,191,36,0.12)';
+    var dcColor = dcElite ? '#22c55e'                 : '#fbbf24';
+    var dcBord  = dcElite ? 'rgba(34,197,94,0.30)'   : 'rgba(251,191,36,0.30)';
+    dcBadge = `<span class="badge" style="background:${dcBg};color:${dcColor};border-color:${dcBord}">&#127919; ${PITCH_NAMES[dcKey]||dcKey}</span>`;
+  }
 
   const compBars = Object.entries(t.components||{}).map(([k,v]) => {
     const c=COMP_COLORS[k]||'#666';
