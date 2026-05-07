@@ -548,6 +548,11 @@
 <!-- ── Pitchers Tab ── -->
 <div class="tab-panel" id="tab-pitchers">
   <div class="section-label">Today's Starting Pitchers</div>
+  <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:14px;width:fit-content">
+    <button class="filter-btn active-all" id="psort-game-btn" onclick="setPitcherSort('game',this)" style="border:none;border-radius:0;margin:0;padding:5px 14px">By Game</button>
+    <button class="filter-btn" id="psort-vuln-btn" onclick="setPitcherSort('vuln',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 14px">💣 Most Vulnerable</button>
+    <button class="filter-btn" id="psort-elite-btn" onclick="setPitcherSort('elite',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 14px">🔒 Most Dominant</button>
+  </div>
   <div id="pitchers-list"><div class="loading">Loading pitcher data…</div></div>
   <div class="footer" style="margin-top:40px">
     <span id="pitchers-footer-gen">Generated: —</span>
@@ -1984,12 +1989,21 @@ function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src
   if (opp_rpg || opp_ops) {
     var rpgColor = opp_rpg >= 5.0 ? 'var(--fade)' : opp_rpg <= 3.5 ? '#22c55e' : 'var(--text)';
     var opsColor = opp_ops >= 0.780 ? 'var(--fade)' : opp_ops <= 0.660 ? '#22c55e' : 'var(--text)';
+    var matchupTitle = opp_src === 'splits'
+      ? opp_team + ' Offense vs ' + throws + 'HP'
+      : opp_src === 'season'
+      ? opp_team + ' Offense (Season Avg)'
+      : opp_team + ' Offense (League Avg)';
+    var srcLabel = opp_src === 'splits'
+      ? '<span class="badge badge-boost" style="font-size:9px">Split data</span>'
+      : opp_src === 'default'
+      ? '<span class="badge badge-suppress" style="font-size:9px">No data</span>'
+      : '';
     matchupHtml = `<div class="pitcher-matchup-box">
-      <div class="pitcher-matchup-title">${opp_team} Offense ${opp_src === 'splits' ? 'vs ' + throws + 'HP' : '(season avg)'}</div>
+      <div class="pitcher-matchup-title" style="display:flex;align-items:center;justify-content:space-between">${matchupTitle}${srcLabel}</div>
       <div class="pitcher-matchup-stats">
         ${opp_rpg ? `<div class="pitcher-matchup-stat"><div class="pmk">R/G</div><div class="pmv" style="color:${rpgColor}">${opp_rpg}</div></div>` : ''}
         ${opp_ops ? `<div class="pitcher-matchup-stat"><div class="pmk">OPS</div><div class="pmv" style="color:${opsColor}">${opp_ops.toFixed(3)}</div></div>` : ''}
-        ${opp_src === 'default' ? `<div class="pitcher-matchup-stat"><div class="pmk" style="color:var(--fade)">No offense data</div></div>` : ''}
       </div>
     </div>`;
   }
@@ -2023,6 +2037,28 @@ function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src
   </div>`;
 }
 
+var pitcherSort = 'game';
+
+function setPitcherSort(mode, btn) {
+  pitcherSort = mode;
+  document.querySelectorAll('#psort-game-btn,#psort-vuln-btn,#psort-elite-btn').forEach(function(b){
+    b.className = 'filter-btn';
+  });
+  btn.className = 'filter-btn active-all';
+  if (allData) renderPitchers(allData);
+}
+
+function pitcherVulnScore(pl) {
+  // Higher = more vulnerable to HRs
+  // HR/9 weighted most heavily, then WHIP, then inverse K/9
+  if (!pl) return 0;
+  var hr9  = pl.era ? (pl.hr9  || 1.0) : 1.0;
+  var whip = pl.era ? (pl.whip || 1.30) : 1.30;
+  var k9   = pl.era ? (pl.k9   || 8.0)  : 8.0;
+  var era  = pl.era || 4.50;
+  return (hr9 * 40) + (whip * 20) + ((10 - k9) * 10) + (era * 5);
+}
+
 function renderPitchers(data) {
   const el = document.getElementById('pitchers-list');
   const gl = data.game_lines || [];
@@ -2033,28 +2069,52 @@ function renderPitchers(data) {
     return;
   }
 
-  var html = '';
+  // Build flat list of all pitchers
+  var allPitchers = [];
   for (var i = 0; i < gl.length; i++) {
     var g = gl[i];
-    var away = g.away_team, home = g.home_team;
-    var awayPl = {era: g.away_pitcher_era, whip: g.away_pitcher_whip, k9: g.away_pitcher_k9, hr9: g.away_pitcher_hr9, bb9: g.away_pitcher_bb9, ip: g.away_pitcher_ip, games: g.away_pitcher_gs};
-    var homePl = {era: g.home_pitcher_era, whip: g.home_pitcher_whip, k9: g.home_pitcher_k9, hr9: g.home_pitcher_hr9, bb9: g.home_pitcher_bb9, ip: g.home_pitcher_ip, games: g.home_pitcher_gs};
+    var awayPl = g.away_pitcher_era ? {era:g.away_pitcher_era,whip:g.away_pitcher_whip,k9:g.away_pitcher_k9,hr9:g.away_pitcher_hr9,bb9:g.away_pitcher_bb9,ip:g.away_pitcher_ip,games:g.away_pitcher_gs} : null;
+    var homePl = g.home_pitcher_era ? {era:g.home_pitcher_era,whip:g.home_pitcher_whip,k9:g.home_pitcher_k9,hr9:g.home_pitcher_hr9,bb9:g.home_pitcher_bb9,ip:g.home_pitcher_ip,games:g.home_pitcher_gs} : null;
+    allPitchers.push({name:g.away_pitcher, throws:g.away_pitcher_throws||'R', pl:awayPl, opp_team:g.home_team, opp_rpg:g.home_rpg, opp_ops:g.home_ops, opp_src:g.home_offense_src, side:'Away', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
+    allPitchers.push({name:g.home_pitcher, throws:g.home_pitcher_throws||'R', pl:homePl, opp_team:g.away_team, opp_rpg:g.away_rpg, opp_ops:g.away_ops, opp_src:g.away_offense_src, side:'Home', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
+  }
 
-    // Only pass pl if at least ERA exists
-    var awayPlFinal = g.away_pitcher_era ? awayPl : null;
-    var homePlFinal = g.home_pitcher_era ? homePl : null;
+  var html = '';
 
-    html += `<div class="pitcher-game">
-      <div class="pitcher-game-header">${away} @ ${home} · ${g.venue_name || ''}</div>
-      <div class="pitcher-cards-row">
-        ${renderPitcherCard(g.away_pitcher, g.away_pitcher_throws || 'R', awayPlFinal, home, g.home_rpg, g.home_ops, g.home_offense_src, 'Away', targets)}
-        ${renderPitcherCard(g.home_pitcher, g.home_pitcher_throws || 'R', homePlFinal, away, g.away_rpg, g.away_ops, g.away_offense_src, 'Home', targets)}
-      </div>
-    </div>`;
+  if (pitcherSort === 'game') {
+    // Original game-by-game layout
+    for (var j = 0; j < gl.length; j++) {
+      var gg = gl[j];
+      var ap = allPitchers[j*2], hp = allPitchers[j*2+1];
+      html += `<div class="pitcher-game">
+        <div class="pitcher-game-header">${gg.away_team} @ ${gg.home_team} · ${gg.venue_name||''}</div>
+        <div class="pitcher-cards-row">
+          ${renderPitcherCard(ap.name,ap.throws,ap.pl,ap.opp_team,ap.opp_rpg,ap.opp_ops,ap.opp_src,ap.side,targets)}
+          ${renderPitcherCard(hp.name,hp.throws,hp.pl,hp.opp_team,hp.opp_rpg,hp.opp_ops,hp.opp_src,hp.side,targets)}
+        </div>
+      </div>`;
+    }
+  } else {
+    // Flat sorted list
+    var sorted = allPitchers.slice().sort(function(a,b){
+      if (pitcherSort === 'vuln')  return pitcherVulnScore(b.pl) - pitcherVulnScore(a.pl);
+      if (pitcherSort === 'elite') return pitcherVulnScore(a.pl) - pitcherVulnScore(b.pl);
+      return 0;
+    });
+    var rankLabel = pitcherSort === 'vuln' ? '💣 Most Vulnerable to HRs' : '🔒 Most Dominant';
+    html += `<div class="pitcher-game-header">${rankLabel}</div>`;
+    html += '<div style="display:flex;flex-direction:column;gap:10px">';
+    for (var k = 0; k < sorted.length; k++) {
+      var p = sorted[k];
+      html += `<div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px;letter-spacing:0.08em">${p.game} · ${p.side}</div>
+        ${renderPitcherCard(p.name,p.throws,p.pl,p.opp_team,p.opp_rpg,p.opp_ops,p.opp_src,p.side,targets)}
+      </div>`;
+    }
+    html += '</div>';
   }
 
   el.innerHTML = html;
-
   var gen = new Date(data.generated_at);
   var el2 = document.getElementById('pitchers-footer-gen');
   if (el2) el2.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});

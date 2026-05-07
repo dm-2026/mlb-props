@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-07T12:03:46.076896",
+  "generated_at": "2026-05-07T12:24:52.974307",
   "date": "2026-05-07",
   "pybaseball_live": true,
   "games": [
@@ -8,7 +8,7 @@
       "away_team": "TEX",
       "home_team": "NYY",
       "venue": "Yankee Stadium",
-      "status": "Pre-Game",
+      "status": "Warmup",
       "away_probable": {
         "id": 669022,
         "name": "MacKenzie Gore",
