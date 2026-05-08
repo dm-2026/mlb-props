@@ -2140,7 +2140,7 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         split_key = "vs_LHP" if pitcher_hand == "L" else "vs_RHP"
         split_data = splits.get(split_key, {})
 
-        if split_data and split_data.get("runs_per_game"):
+        if split_data and split_data.get("ops") is not None:
             rpg = split_data["runs_per_game"]
             ops = split_data.get("ops")
             season_ops = team_stats.get("ops")
