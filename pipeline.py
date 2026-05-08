@@ -474,7 +474,6 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             log.info(f"  {pitcher_name}: {bf_2026} BF in 2026 — using 2026 data only")
         else:
             # Linear blend: 100 BF = 0% 2026 contribution, 200 BF = 100% 2026
-            # Subsample df25 proportionally so row counts reflect the weight ratio
             w26 = min((bf_2026 - 100) / 100, 1.0)
             w25 = 1.0 - w26
             n25_target = int(len(df26) * (w25 / w26)) if w26 > 0 else len(df25)
@@ -2008,13 +2007,10 @@ def get_team_batting_splits():
 
     for hand in ["L", "R"]:
         split_key = "vs_LHP" if hand == "L" else "vs_RHP"
-        # MLB Stats API splits endpoint — pitcherHandedness filter
+        sit_code = "vl" if hand == "L" else "vr"
         url = (f"https://statsapi.mlb.com/api/v1/teams/stats?"
                f"season={season}&sportId=1&stats=statSplits"
-               f"&group=hitting&sitCodes=vl" if hand == "L" else
-               f"https://statsapi.mlb.com/api/v1/teams/stats?"
-               f"season={season}&sportId=1&stats=statSplits"
-               f"&group=hitting&sitCodes=vr")
+               f"&group=hitting&sitCodes={sit_code}")
         try:
             r = requests.get(url, timeout=15)
             for rec in r.json().get("stats", [{}])[0].get("splits", []):
@@ -2024,17 +2020,17 @@ def get_team_batting_splits():
                     continue
                 s = rec.get("stat", {})
                 pa = float(s.get("plateAppearances", 1) or 1)
-                if pa < 30:  # need meaningful sample
+                if pa < 10:  # very low gate — just need some data
                     continue
                 gp = float(s.get("gamesPlayed", 1) or 1)
                 splits_data.setdefault(abbr, {})
                 splits_data[abbr][split_key] = {
-                    "ops":          float(s.get("ops", 0.720) or 0.720),
+                    "ops":           float(s.get("ops", 0.720) or 0.720),
                     "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
-                    "avg":          float(s.get("avg", 0.245) or 0.245),
-                    "obp":          float(s.get("obp", 0.315) or 0.315),
-                    "slg":          float(s.get("slg", 0.405) or 0.405),
-                    "pa":           int(pa),
+                    "avg":           float(s.get("avg", 0.245) or 0.245),
+                    "obp":           float(s.get("obp", 0.315) or 0.315),
+                    "slg":           float(s.get("slg", 0.405) or 0.405),
+                    "pa":            int(pa),
                 }
         except Exception as e:
             log.warning(f"Team batting splits vs {hand}HP failed: {e}")
@@ -2126,17 +2122,18 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
 
         if split_data and split_data.get("runs_per_game"):
             rpg = split_data["runs_per_game"]
-            ops = split_data.get("ops", "—")
+            ops = split_data.get("ops")
+            season_ops = team_stats.get("ops")
             log.info(f"  {team_name} offense vs {pitcher_hand}HP: {rpg} R/G, OPS {ops} (splits data)")
-            return rpg, split_data.get("ops"), "splits"
+            return rpg, ops, "splits", season_ops
         elif team_stats.get("runs_per_game"):
             rpg = team_stats["runs_per_game"]
-            ops = team_stats.get("ops", "—")
+            ops = team_stats.get("ops")
             log.info(f"  {team_name} offense: {rpg} R/G, OPS {ops} (season stats)")
-            return rpg, team_stats.get("ops"), "season"
+            return rpg, ops, "season", ops
         else:
             log.warning(f"  {team_name}: no offense data — using league average ({LEAGUE_AVG_RUNS_PER_GAME})")
-            return LEAGUE_AVG_RUNS_PER_GAME, None, "default"
+            return LEAGUE_AVG_RUNS_PER_GAME, None, "default", None
 
     # Get pitcher hands for splits lookup
     away_hand = away_pitcher.get("throws", "R") if away_pitcher else "R"
@@ -2145,29 +2142,27 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
     # ── Projected run total ───────────────────────────────────────────────────
     def team_run_expectation(pitcher_line, opp_team_stats, opp_splits, opp_pitcher_hand, opp_name):
         """Runs expected to score against this pitcher + bullpen."""
-        opp_rpg, opp_ops, data_src = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
+        opp_rpg, opp_ops, data_src, season_ops = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
 
         if pitcher_line:
             avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
             avg_ip = max(avg_ip, 4.5)
-            # Composite pitcher quality score
             composite_ra9 = pitcher_quality_score(pitcher_line)
             starter_runs = composite_ra9 / 9 * avg_ip
-            # 55% pitcher composite, 45% opponent offense (handedness-adjusted)
             starter_contribution = starter_runs * 0.55 + opp_rpg * 0.45
         else:
             starter_contribution = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
 
         total = starter_contribution + BULLPEN_FLOOR
-        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src
+        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src, season_ops
 
     away_name = game.get("away_team", "Away")
     home_name = game.get("home_team", "Home")
 
-    away_runs, away_rpg, away_ops, away_src = team_run_expectation(
+    away_runs, away_rpg, away_ops, away_src, away_season_ops = team_run_expectation(
         home_pitcher_line, away_stats, away_splits, home_hand, away_name
     )
-    home_runs, home_rpg, home_ops, home_src = team_run_expectation(
+    home_runs, home_rpg, home_ops, home_src, home_season_ops = team_run_expectation(
         away_pitcher_line, home_stats, home_splits, away_hand, home_name
     )
 
@@ -2378,6 +2373,8 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "home_rpg": home_rpg,
         "away_ops": away_ops,
         "home_ops": home_ops,
+        "away_season_ops": away_season_ops,
+        "home_season_ops": home_season_ops,
         "away_offense_src": away_src,
         "home_offense_src": home_src,
         "projected_total": projected_total,

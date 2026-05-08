@@ -1935,7 +1935,7 @@ function statColor(val, type) {
   return 'var(--text)';
 }
 
-function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src, side, targets) {
+function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src, opp_season_ops, side, targets) {
   if (!name || name === 'TBD') {
     return `<div class="pitcher-card"><div class="pitcher-card-top"><div class="pitcher-card-name" style="color:var(--text3)">TBD</div><div class="pitcher-card-sub">${side} starter not yet announced</div></div></div>`;
   }
@@ -1990,20 +1990,25 @@ function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src
     var rpgColor = opp_rpg >= 5.0 ? 'var(--fade)' : opp_rpg <= 3.5 ? '#22c55e' : 'var(--text)';
     var opsColor = opp_ops >= 0.780 ? 'var(--fade)' : opp_ops <= 0.660 ? '#22c55e' : 'var(--text)';
     var matchupTitle = opp_src === 'splits'
-      ? opp_team + ' Offense vs ' + throws + 'HP'
+      ? opp_team + ' vs ' + throws + 'HP'
       : opp_src === 'season'
-      ? opp_team + ' Offense (Season Avg)'
-      : opp_team + ' Offense (League Avg)';
-    var srcLabel = opp_src === 'splits'
-      ? '<span class="badge badge-boost" style="font-size:9px">Split data</span>'
+      ? opp_team + ' Season Avg'
+      : opp_team + ' (League Avg)';
+    var srcBadge = opp_src === 'splits'
+      ? '<span class="badge badge-boost" style="font-size:9px">Split</span>'
       : opp_src === 'default'
       ? '<span class="badge badge-suppress" style="font-size:9px">No data</span>'
       : '';
+    // Season OPS for comparison when showing splits
+    var seasonOpsHtml = (opp_src === 'splits' && opp_season_ops)
+      ? `<div class="pitcher-matchup-stat"><div class="pmk">Season OPS</div><div class="pmv" style="color:var(--text2)">${opp_season_ops.toFixed(3)}</div></div>`
+      : '';
     matchupHtml = `<div class="pitcher-matchup-box">
-      <div class="pitcher-matchup-title" style="display:flex;align-items:center;justify-content:space-between">${matchupTitle}${srcLabel}</div>
+      <div class="pitcher-matchup-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">${matchupTitle} ${srcBadge}</div>
       <div class="pitcher-matchup-stats">
         ${opp_rpg ? `<div class="pitcher-matchup-stat"><div class="pmk">R/G</div><div class="pmv" style="color:${rpgColor}">${opp_rpg}</div></div>` : ''}
-        ${opp_ops ? `<div class="pitcher-matchup-stat"><div class="pmk">OPS</div><div class="pmv" style="color:${opsColor}">${opp_ops.toFixed(3)}</div></div>` : ''}
+        ${opp_ops ? `<div class="pitcher-matchup-stat"><div class="pmk">${opp_src === 'splits' ? throws + 'HP OPS' : 'OPS'}</div><div class="pmv" style="color:${opsColor}">${opp_ops.toFixed(3)}</div></div>` : ''}
+        ${seasonOpsHtml}
       </div>
     </div>`;
   }
@@ -2075,8 +2080,8 @@ function renderPitchers(data) {
     var g = gl[i];
     var awayPl = g.away_pitcher_era ? {era:g.away_pitcher_era,whip:g.away_pitcher_whip,k9:g.away_pitcher_k9,hr9:g.away_pitcher_hr9,bb9:g.away_pitcher_bb9,ip:g.away_pitcher_ip,games:g.away_pitcher_gs} : null;
     var homePl = g.home_pitcher_era ? {era:g.home_pitcher_era,whip:g.home_pitcher_whip,k9:g.home_pitcher_k9,hr9:g.home_pitcher_hr9,bb9:g.home_pitcher_bb9,ip:g.home_pitcher_ip,games:g.home_pitcher_gs} : null;
-    allPitchers.push({name:g.away_pitcher, throws:g.away_pitcher_throws||'R', pl:awayPl, opp_team:g.home_team, opp_rpg:g.home_rpg, opp_ops:g.home_ops, opp_src:g.home_offense_src, side:'Away', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
-    allPitchers.push({name:g.home_pitcher, throws:g.home_pitcher_throws||'R', pl:homePl, opp_team:g.away_team, opp_rpg:g.away_rpg, opp_ops:g.away_ops, opp_src:g.away_offense_src, side:'Home', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
+    allPitchers.push({name:g.away_pitcher, throws:g.away_pitcher_throws||'R', pl:awayPl, opp_team:g.home_team, opp_rpg:g.home_rpg, opp_ops:g.home_ops, opp_src:g.home_offense_src, opp_season_ops:g.home_season_ops, side:'Away', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
+    allPitchers.push({name:g.home_pitcher, throws:g.home_pitcher_throws||'R', pl:homePl, opp_team:g.away_team, opp_rpg:g.away_rpg, opp_ops:g.away_ops, opp_src:g.away_offense_src, opp_season_ops:g.away_season_ops, side:'Home', game:g.away_team+' @ '+g.home_team, venue:g.venue_name||''});
   }
 
   var html = '';
@@ -2089,8 +2094,8 @@ function renderPitchers(data) {
       html += `<div class="pitcher-game">
         <div class="pitcher-game-header">${gg.away_team} @ ${gg.home_team} · ${gg.venue_name||''}</div>
         <div class="pitcher-cards-row">
-          ${renderPitcherCard(ap.name,ap.throws,ap.pl,ap.opp_team,ap.opp_rpg,ap.opp_ops,ap.opp_src,ap.side,targets)}
-          ${renderPitcherCard(hp.name,hp.throws,hp.pl,hp.opp_team,hp.opp_rpg,hp.opp_ops,hp.opp_src,hp.side,targets)}
+          ${renderPitcherCard(ap.name,ap.throws,ap.pl,ap.opp_team,ap.opp_rpg,ap.opp_ops,ap.opp_src,ap.opp_season_ops,ap.side,targets)}
+          ${renderPitcherCard(hp.name,hp.throws,hp.pl,hp.opp_team,hp.opp_rpg,hp.opp_ops,hp.opp_src,hp.opp_season_ops,hp.side,targets)}
         </div>
       </div>`;
     }
@@ -2108,7 +2113,7 @@ function renderPitchers(data) {
       var p = sorted[k];
       html += `<div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px;letter-spacing:0.08em">${p.game} · ${p.side}</div>
-        ${renderPitcherCard(p.name,p.throws,p.pl,p.opp_team,p.opp_rpg,p.opp_ops,p.opp_src,p.side,targets)}
+        ${renderPitcherCard(p.name,p.throws,p.pl,p.opp_team,p.opp_rpg,p.opp_ops,p.opp_src,p.opp_season_ops,p.side,targets)}
       </div>`;
     }
     html += '</div>';
