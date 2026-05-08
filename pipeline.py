@@ -1988,54 +1988,74 @@ def get_team_season_stats():
 def get_team_batting_splits():
     """
     Fetch team batting stats split by pitcher handedness (vs LHP / vs RHP).
-    Returns dict: {team_abbr: {"vs_LHP": {ops, runs_per_pa, ...}, "vs_RHP": {...}}}
-    Used to adjust run expectation based on opposing starter's throwing hand.
+    Uses the correct MLB Stats API endpoint format.
+    Returns dict: {team_abbr: {"vs_LHP": {ops, runs_per_game, ...}, "vs_RHP": {...}}}
     """
     season = TODAY.year
 
-    # Get team ID → abbrev mapping (reuse same endpoint)
+    # Get team ID → abbrev mapping
     try:
         r = requests.get(f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={season}", timeout=15)
         teams_data = r.json().get("teams", [])
         id_to_abbr = {t["id"]: t.get("abbreviation", "") for t in teams_data}
-        abbr_to_id = {t.get("abbreviation", ""): t["id"] for t in teams_data}
     except Exception as e:
         log.error(f"Team splits ID map failed: {e}")
         return {}
+
+    # MLB Stats API uses different abbreviations than the schedule in some cases
+    # Normalize to match what the schedule/park factor dicts use
+    ABBR_NORMALIZE = {
+        "KCR": "KC", "TBR": "TB", "SFG": "SF", "SDP": "SD",
+        "NYY": "NYY", "NYM": "NYM", "CHW": "CHW", "LAA": "LAA",
+        "LAD": "LAD", "WSH": "WSH", "AZ": "ARI",
+    }
 
     splits_data = {}
 
     for hand in ["L", "R"]:
         split_key = "vs_LHP" if hand == "L" else "vs_RHP"
-        sit_code = "vl" if hand == "L" else "vr"
+        sit_code  = "vl"     if hand == "L" else "vr"
+
+        # Correct endpoint: use hydrate=stats(group=hitting,type=statSplits,sitCodes=vl/vr)
         url = (f"https://statsapi.mlb.com/api/v1/teams/stats?"
-               f"season={season}&sportId=1&stats=statSplits"
-               f"&group=hitting&sitCodes={sit_code}")
+               f"sportId=1&season={season}"
+               f"&group=hitting&stats=statSplits&sitCodes={sit_code}")
         try:
             r = requests.get(url, timeout=15)
-            for rec in r.json().get("stats", [{}])[0].get("splits", []):
-                tid = rec.get("team", {}).get("id")
+            raw = r.json()
+            # Response can be nested differently — handle both formats
+            stat_groups = raw.get("stats", [])
+            all_splits = []
+            for sg in stat_groups:
+                all_splits.extend(sg.get("splits", []))
+
+            loaded = 0
+            for rec in all_splits:
+                tid  = rec.get("team", {}).get("id")
                 abbr = id_to_abbr.get(tid, "")
                 if not abbr:
                     continue
-                s = rec.get("stat", {})
-                pa = float(s.get("plateAppearances", 1) or 1)
-                if pa < 10:  # very low gate — just need some data
+                abbr = ABBR_NORMALIZE.get(abbr, abbr)  # normalize to schedule abbrev
+                s  = rec.get("stat", {})
+                pa = float(s.get("plateAppearances") or 0)
+                if pa < 10:
                     continue
-                gp = float(s.get("gamesPlayed", 1) or 1)
+                gp = float(s.get("gamesPlayed") or 1)
                 splits_data.setdefault(abbr, {})
                 splits_data[abbr][split_key] = {
-                    "ops":           float(s.get("ops", 0.720) or 0.720),
-                    "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
-                    "avg":           float(s.get("avg", 0.245) or 0.245),
-                    "obp":           float(s.get("obp", 0.315) or 0.315),
-                    "slg":           float(s.get("slg", 0.405) or 0.405),
+                    "ops":           float(s.get("ops")  or 0.720),
+                    "runs_per_game": round(float(s.get("runs") or 0) / gp, 2),
+                    "avg":           float(s.get("avg")  or 0.245),
+                    "obp":           float(s.get("obp")  or 0.315),
+                    "slg":           float(s.get("slg")  or 0.405),
                     "pa":            int(pa),
                 }
+                loaded += 1
+            log.info(f"  Team splits vs {hand}HP: {loaded} teams loaded")
         except Exception as e:
             log.warning(f"Team batting splits vs {hand}HP failed: {e}")
 
-    log.info(f"Team batting splits: {len(splits_data)} teams loaded")
+    log.info(f"Team batting splits total: {len(splits_data)} teams with data")
     return splits_data
 
 
