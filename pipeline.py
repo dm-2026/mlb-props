@@ -2007,7 +2007,7 @@ def get_team_batting_splits():
     ABBR_NORMALIZE = {
         "KCR": "KC", "TBR": "TB", "SFG": "SF", "SDP": "SD",
         "NYY": "NYY", "NYM": "NYM", "CHW": "CHW", "LAA": "LAA",
-        "LAD": "LAD", "WSH": "WSH", "AZ": "ARI",
+        "LAD": "LAD", "WSH": "WSH", "ARI": "AZ",
     }
 
     splits_data = {}
@@ -2539,6 +2539,10 @@ def run():
         home_ts = team_season_stats.get(home, {})
         away_splits = team_batting_splits.get(away, {})
         home_splits = team_batting_splits.get(home, {})
+        if not away_splits:
+            log.warning(f"  No splits found for {away} — available keys: {list(team_batting_splits.keys())[:10]}")
+        if not home_splits:
+            log.warning(f"  No splits found for {home} — available keys: {list(team_batting_splits.keys())[:10]}")
         game_odds = odds_by_game.get(f"{away}@{home}") or odds_by_game.get(f"{home}@{away}")
         if not game_odds:
             for k in odds_by_game:
