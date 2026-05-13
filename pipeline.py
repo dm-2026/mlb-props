@@ -188,20 +188,10 @@ def extract_pitcher(team_data):
     pp = team_data.get("probablePitcher")
     if not pp:
         return None
-    throws = pp.get("pitchHand", {}).get("code")
-    if not throws:
-        # Fallback — look up handedness from people API
-        try:
-            pid = pp.get("id")
-            r2 = requests.get(f"https://statsapi.mlb.com/api/v1/people/{pid}", timeout=10)
-            throws = r2.json().get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
-            log.info(f"  Fetched throws for {pp.get('fullName','?')} from people API: {throws}")
-        except Exception:
-            throws = "R"
     return {
         "id": pp.get("id"),
         "name": pp.get("fullName", "TBD"),
-        "throws": throws,
+        "throws": pp.get("pitchHand", {}).get("code", "R"),
     }
 
 
@@ -484,6 +474,7 @@ def get_pitcher_arsenal(pitcher_id, pitcher_name, batter_hand="R"):
             log.info(f"  {pitcher_name}: {bf_2026} BF in 2026 — using 2026 data only")
         else:
             # Linear blend: 100 BF = 0% 2026 contribution, 200 BF = 100% 2026
+            # Subsample df25 proportionally so row counts reflect the weight ratio
             w26 = min((bf_2026 - 100) / 100, 1.0)
             w25 = 1.0 - w26
             n25_target = int(len(df26) * (w25 / w26)) if w26 > 0 else len(df25)
@@ -1998,78 +1989,113 @@ def get_team_season_stats():
 def get_team_batting_splits():
     """
     Fetch team batting stats split by pitcher handedness (vs LHP / vs RHP).
-    Uses the correct MLB Stats API endpoint format.
-    Returns dict: {team_abbr: {"vs_LHP": {ops, runs_per_game, ...}, "vs_RHP": {...}}}
+    Returns dict: {team_abbr: {"vs_LHP": {ops, runs_per_pa, ...}, "vs_RHP": {...}}}
+    Used to adjust run expectation based on opposing starter's throwing hand.
     """
     season = TODAY.year
 
-    # Get team ID → abbrev mapping
+    # Get team ID → abbrev mapping (reuse same endpoint)
     try:
         r = requests.get(f"https://statsapi.mlb.com/api/v1/teams?sportId=1&season={season}", timeout=15)
         teams_data = r.json().get("teams", [])
         id_to_abbr = {t["id"]: t.get("abbreviation", "") for t in teams_data}
+        abbr_to_id = {t.get("abbreviation", ""): t["id"] for t in teams_data}
     except Exception as e:
         log.error(f"Team splits ID map failed: {e}")
         return {}
-
-    # MLB Stats API uses different abbreviations than the schedule in some cases
-    # Normalize to match what the schedule/park factor dicts use
-    ABBR_NORMALIZE = {
-        "KCR": "KC", "TBR": "TB", "SFG": "SF", "SDP": "SD",
-        "NYY": "NYY", "NYM": "NYM", "CHW": "CHW", "LAA": "LAA",
-        "LAD": "LAD", "WSH": "WSH", "ARI": "AZ",
-    }
 
     splits_data = {}
 
     for hand in ["L", "R"]:
         split_key = "vs_LHP" if hand == "L" else "vs_RHP"
-        sit_code  = "vl"     if hand == "L" else "vr"
-
-        # Correct endpoint: use hydrate=stats(group=hitting,type=statSplits,sitCodes=vl/vr)
+        # MLB Stats API splits endpoint — pitcherHandedness filter
         url = (f"https://statsapi.mlb.com/api/v1/teams/stats?"
-               f"sportId=1&season={season}"
-               f"&group=hitting&stats=statSplits&sitCodes={sit_code}")
+               f"season={season}&sportId=1&stats=statSplits"
+               f"&group=hitting&sitCodes=vl" if hand == "L" else
+               f"https://statsapi.mlb.com/api/v1/teams/stats?"
+               f"season={season}&sportId=1&stats=statSplits"
+               f"&group=hitting&sitCodes=vr")
         try:
             r = requests.get(url, timeout=15)
-            raw = r.json()
-            # Response can be nested differently — handle both formats
-            stat_groups = raw.get("stats", [])
-            all_splits = []
-            for sg in stat_groups:
-                all_splits.extend(sg.get("splits", []))
-
-            loaded = 0
-            for rec in all_splits:
-                tid  = rec.get("team", {}).get("id")
+            for rec in r.json().get("stats", [{}])[0].get("splits", []):
+                tid = rec.get("team", {}).get("id")
                 abbr = id_to_abbr.get(tid, "")
                 if not abbr:
                     continue
-                abbr = ABBR_NORMALIZE.get(abbr, abbr)  # normalize to schedule abbrev
-                s  = rec.get("stat", {})
-                pa = float(s.get("plateAppearances") or 0)
-                if pa < 10:
+                s = rec.get("stat", {})
+                pa = float(s.get("plateAppearances", 1) or 1)
+                if pa < 30:  # need meaningful sample
                     continue
-                gp = float(s.get("gamesPlayed") or 1)
+                gp = float(s.get("gamesPlayed", 1) or 1)
                 splits_data.setdefault(abbr, {})
                 splits_data[abbr][split_key] = {
-                    "ops":           float(s.get("ops")  or 0.720),
-                    "runs_per_game": round(float(s.get("runs") or 0) / gp, 2),
-                    "avg":           float(s.get("avg")  or 0.245),
-                    "obp":           float(s.get("obp")  or 0.315),
-                    "slg":           float(s.get("slg")  or 0.405),
-                    "pa":            int(pa),
+                    "ops":          float(s.get("ops", 0.720) or 0.720),
+                    "runs_per_game": round(float(s.get("runs", 0) or 0) / gp, 2),
+                    "avg":          float(s.get("avg", 0.245) or 0.245),
+                    "obp":          float(s.get("obp", 0.315) or 0.315),
+                    "slg":          float(s.get("slg", 0.405) or 0.405),
+                    "pa":           int(pa),
                 }
-                loaded += 1
-            log.info(f"  Team splits vs {hand}HP: {loaded} teams loaded")
         except Exception as e:
             log.warning(f"Team batting splits vs {hand}HP failed: {e}")
 
-    log.info(f"Team batting splits total: {len(splits_data)} teams with data")
+    log.info(f"Team batting splits: {len(splits_data)} teams loaded")
     return splits_data
 
 
-def get_pitcher_season_line(pitcher_id, pitcher_name):
+def get_zone_data(player_id, player_type, season, zone_cache):
+    """
+    Fetch HR zone data from Baseball Savant for a player.
+    player_type: 'batter' or 'pitcher'
+    Returns dict of zone_id -> hr_count (zones 1-9 inner, 11-14 outer corners)
+    Uses zone_cache to avoid duplicate API calls.
+    """
+    cache_key = f"{player_id}_{player_type}"
+    if cache_key in zone_cache:
+        return zone_cache[cache_key]
+
+    try:
+        # Savant statcast search — filter by HR events, group by zone
+        url = "https://baseballsavant.mlb.com/statcast_search/csv"
+        params = {
+            "hfAB": "home+run",
+            "hfSea": f"{season}|",
+            "player_type": player_type,
+            "game_type": "R",
+            "type": "details",
+        }
+        if player_type == "batter":
+            params["batters_lookup[]"] = player_id
+        else:
+            params["pitchers_lookup[]"] = player_id
+
+        r = requests.get(url, params=params, timeout=20)
+        if r.status_code != 200 or not r.text.strip():
+            zone_cache[cache_key] = {}
+            return {}
+
+        import io
+        df = pd.read_csv(io.StringIO(r.text))
+        if "zone" not in df.columns or df.empty:
+            zone_cache[cache_key] = {}
+            return {}
+
+        # Count HRs per zone
+        zone_counts = {}
+        for zone, count in df["zone"].value_counts().items():
+            try:
+                zone_counts[int(zone)] = int(count)
+            except (ValueError, TypeError):
+                pass
+
+        zone_cache[cache_key] = zone_counts
+        log.info(f"  Zone data: {player_type} {player_id} — {sum(zone_counts.values())} HRs across {len(zone_counts)} zones")
+        return zone_counts
+
+    except Exception as e:
+        log.warning(f"  Zone fetch failed for {player_type} {player_id}: {e}")
+        zone_cache[cache_key] = {}
+        return {}
     """
     Fetch a pitcher's 2026 season stats from MLB Stats API.
     2026 ONLY — no prior season fallback (stale data misleads the model).
@@ -2150,20 +2176,19 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         split_key = "vs_LHP" if pitcher_hand == "L" else "vs_RHP"
         split_data = splits.get(split_key, {})
 
-        if split_data and split_data.get("ops") is not None:
+        if split_data and split_data.get("runs_per_game"):
             rpg = split_data["runs_per_game"]
-            ops = split_data.get("ops")
-            season_ops = team_stats.get("ops")
+            ops = split_data.get("ops", "—")
             log.info(f"  {team_name} offense vs {pitcher_hand}HP: {rpg} R/G, OPS {ops} (splits data)")
-            return rpg, ops, "splits", season_ops
+            return rpg, split_data.get("ops"), "splits"
         elif team_stats.get("runs_per_game"):
             rpg = team_stats["runs_per_game"]
-            ops = team_stats.get("ops")
+            ops = team_stats.get("ops", "—")
             log.info(f"  {team_name} offense: {rpg} R/G, OPS {ops} (season stats)")
-            return rpg, ops, "season", ops
+            return rpg, team_stats.get("ops"), "season"
         else:
             log.warning(f"  {team_name}: no offense data — using league average ({LEAGUE_AVG_RUNS_PER_GAME})")
-            return LEAGUE_AVG_RUNS_PER_GAME, None, "default", None
+            return LEAGUE_AVG_RUNS_PER_GAME, None, "default"
 
     # Get pitcher hands for splits lookup
     away_hand = away_pitcher.get("throws", "R") if away_pitcher else "R"
@@ -2172,27 +2197,29 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
     # ── Projected run total ───────────────────────────────────────────────────
     def team_run_expectation(pitcher_line, opp_team_stats, opp_splits, opp_pitcher_hand, opp_name):
         """Runs expected to score against this pitcher + bullpen."""
-        opp_rpg, opp_ops, data_src, season_ops = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
+        opp_rpg, opp_ops, data_src = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
 
         if pitcher_line:
             avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
             avg_ip = max(avg_ip, 4.5)
+            # Composite pitcher quality score
             composite_ra9 = pitcher_quality_score(pitcher_line)
             starter_runs = composite_ra9 / 9 * avg_ip
+            # 55% pitcher composite, 45% opponent offense (handedness-adjusted)
             starter_contribution = starter_runs * 0.55 + opp_rpg * 0.45
         else:
             starter_contribution = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
 
         total = starter_contribution + BULLPEN_FLOOR
-        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src, season_ops
+        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src
 
     away_name = game.get("away_team", "Away")
     home_name = game.get("home_team", "Home")
 
-    away_runs, away_rpg, away_ops, away_src, away_season_ops = team_run_expectation(
+    away_runs, away_rpg, away_ops, away_src = team_run_expectation(
         home_pitcher_line, away_stats, away_splits, home_hand, away_name
     )
-    home_runs, home_rpg, home_ops, home_src, home_season_ops = team_run_expectation(
+    home_runs, home_rpg, home_ops, home_src = team_run_expectation(
         away_pitcher_line, home_stats, home_splits, away_hand, home_name
     )
 
@@ -2383,28 +2410,18 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "venue": game.get("venue_name", ""),
         "away_pitcher": away_pitcher.get("name", "TBD") if away_pitcher else "TBD",
         "home_pitcher": home_pitcher.get("name", "TBD") if home_pitcher else "TBD",
-        "away_pitcher_throws": away_pitcher.get("throws", "R") if away_pitcher else "R",
-        "home_pitcher_throws": home_pitcher.get("throws", "R") if home_pitcher else "R",
-        "away_pitcher_era":  away_pitcher_line.get("era")   if away_pitcher_line else None,
-        "home_pitcher_era":  home_pitcher_line.get("era")   if home_pitcher_line else None,
-        "away_pitcher_whip": away_pitcher_line.get("whip")  if away_pitcher_line else None,
-        "home_pitcher_whip": home_pitcher_line.get("whip")  if home_pitcher_line else None,
-        "away_pitcher_k9":   away_pitcher_line.get("k9")    if away_pitcher_line else None,
-        "home_pitcher_k9":   home_pitcher_line.get("k9")    if home_pitcher_line else None,
-        "away_pitcher_hr9":  away_pitcher_line.get("hr9")   if away_pitcher_line else None,
-        "home_pitcher_hr9":  home_pitcher_line.get("hr9")   if home_pitcher_line else None,
-        "away_pitcher_bb9":  away_pitcher_line.get("bb9")   if away_pitcher_line else None,
-        "home_pitcher_bb9":  home_pitcher_line.get("bb9")   if home_pitcher_line else None,
-        "away_pitcher_ip":   away_pitcher_line.get("ip")    if away_pitcher_line else None,
-        "home_pitcher_ip":   home_pitcher_line.get("ip")    if home_pitcher_line else None,
-        "away_pitcher_gs":   away_pitcher_line.get("games") if away_pitcher_line else None,
-        "home_pitcher_gs":   home_pitcher_line.get("games") if home_pitcher_line else None,
+        "away_pitcher_era": away_pitcher_line.get("era") if away_pitcher_line else None,
+        "home_pitcher_era": home_pitcher_line.get("era") if home_pitcher_line else None,
+        "away_pitcher_k9": away_pitcher_line.get("k9") if away_pitcher_line else None,
+        "home_pitcher_k9": home_pitcher_line.get("k9") if home_pitcher_line else None,
+        "away_pitcher_hr9": away_pitcher_line.get("hr9") if away_pitcher_line else None,
+        "home_pitcher_hr9": home_pitcher_line.get("hr9") if home_pitcher_line else None,
+        "away_pitcher_ip": away_pitcher_line.get("ip") if away_pitcher_line else None,
+        "home_pitcher_ip": home_pitcher_line.get("ip") if home_pitcher_line else None,
         "away_rpg": away_rpg,
         "home_rpg": home_rpg,
         "away_ops": away_ops,
         "home_ops": home_ops,
-        "away_season_ops": away_season_ops,
-        "home_season_ops": home_season_ops,
         "away_offense_src": away_src,
         "home_offense_src": home_src,
         "projected_total": projected_total,
@@ -2549,10 +2566,6 @@ def run():
         home_ts = team_season_stats.get(home, {})
         away_splits = team_batting_splits.get(away, {})
         home_splits = team_batting_splits.get(home, {})
-        if not away_splits:
-            log.warning(f"  No splits found for {away} — available keys: {list(team_batting_splits.keys())[:10]}")
-        if not home_splits:
-            log.warning(f"  No splits found for {home} — available keys: {list(team_batting_splits.keys())[:10]}")
         game_odds = odds_by_game.get(f"{away}@{home}") or odds_by_game.get(f"{home}@{away}")
         if not game_odds:
             for k in odds_by_game:
@@ -2765,6 +2778,41 @@ def run():
     # Sort — PRIME first, then HIGH, then MED, then by score descending within tier
     tier_order = {"PRIME": 0, "HIGH": 1, "MED": 2, "LOW": 3}
     all_targets.sort(key=lambda x: (tier_order.get(x["tier"], 3), -x["score"]))
+
+    # ── Zone data enrichment ──────────────────────────────────────────────────
+    # Fetch HR zone data for PRIME/HIGH/MED batters and their pitchers
+    # Uses a shared cache so same pitcher isn't fetched multiple times
+    zone_cache = {}
+    pitcher_id_map = {}  # name -> id for pitchers we've seen
+    targets_for_zones = [t for t in all_targets if t["tier"] in ("PRIME", "HIGH", "MED")]
+    log.info(f"Fetching zone data for {len(targets_for_zones)} PRIME/HIGH/MED targets…")
+
+    # Build pitcher ID map from game data
+    for game in schedule:
+        away_p = game.get("away_probable")
+        home_p = game.get("home_probable")
+        if away_p:
+            pitcher_id_map[away_p["name"]] = away_p["id"]
+        if home_p:
+            pitcher_id_map[home_p["name"]] = home_p["id"]
+
+    for t in targets_for_zones:
+        season = TODAY.year
+        # Batter zones
+        batter_zones = get_zone_data(t["batter_id"], "batter", season, zone_cache)
+        t["batter_zones"] = batter_zones
+
+        # Pitcher zones
+        pitcher_id = pitcher_id_map.get(t["pitcher_name"])
+        if pitcher_id:
+            pitcher_zones = get_zone_data(pitcher_id, "pitcher", season, zone_cache)
+            t["pitcher_zones"] = pitcher_zones
+            t["pitcher_id"] = pitcher_id
+        else:
+            t["pitcher_zones"] = {}
+            t["pitcher_id"] = None
+
+    log.info(f"Zone enrichment complete — {len(zone_cache)} unique players fetched")
     seen_fades = set()
     deduped_fades = []
     for f in auto_fades:
