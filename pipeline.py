@@ -2190,17 +2190,18 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
 
         if split_data and split_data.get("runs_per_game"):
             rpg = split_data["runs_per_game"]
-            ops = split_data.get("ops", "—")
+            ops = split_data.get("ops")
+            season_ops = team_stats.get("ops")
             log.info(f"  {team_name} offense vs {pitcher_hand}HP: {rpg} R/G, OPS {ops} (splits data)")
-            return rpg, split_data.get("ops"), "splits"
+            return rpg, ops, "splits", season_ops
         elif team_stats.get("runs_per_game"):
             rpg = team_stats["runs_per_game"]
-            ops = team_stats.get("ops", "—")
+            ops = team_stats.get("ops")
             log.info(f"  {team_name} offense: {rpg} R/G, OPS {ops} (season stats)")
-            return rpg, team_stats.get("ops"), "season"
+            return rpg, ops, "season", ops
         else:
             log.warning(f"  {team_name}: no offense data — using league average ({LEAGUE_AVG_RUNS_PER_GAME})")
-            return LEAGUE_AVG_RUNS_PER_GAME, None, "default"
+            return LEAGUE_AVG_RUNS_PER_GAME, None, "default", None
 
     # Get pitcher hands for splits lookup
     away_hand = away_pitcher.get("throws", "R") if away_pitcher else "R"
@@ -2209,29 +2210,27 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
     # ── Projected run total ───────────────────────────────────────────────────
     def team_run_expectation(pitcher_line, opp_team_stats, opp_splits, opp_pitcher_hand, opp_name):
         """Runs expected to score against this pitcher + bullpen."""
-        opp_rpg, opp_ops, data_src = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
+        opp_rpg, opp_ops, data_src, season_ops = get_offense_rpg(opp_team_stats, opp_splits, opp_pitcher_hand, opp_name)
 
         if pitcher_line:
             avg_ip = min(pitcher_line.get("ip", 1) / max(pitcher_line.get("games", 1), 1), 7.0)
             avg_ip = max(avg_ip, 4.5)
-            # Composite pitcher quality score
             composite_ra9 = pitcher_quality_score(pitcher_line)
             starter_runs = composite_ra9 / 9 * avg_ip
-            # 55% pitcher composite, 45% opponent offense (handedness-adjusted)
             starter_contribution = starter_runs * 0.55 + opp_rpg * 0.45
         else:
             starter_contribution = (LEAGUE_AVG_RUNS_PER_GAME + opp_rpg) / 2
 
         total = starter_contribution + BULLPEN_FLOOR
-        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src
+        return round(max(total, 2.5), 2), opp_rpg, opp_ops, data_src, season_ops
 
     away_name = game.get("away_team", "Away")
     home_name = game.get("home_team", "Home")
 
-    away_runs, away_rpg, away_ops, away_src = team_run_expectation(
+    away_runs, away_rpg, away_ops, away_src, away_season_ops = team_run_expectation(
         home_pitcher_line, away_stats, away_splits, home_hand, away_name
     )
-    home_runs, home_rpg, home_ops, home_src = team_run_expectation(
+    home_runs, home_rpg, home_ops, home_src, home_season_ops = team_run_expectation(
         away_pitcher_line, home_stats, home_splits, away_hand, home_name
     )
 
@@ -2438,8 +2437,6 @@ def score_game_lines(game, away_pitcher, home_pitcher, away_stats, home_stats,
         "home_pitcher_ip":   home_pitcher_line.get("ip")    if home_pitcher_line else None,
         "away_pitcher_gs":   away_pitcher_line.get("games") if away_pitcher_line else None,
         "home_pitcher_gs":   home_pitcher_line.get("games") if home_pitcher_line else None,
-        "away_season_ops": away_season_ops,
-        "home_season_ops": home_season_ops,
         "away_rpg": away_rpg,
         "home_rpg": home_rpg,
         "away_ops": away_ops,
@@ -2604,6 +2601,9 @@ def run():
             away_pitcher_line=away_pl, home_pitcher_line=home_pl,
             odds=game_odds, park=park, weather=weather,
         )
+        if gl:
+            gl["away_season_ops"] = away_splits.get("vs_LHP", {}).get("ops") or away_splits.get("vs_RHP", {}).get("ops") or away_ts.get("ops")
+            gl["home_season_ops"] = home_splits.get("vs_LHP", {}).get("ops") or home_splits.get("vs_RHP", {}).get("ops") or home_ts.get("ops")
         game_lines.append(gl)
 
         # Score batters for each side
