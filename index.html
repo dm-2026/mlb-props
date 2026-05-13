@@ -1121,12 +1121,12 @@ function batterCard(t, idx) {
         <div class="meta-item"><div class="mk">HR mult</div><div class="mv">${(t.hr_multiplier||1).toFixed(2)}×</div></div>
         ${t.pitcher_overall_hr9!=null?`<div class="meta-item"><div class="mk">Pitcher HR/9</div><div class="mv">${t.pitcher_overall_hr9.toFixed(2)}</div></div>`:''}
       </div>
-      ${(t.batter_zones && Object.keys(t.batter_zones).length > 0) || (t.pitcher_zones && Object.keys(t.pitcher_zones).length > 0) ? `
+      ${(t.tier !== 'LOW' && t.tier !== 'FADE') ? `
       <div class="zone-section">
         <div class="zone-section-title">HR Zone Comparison — 2026</div>
         <div class="zone-grids">
-          ${renderZoneGrid(t.batter_zones, t.batter_name + ' hits HRs', false)}
-          ${renderZoneGrid(t.pitcher_zones, t.pitcher_name + ' allows HRs', true)}
+          ${renderZoneGrid(t.batter_zones || {}, t.batter_name + ' hits HRs', false)}
+          ${renderZoneGrid(t.pitcher_zones || {}, t.pitcher_name + ' allows HRs', true)}
         </div>
       </div>` : ''}
     </div>
