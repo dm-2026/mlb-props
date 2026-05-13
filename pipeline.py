@@ -188,10 +188,19 @@ def extract_pitcher(team_data):
     pp = team_data.get("probablePitcher")
     if not pp:
         return None
+    throws = pp.get("pitchHand", {}).get("code")
+    if not throws:
+        try:
+            pid = pp.get("id")
+            r2 = requests.get(f"https://statsapi.mlb.com/api/v1/people/{pid}", timeout=10)
+            throws = r2.json().get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
+            log.info(f"  Fetched throws for {pp.get('fullName','?')} from people API: {throws}")
+        except Exception:
+            throws = "R"
     return {
         "id": pp.get("id"),
         "name": pp.get("fullName", "TBD"),
-        "throws": pp.get("pitchHand", {}).get("code", "R"),
+        "throws": throws,
     }
 
 

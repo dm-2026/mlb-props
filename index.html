@@ -263,6 +263,35 @@
   .zone-outer-row { display: flex; gap: 2px; width: 120px; justify-content: space-between; }
   .zone-outer-single { width: 59px; height: 24px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: #fff; opacity: 0.7; }
   .zone-no-data { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: center; padding: 20px 0; }
+  /* ── Pitcher tab styles ── */
+  .pitcher-game { margin-bottom: 20px; }
+  .pitcher-game-header { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .pitcher-game-header::after { content:''; flex:1; height:1px; background:var(--border); }
+  .pitcher-cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:600px){ .pitcher-cards-row { grid-template-columns: 1fr; } }
+  .pitcher-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .pitcher-card-top { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+  .pitcher-card-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .pitcher-card-sub { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+  .pitcher-stat-row { display: flex; gap: 0; }
+  .pitcher-stat { flex: 1; text-align: center; padding: 8px 4px; border-right: 1px solid var(--border); }
+  .pitcher-stat:last-child { border-right: none; }
+  .pitcher-stat-val { font-family: var(--mono); font-size: 15px; font-weight: 600; line-height: 1; margin-bottom: 3px; }
+  .pitcher-stat-lbl { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pitcher-card-body { padding: 12px 16px; }
+  .pitcher-vuln-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pitcher-vuln-label { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .pitcher-matchup-box { background: var(--surface2); border-radius: 6px; padding: 10px 12px; margin-top: 10px; }
+  .pitcher-matchup-title { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .pitcher-matchup-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .pitcher-matchup-stat .pmk { font-family: var(--mono); font-size: 9px; color: var(--text3); }
+  .pitcher-matchup-stat .pmv { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  .grade-box { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .grade-A { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+  .grade-B { background: rgba(59,130,246,0.10); color: #3b82f6; border: 1px solid rgba(59,130,246,0.22); }
+  .grade-C { background: rgba(245,158,11,0.10); color: var(--med); border: 1px solid var(--med-border); }
+  .grade-D { background: rgba(239,68,68,0.08); color: var(--fade); border: 1px solid var(--fade-border); }
+
   .gl-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
   .gl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 8px; transition: border-color 0.15s; }
   .gl-card:hover { border-color: var(--border2); }
@@ -357,6 +386,7 @@
   <button class="tab-btn" onclick="switchTab('d2',this)">🔁 Batter Doubles <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
   <button class="tab-btn" onclick="switchTab('tb',this)">📈 Total Bases <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
   <button class="tab-btn" onclick="switchTab('lines',this)">📊 Game Lines <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
+  <button class="tab-btn" onclick="switchTab('pitchers',this)">⚡ Pitchers <span style="font-size:9px;background:rgba(245,158,11,0.15);color:var(--med);border:1px solid var(--med-border);border-radius:3px;padding:1px 5px;margin-left:4px;font-family:var(--mono)">BETA</span></button>
 </div>
 
 <!-- ── HR Tab ── -->
@@ -521,6 +551,21 @@
 
 </div><!-- /tab-lines -->
 
+<!-- ── Pitchers Tab ── -->
+<div class="tab-panel" id="tab-pitchers">
+  <div class="section-label">Today's Starting Pitchers</div>
+  <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:14px;width:fit-content">
+    <button class="filter-btn active-all" id="psort-game-btn" onclick="setPitcherSort('game',this)" style="border:none;border-radius:0;margin:0;padding:5px 14px">By Game</button>
+    <button class="filter-btn" id="psort-vuln-btn" onclick="setPitcherSort('vuln',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 14px">&#x1F4A3; Most Vulnerable</button>
+    <button class="filter-btn" id="psort-elite-btn" onclick="setPitcherSort('elite',this)" style="border:none;border-left:1px solid var(--border);border-radius:0;margin:0;padding:5px 14px">&#x1F512; Most Dominant</button>
+  </div>
+  <div id="pitchers-list"><div class="loading">Loading pitcher data…</div></div>
+  <div class="footer" style="margin-top:40px">
+    <span id="pitchers-footer-gen">Generated: —</span>
+    <span>Pitcher Analysis · MLB Props Pipeline</span>
+  </div>
+</div><!-- /tab-pitchers -->
+
 <script>
 const PITCH_NAMES = {
   FF:'Four-seam', SI:'Sinker', FC:'Cutter', CH:'Changeup',
@@ -621,6 +666,7 @@ function render(data) {
   renderTbSummary(data);
   renderTbTargets(data.tb_targets || []);
   renderGameLinesSummary(data);
+  renderPitchers(data);
   renderGameLines(data.game_lines || []);
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
@@ -1914,6 +1960,126 @@ function renderZoneGrid(zones, label, forPitcher) {
     </div>
     <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px">${Object.values(zones).reduce(function(a,b){return a+b;},0)} HR total</div>
   </div>`;
+}
+
+// ── Pitcher Tab ───────────────────────────────────────────────────────────────
+var pitcherSort = 'game';
+
+function setPitcherSort(mode, btn) {
+  pitcherSort = mode;
+  document.querySelectorAll('#psort-game-btn,#psort-vuln-btn,#psort-elite-btn').forEach(function(b){ b.className = 'filter-btn'; });
+  btn.className = 'filter-btn active-all';
+  if (allData) renderPitchers(allData);
+}
+
+function pitcherGrade(era, whip, k9, hr9) {
+  var score = 0;
+  if (era <= 2.80) score += 3; else if (era <= 3.50) score += 2; else if (era <= 4.20) score += 1; else if (era >= 5.00) score -= 1;
+  if (whip <= 1.05) score += 2; else if (whip <= 1.20) score += 1; else if (whip >= 1.45) score -= 1;
+  if (k9 >= 11.0) score += 2; else if (k9 >= 9.0) score += 1; else if (k9 <= 6.5) score -= 1;
+  if (hr9 >= 1.8) score -= 2; else if (hr9 >= 1.3) score -= 1; else if (hr9 <= 0.7) score += 1;
+  if (score >= 6) return 'A'; if (score >= 3) return 'B'; if (score >= 1) return 'C'; return 'D';
+}
+
+function pitcherVulnScore(pl) {
+  if (!pl) return 0;
+  var hr9  = pl.hr9  || 1.0;
+  var whip = pl.whip || 1.30;
+  var k9   = pl.k9   || 8.0;
+  var era  = pl.era  || 4.50;
+  return (hr9 * 40) + (whip * 20) + ((10 - k9) * 10) + (era * 5);
+}
+
+function statColor(val, type) {
+  if (type === 'era')  { if (val <= 2.80) return '#22c55e'; if (val <= 3.50) return '#3b82f6'; if (val <= 4.50) return 'var(--text)'; return 'var(--fade)'; }
+  if (type === 'whip') { if (val <= 1.05) return '#22c55e'; if (val <= 1.20) return '#3b82f6'; if (val <= 1.35) return 'var(--text)'; return 'var(--fade)'; }
+  if (type === 'k9')   { if (val >= 11.0) return '#22c55e'; if (val >= 9.0) return '#3b82f6'; if (val >= 7.0) return 'var(--text)'; return 'var(--fade)'; }
+  if (type === 'hr9')  { if (val <= 0.7) return '#22c55e'; if (val <= 1.1) return 'var(--text)'; if (val <= 1.5) return 'var(--med)'; return 'var(--fade)'; }
+  if (type === 'bb9')  { if (val <= 2.0) return '#22c55e'; if (val <= 3.0) return 'var(--text)'; return 'var(--fade)'; }
+  return 'var(--text)';
+}
+
+function renderPitcherCard(name, throws, pl, opp_team, opp_rpg, opp_ops, opp_src, opp_season_ops, side, targets) {
+  if (!name || name === 'TBD') {
+    return '<div class="pitcher-card"><div class="pitcher-card-top"><div class="pitcher-card-name" style="color:var(--text3)">TBD</div><div class="pitcher-card-sub">' + side + ' starter not yet announced</div></div></div>';
+  }
+  var era = pl ? pl.era : null; var whip = pl ? pl.whip : null; var k9 = pl ? pl.k9 : null;
+  var hr9 = pl ? pl.hr9 : null; var bb9 = pl ? pl.bb9 : null; var ip = pl ? pl.ip : null; var gs = pl ? pl.games : null;
+  var grade = (era && whip && k9 && hr9) ? pitcherGrade(era, whip, k9, hr9) : '?';
+  var gradeClass = grade !== '?' ? 'grade-' + grade : 'grade-C';
+  var badges = '';
+  if (hr9 && hr9 >= 1.5) badges += '<span class="badge badge-suppress">HR-prone</span>';
+  if (whip && whip >= 1.40) badges += '<span class="badge badge-suppress">High WHIP</span>';
+  if (k9 && k9 >= 11.0) badges += '<span class="badge badge-boost">Elite K rate</span>';
+  if (bb9 && bb9 >= 4.0) badges += '<span class="badge badge-rain">Wild</span>';
+  if (hr9 && hr9 <= 0.6) badges += '<span class="badge badge-boost">HR suppressor</span>';
+
+  var pitcherTargets = [];
+  if (targets) { for (var i = 0; i < targets.length; i++) { if (targets[i].pitcher_name === name) pitcherTargets.push(targets[i]); } }
+  pitcherTargets.sort(function(a,b){ return b.score - a.score; });
+
+  var targetsHtml = '';
+  if (pitcherTargets.length) {
+    targetsHtml = '<div class="pitcher-vuln-label" style="margin-top:12px">HR Props targeting this pitcher</div><div style="display:flex;flex-direction:column;gap:4px">';
+    for (var j = 0; j < Math.min(pitcherTargets.length, 5); j++) {
+      var t = pitcherTargets[j];
+      var tc = t.tier === 'PRIME' ? 'var(--prime)' : t.tier === 'HIGH' ? 'var(--high)' : t.tier === 'MED' ? 'var(--med)' : 'var(--low)';
+      targetsHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="font-family:var(--mono);font-size:12px;font-weight:600;color:' + tc + ';width:26px">' + t.score + '</span><span style="font-size:13px;font-weight:600;color:var(--text)">' + t.batter_name + '</span><span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:auto">' + t.batter_team + ' · ' + t.tier + '</span></div>';
+    }
+    targetsHtml += '</div>';
+  }
+
+  var matchupHtml = '';
+  if (opp_rpg || opp_ops) {
+    var rpgColor = opp_rpg >= 5.0 ? '#22c55e' : opp_rpg <= 3.5 ? 'var(--fade)' : 'var(--text)';
+    var opsColor = opp_ops >= 0.780 ? '#22c55e' : opp_ops <= 0.660 ? 'var(--fade)' : 'var(--text)';
+    var matchupTitle = opp_src === 'splits' ? opp_team + ' vs ' + throws + 'HP' : opp_src === 'season' ? opp_team + ' Season Avg' : opp_team + ' (League Avg)';
+    var srcBadge = opp_src === 'splits' ? '<span class="badge badge-boost" style="font-size:9px">Split</span>' : opp_src === 'default' ? '<span class="badge badge-suppress" style="font-size:9px">No data</span>' : '';
+    var seasonOpsHtml = (opp_src === 'splits' && opp_season_ops) ? '<div class="pitcher-matchup-stat"><div class="pmk">Season OPS</div><div class="pmv" style="color:var(--text2)">' + opp_season_ops.toFixed(3) + '</div></div>' : '';
+    matchupHtml = '<div class="pitcher-matchup-box"><div class="pitcher-matchup-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' + matchupTitle + ' ' + srcBadge + '</div><div class="pitcher-matchup-stats">' + (opp_rpg ? '<div class="pitcher-matchup-stat"><div class="pmk">R/G</div><div class="pmv" style="color:' + rpgColor + '">' + opp_rpg + '</div></div>' : '') + (opp_ops ? '<div class="pitcher-matchup-stat"><div class="pmk">' + (opp_src === 'splits' ? throws + 'HP OPS' : 'OPS') + '</div><div class="pmv" style="color:' + opsColor + '">' + opp_ops.toFixed(3) + '</div></div>' : '') + seasonOpsHtml + '</div></div>';
+  }
+
+  var noData = !era && !whip && !k9;
+  var gradeLabel = grade === 'A' ? 'Ace — elite suppression' : grade === 'B' ? 'Solid — above average' : grade === 'C' ? 'Average — hittable' : 'Vulnerable — target';
+
+  return '<div class="pitcher-card"><div class="pitcher-card-top"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div class="grade-box ' + gradeClass + '">' + grade + '</div><div><div class="pitcher-card-name">' + name + '</div><div class="pitcher-card-sub">' + throws + 'HP · ' + side + ' · vs ' + opp_team + (ip ? ' · ' + ip + ' IP / ' + gs + ' GS' : '') + '</div></div></div>' + (badges ? '<div class="pitcher-vuln-row">' + badges + '</div>' : '') + (noData ? '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:8px 0">No 2026 season stats yet</div>' : '') + '</div>' + (!noData ? '<div class="pitcher-stat-row"><div class="pitcher-stat"><div class="pitcher-stat-val" style="color:' + statColor(era,'era') + '">' + (era ? era.toFixed(2) : '—') + '</div><div class="pitcher-stat-lbl">ERA</div></div><div class="pitcher-stat"><div class="pitcher-stat-val" style="color:' + statColor(whip,'whip') + '">' + (whip ? whip.toFixed(2) : '—') + '</div><div class="pitcher-stat-lbl">WHIP</div></div><div class="pitcher-stat"><div class="pitcher-stat-val" style="color:' + statColor(k9,'k9') + '">' + (k9 ? k9.toFixed(1) : '—') + '</div><div class="pitcher-stat-lbl">K/9</div></div><div class="pitcher-stat"><div class="pitcher-stat-val" style="color:' + statColor(hr9,'hr9') + '">' + (hr9 ? hr9.toFixed(2) : '—') + '</div><div class="pitcher-stat-lbl">HR/9</div></div><div class="pitcher-stat"><div class="pitcher-stat-val" style="color:' + statColor(bb9,'bb9') + '">' + (bb9 ? bb9.toFixed(1) : '—') + '</div><div class="pitcher-stat-lbl">BB/9</div></div></div>' : '') + '<div class="pitcher-card-body"><div class="pitcher-vuln-label">' + gradeLabel + '</div>' + matchupHtml + targetsHtml + '</div></div>';
+}
+
+function renderPitchers(data) {
+  var el = document.getElementById('pitchers-list');
+  var gl = data.game_lines || [];
+  var targets = data.targets || [];
+  if (!gl.length) { el.innerHTML = '<div class="empty">No games today — run pipeline.py</div>'; return; }
+
+  var allPitchers = [];
+  for (var i = 0; i < gl.length; i++) {
+    var g = gl[i];
+    var awayPl = g.away_pitcher_era ? {era:g.away_pitcher_era,whip:g.away_pitcher_whip,k9:g.away_pitcher_k9,hr9:g.away_pitcher_hr9,bb9:g.away_pitcher_bb9,ip:g.away_pitcher_ip,games:g.away_pitcher_gs} : null;
+    var homePl = g.home_pitcher_era ? {era:g.home_pitcher_era,whip:g.home_pitcher_whip,k9:g.home_pitcher_k9,hr9:g.home_pitcher_hr9,bb9:g.home_pitcher_bb9,ip:g.home_pitcher_ip,games:g.home_pitcher_gs} : null;
+    allPitchers.push({name:g.away_pitcher,throws:g.away_pitcher_throws||'R',pl:awayPl,opp_team:g.home_team,opp_rpg:g.home_rpg,opp_ops:g.home_ops,opp_src:g.home_offense_src,opp_season_ops:g.home_season_ops,side:'Away',game:g.away_team+' @ '+g.home_team,venue:g.venue_name||''});
+    allPitchers.push({name:g.home_pitcher,throws:g.home_pitcher_throws||'R',pl:homePl,opp_team:g.away_team,opp_rpg:g.away_rpg,opp_ops:g.away_ops,opp_src:g.away_offense_src,opp_season_ops:g.away_season_ops,side:'Home',game:g.away_team+' @ '+g.home_team,venue:g.venue_name||''});
+  }
+
+  var html = '';
+  if (pitcherSort === 'game') {
+    for (var j = 0; j < gl.length; j++) {
+      var gg = gl[j]; var ap = allPitchers[j*2]; var hp = allPitchers[j*2+1];
+      html += '<div class="pitcher-game"><div class="pitcher-game-header">' + gg.away_team + ' @ ' + gg.home_team + ' · ' + (gg.venue_name||'') + '</div><div class="pitcher-cards-row">' + renderPitcherCard(ap.name,ap.throws,ap.pl,ap.opp_team,ap.opp_rpg,ap.opp_ops,ap.opp_src,ap.opp_season_ops,ap.side,targets) + renderPitcherCard(hp.name,hp.throws,hp.pl,hp.opp_team,hp.opp_rpg,hp.opp_ops,hp.opp_src,hp.opp_season_ops,hp.side,targets) + '</div></div>';
+    }
+  } else {
+    var sorted = allPitchers.slice().sort(function(a,b){ return pitcherSort === 'vuln' ? pitcherVulnScore(b.pl) - pitcherVulnScore(a.pl) : pitcherVulnScore(a.pl) - pitcherVulnScore(b.pl); });
+    var rankLabel = pitcherSort === 'vuln' ? '&#x1F4A3; Most Vulnerable to HRs' : '&#x1F512; Most Dominant';
+    html += '<div class="pitcher-game-header">' + rankLabel + '</div><div style="display:flex;flex-direction:column;gap:10px">';
+    for (var k = 0; k < sorted.length; k++) {
+      var p = sorted[k];
+      html += '<div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px;letter-spacing:0.08em">' + p.game + ' · ' + p.side + '</div>' + renderPitcherCard(p.name,p.throws,p.pl,p.opp_team,p.opp_rpg,p.opp_ops,p.opp_src,p.opp_season_ops,p.side,targets) + '</div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+  var gen = new Date(data.generated_at);
+  var el2 = document.getElementById('pitchers-footer-gen');
+  if (el2) el2.textContent = 'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
 loadData();
