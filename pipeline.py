@@ -2096,6 +2096,9 @@ def get_zone_data(player_id, player_type, season, zone_cache):
         log.warning(f"  Zone fetch failed for {player_type} {player_id}: {e}")
         zone_cache[cache_key] = {}
         return {}
+
+
+def get_pitcher_season_line(pitcher_id, pitcher_name):
     """
     Fetch a pitcher's 2026 season stats from MLB Stats API.
     2026 ONLY — no prior season fallback (stale data misleads the model).
