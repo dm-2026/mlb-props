@@ -2791,7 +2791,7 @@ def run():
     log.info(f"Fetching zone data for {len(targets_for_zones)} PRIME/HIGH/MED targets…")
 
     # Build pitcher ID map from game data
-    for game in schedule:
+    for game in games:
         away_p = game.get("away_probable")
         home_p = game.get("home_probable")
         if away_p:
