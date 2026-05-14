@@ -2064,7 +2064,7 @@ def get_zone_data(player_id, player_type, season, zone_cache):
         return zone_cache[cache_key]
 
     try:
-        # Savant statcast search — correct API format
+        # Try Savant statcast search CSV endpoint
         url = "https://baseballsavant.mlb.com/statcast_search/csv"
         params = {
             "hfAB": "home_run|",
@@ -2086,17 +2086,21 @@ def get_zone_data(player_id, player_type, season, zone_cache):
         else:
             params["pitchers_lookup[]"] = player_id
 
-        r = requests.get(url, params=params, timeout=20)
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; MLB Props Pipeline)"}
+        r = requests.get(url, params=params, timeout=20, headers=headers)
+        log.info(f"  Zone fetch {player_type} {player_id}: HTTP {r.status_code}, {len(r.text)} bytes")
+
         if r.status_code != 200:
             log.warning(f"  Zone fetch {player_type} {player_id}: HTTP {r.status_code}")
             zone_cache[cache_key] = {}
             return {}
         if not r.text.strip() or r.text.strip().startswith('<'):
-            log.warning(f"  Zone fetch {player_type} {player_id}: empty or HTML response")
+            log.warning(f"  Zone fetch {player_type} {player_id}: empty or HTML response — first 200 chars: {r.text[:200]}")
             zone_cache[cache_key] = {}
             return {}
 
         import io
+        import pandas as pd
         df = pd.read_csv(io.StringIO(r.text))
         if "zone" not in df.columns or df.empty:
             zone_cache[cache_key] = {}
