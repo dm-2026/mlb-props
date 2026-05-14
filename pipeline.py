@@ -2064,14 +2064,22 @@ def get_zone_data(player_id, player_type, season, zone_cache):
         return zone_cache[cache_key]
 
     try:
-        # Savant statcast search — filter by HR events, group by zone
+        # Savant statcast search — correct API format
         url = "https://baseballsavant.mlb.com/statcast_search/csv"
         params = {
-            "hfAB": "home+run",
+            "hfAB": "home_run|",
+            "hfGT": "R|",
             "hfSea": f"{season}|",
             "player_type": player_type,
-            "game_type": "R",
             "type": "details",
+            "hfZ": "",
+            "team": "",
+            "position": "",
+            "hfRO": "",
+            "home_road": "",
+            "hfFlag": "",
+            "metric_sel": "",
+            "chk_stats_pa": "on",
         }
         if player_type == "batter":
             params["batters_lookup[]"] = player_id
@@ -2079,7 +2087,12 @@ def get_zone_data(player_id, player_type, season, zone_cache):
             params["pitchers_lookup[]"] = player_id
 
         r = requests.get(url, params=params, timeout=20)
-        if r.status_code != 200 or not r.text.strip():
+        if r.status_code != 200:
+            log.warning(f"  Zone fetch {player_type} {player_id}: HTTP {r.status_code}")
+            zone_cache[cache_key] = {}
+            return {}
+        if not r.text.strip() or r.text.strip().startswith('<'):
+            log.warning(f"  Zone fetch {player_type} {player_id}: empty or HTML response")
             zone_cache[cache_key] = {}
             return {}
 
