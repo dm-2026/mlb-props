@@ -654,7 +654,7 @@ function render(data) {
   renderTbTargets(data.tb_targets || []);
   renderGameLinesSummary(data);
   renderGameLines(data.game_lines || []);
-  try { renderPitchers(data); } catch(e) { console.error('renderPitchers failed:', e); }
+  // renderPitchers temporarily disabled for debugging
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -1981,3 +1981,10 @@ function renderPitchers(data) {
   if (el2) el2.textContent='Generated: '+new Date(data.generated_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
+
+// Fetch on load then refresh every 60 seconds
+fetchLiveScores();
+setInterval(fetchLiveScores, 60000);
+</script>
+</body>
+</html>
