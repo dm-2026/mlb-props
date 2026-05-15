@@ -654,7 +654,7 @@ function render(data) {
   renderTbTargets(data.tb_targets || []);
   renderGameLinesSummary(data);
   renderGameLines(data.game_lines || []);
-  renderPitchers(data);
+  try { renderPitchers(data); } catch(e) { console.error('renderPitchers failed:', e); }
   const gen = new Date(data.generated_at);
   document.getElementById('footer-gen').textContent =
     'Generated: ' + gen.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
