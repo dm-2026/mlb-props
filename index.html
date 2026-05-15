@@ -1981,8 +1981,8 @@ function renderPitchers(data) {
   if (el2) el2.textContent='Generated: '+new Date(data.generated_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
-
 // Fetch on load then refresh every 60 seconds
+loadData();
 fetchLiveScores();
 setInterval(fetchLiveScores, 60000);
 </script>
