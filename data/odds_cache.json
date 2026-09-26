@@ -1,0 +1,162 @@
+{
+  "date": "2026-09-26",
+  "fetched_at": "2026-09-26T19:18:40.583260",
+  "odds": {
+    "NYM@WSH": {
+      "away": "NYM",
+      "home": "WSH",
+      "away_ml": null,
+      "home_ml": null,
+      "away_implied": null,
+      "home_implied": null,
+      "total_line": 8.5,
+      "total_over_odds": 433,
+      "total_under_odds": -710,
+      "bookmaker": "BetMGM"
+    },
+    "PIT@DET": {
+      "away": "PIT",
+      "home": "DET",
+      "away_ml": 116,
+      "home_ml": -151,
+      "away_implied": 46.3,
+      "home_implied": 60.2,
+      "total_line": 6.5,
+      "total_over_odds": -166,
+      "total_under_odds": 127,
+      "bookmaker": "DraftKings"
+    },
+    "CIN@TOR": {
+      "away": "CIN",
+      "home": "TOR",
+      "away_ml": 215,
+      "home_ml": -294,
+      "away_implied": 31.7,
+      "home_implied": 74.6,
+      "total_line": 8.5,
+      "total_over_odds": -115,
+      "total_under_odds": -113,
+      "bookmaker": "DraftKings"
+    },
+    "LAD@SF": {
+      "away": "LAD",
+      "home": "SF",
+      "away_ml": -287,
+      "home_ml": 229,
+      "away_implied": 74.2,
+      "home_implied": 30.4,
+      "total_line": 7.0,
+      "total_over_odds": -123,
+      "total_under_odds": 102,
+      "bookmaker": "DraftKings"
+    },
+    "ATL@MIA": {
+      "away": "ATL",
+      "home": "MIA",
+      "away_ml": -117,
+      "home_ml": -103,
+      "away_implied": 53.9,
+      "home_implied": 50.7,
+      "total_line": 8.5,
+      "total_over_odds": -112,
+      "total_under_odds": -107,
+      "bookmaker": "DraftKings"
+    },
+    "TEX@MIN": {
+      "away": "TEX",
+      "home": "MIN",
+      "away_ml": -125,
+      "home_ml": 104,
+      "away_implied": 55.6,
+      "home_implied": 49.0,
+      "total_line": 8.0,
+      "total_over_odds": -105,
+      "total_under_odds": -115,
+      "bookmaker": "DraftKings"
+    },
+    "CLE@KC": {
+      "away": "CLE",
+      "home": "KC",
+      "away_ml": -114,
+      "home_ml": -105,
+      "away_implied": 53.3,
+      "home_implied": 51.2,
+      "total_line": 8.5,
+      "total_over_odds": -102,
+      "total_under_odds": -118,
+      "bookmaker": "DraftKings"
+    },
+    "COL@CHW": {
+      "away": "COL",
+      "home": "CHW",
+      "away_ml": 203,
+      "home_ml": -252,
+      "away_implied": 33.0,
+      "home_implied": 71.6,
+      "total_line": 8.0,
+      "total_over_odds": -115,
+      "total_under_odds": -105,
+      "bookmaker": "DraftKings"
+    },
+    "STL@MIL": {
+      "away": "STL",
+      "home": "MIL",
+      "away_ml": 135,
+      "home_ml": -163,
+      "away_implied": 42.6,
+      "home_implied": 62.0,
+      "total_line": 7.5,
+      "total_over_odds": -109,
+      "total_under_odds": -111,
+      "bookmaker": "DraftKings"
+    },
+    "TB@PHI": {
+      "away": "TB",
+      "home": "PHI",
+      "away_ml": -108,
+      "home_ml": -112,
+      "away_implied": 51.9,
+      "home_implied": 52.8,
+      "total_line": 7.0,
+      "total_over_odds": -107,
+      "total_under_odds": -112,
+      "bookmaker": "DraftKings"
+    },
+    "ARI@SD": {
+      "away": "ARI",
+      "home": "SD",
+      "away_ml": 104,
+      "home_ml": -126,
+      "away_implied": 49.0,
+      "home_implied": 55.8,
+      "total_line": 7.5,
+      "total_over_odds": -114,
+      "total_under_odds": -105,
+      "bookmaker": "DraftKings"
+    },
+    "HOU@OAK": {
+      "away": "HOU",
+      "home": "OAK",
+      "away_ml": -161,
+      "home_ml": 133,
+      "away_implied": 61.7,
+      "home_implied": 42.9,
+      "total_line": 10.0,
+      "total_over_odds": -103,
+      "total_under_odds": -117,
+      "bookmaker": "DraftKings"
+    },
+    "LAA@SEA": {
+      "away": "LAA",
+      "home": "SEA",
+      "away_ml": 134,
+      "home_ml": -162,
+      "away_implied": 42.7,
+      "home_implied": 61.8,
+      "total_line": 7.0,
+      "total_over_odds": -119,
+      "total_under_odds": -101,
+      "bookmaker": "DraftKings"
+    }
+  }
+}
