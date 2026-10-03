@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-03",
+  "fetched_at": "2026-10-03T19:20:46.017631",
+  "odds": {
+    "CHW@CLE": {
+      "away": "CHW",
+      "home": "CLE",
+      "away_ml": null,
+      "home_ml": 640,
+      "away_implied": null,
+      "home_implied": 13.5,
+      "total_line": null,
+      "total_over_odds": null,
+      "total_under_odds": null,
+      "bookmaker": "DraftKings"
+    },
+    "ATL@LAD": {
+      "away": "ATL",
+      "home": "LAD",
+      "away_ml": 173,
+      "home_ml": -212,
+      "away_implied": 36.6,
+      "home_implied": 67.9,
+      "total_line": 8.5,
+      "total_over_odds": -103,
+      "total_under_odds": -117,
+      "bookmaker": "DraftKings"
+    },
+    "NYY@TB": {
+      "away": "NYY",
+      "home": "TB",
+      "away_ml": 112,
+      "home_ml": -135,
+      "away_implied": 47.2,
+      "home_implied": 57.4,
+      "total_line": 7.0,
+      "total_over_odds": -105,
+      "total_under_odds": -114,
+      "bookmaker": "DraftKings"
+    },
+    "SD@MIL": {
+      "away": "SD",
+      "home": "MIL",
+      "away_ml": 171,
+      "home_ml": -209,
+      "away_implied": 36.9,
+      "home_implied": 67.6,
+      "total_line": 7.0,
+      "total_over_odds": -105,
+      "total_under_odds": -115,
+      "bookmaker": "DraftKings"
+    }
+  }
+}
