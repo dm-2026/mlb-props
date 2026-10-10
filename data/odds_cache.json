@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-10",
+  "fetched_at": "2026-10-10T20:14:44.764931",
+  "odds": {
+    "CHW@CLE": {
+      "away": "CHW",
+      "home": "CLE",
+      "away_ml": 119,
+      "home_ml": -143,
+      "away_implied": 45.7,
+      "home_implied": 58.8,
+      "total_line": 7.5,
+      "total_over_odds": 101,
+      "total_under_odds": -121,
+      "bookmaker": "DraftKings"
+    },
+    "LAD@MIL": {
+      "away": "LAD",
+      "home": "MIL",
+      "away_ml": -107,
+      "home_ml": -113,
+      "away_implied": 51.7,
+      "home_implied": 53.1,
+      "total_line": 6.0,
+      "total_over_odds": -112,
+      "total_under_odds": -108,
+      "bookmaker": "DraftKings"
+    }
+  }
+}
