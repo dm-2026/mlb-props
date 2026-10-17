@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-17",
+  "fetched_at": "2026-10-17T18:41:55.814353",
+  "odds": {
+    "TB@CLE": {
+      "away": "TB",
+      "home": "CLE",
+      "away_ml": -112,
+      "home_ml": -107,
+      "away_implied": 52.8,
+      "home_implied": 51.7,
+      "total_line": 6.5,
+      "total_over_odds": -112,
+      "total_under_odds": -108,
+      "bookmaker": "DraftKings"
+    }
+  }
+}
