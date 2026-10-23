@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-23",
+  "fetched_at": "2026-10-23T20:01:51.126377",
+  "odds": {
+    "TB@MIL": {
+      "away": "TB",
+      "home": "MIL",
+      "away_ml": 159,
+      "home_ml": -193,
+      "away_implied": 38.6,
+      "home_implied": 65.9,
+      "total_line": 6.5,
+      "total_over_odds": -115,
+      "total_under_odds": -105,
+      "bookmaker": "DraftKings"
+    }
+  }
+}
