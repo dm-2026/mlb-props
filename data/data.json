@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-31T17:30:49.565668",
+  "date": "2026-10-31",
+  "pybaseball_live": true,
+  "games": [],
+  "targets": [],
+  "laser_targets": [],
+  "k_targets": [],
+  "d2_targets": [],
+  "tb_targets": [],
+  "game_lines": [],
+  "auto_fades": [],
+  "summary": {
+    "total_games": 0,
+    "prime_count": 0,
+    "high_count": 0,
+    "med_count": 0,
+    "low_count": 0,
+    "fade_count": 0,
+    "k_high_05": 0,
+    "k_med_05": 0,
+    "k_high_15": 0,
+    "d2_prime": 0,
+    "d2_high": 0,
+    "tb_high_1": 0,
+    "tb_high_2": 0
+  }
+}
